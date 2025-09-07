@@ -1,0 +1,22 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "./",
+    "outDir": "./out-tsc/app",
+    "strict": false,
+    "strictNullChecks": false,
+    "declaration": false,
+    "moduleResolution": "node",
+    "target": "ES2020",
+    "module": "ES2020",
+    "noEmit": false,
+    "types": []
+  },
+  "files": [
+    "src/main.ts",
+    "src/polyfills.ts"
+  ],
+  "include": [
+    "src/**/*.d.ts"
+  ]
+}

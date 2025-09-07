@@ -1,0 +1,55 @@
+<!-- Calendar -->
+<div class="calendar">
+  
+  <!-- Calendar Header -->
+  <div class="calendar-header">
+    <button mat-icon-button class="nav-btn" (click)="previousMonth()" matTooltip="Previous Month">
+      <mat-icon>chevron_left</mat-icon>
+    </button>
+    
+    <div class="month-year">
+      <span class="month-text">{{ getMonthYear() }}</span>
+    </div>
+    
+    <button mat-icon-button class="nav-btn" (click)="nextMonth()" matTooltip="Next Month">
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+  </div>
+
+
+  <!-- Week Days Header -->
+  <div class="weekdays-header">
+    <div class="weekday" *ngFor="let day of weekDays">
+      {{ day }}
+    </div>
+  </div>
+
+  <!-- Calendar Grid -->
+  <div class="calendar-grid">
+    <div 
+      *ngFor="let day of calendarDays" 
+      [class]="getDayClass(day)"
+      (click)="selectDate(day)"
+      [matTooltip]="day.date.format('dddd, MMMM Do YYYY')"
+    >
+      <span class="day-number">{{ day.date.date() }}</span>
+      <div class="day-indicator" *ngIf="day.isToday || day.isSelected">
+        <div class="indicator-dot"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Calendar Footer -->
+  <div class="calendar-footer">
+    <div class="selected-date" *ngIf="selectedDate">
+      <div class="date-info">
+        <mat-icon>event</mat-icon>
+        <span>{{ selectedDate | date:'fullDate' | uppercase }}</span>
+      </div>
+      <button mat-icon-button class="today-btn-footer" (click)="goToToday()" matTooltip="Go to Today">
+        <mat-icon>today</mat-icon>
+      </button>
+    </div>
+  </div>
+
+</div>

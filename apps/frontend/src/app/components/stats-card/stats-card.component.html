@@ -1,0 +1,14 @@
+<mat-card class="stats-card animated-card glass-card" [ngClass]="type">
+  <mat-card-content>
+    <div class="card-content">
+      <div class="icon-section">
+        <mat-icon class="card-icon">{{ icon }}</mat-icon>
+      </div>
+      <div class="text-section">
+        <h3 class="card-title">{{ title }}</h3>
+        <p class="card-value">{{ value }}</p>
+        <p class="card-description" *ngIf="description">{{ description }}</p>
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>

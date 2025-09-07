@@ -1,0 +1,87 @@
+<div class="cyberpunk-container">
+  <!-- Compact Header -->
+  <div class="cp-header-compact">
+    <div class="header-left">
+      <div class="cp-levels-compact">
+        <span class="cp-level">{{ getEmployeeCode() }} <span class="cp-label">{{ getEmployeeCodeLabel() }}</span></span>
+        <span class="cp-level">{{ getEmployeeRank() }} <span class="cp-label">{{ getEmployeeRankLabel() }}</span></span>
+      </div>
+      <div class="cp-title-compact">{{ title }}</div>
+    </div>
+    <div class="header-center">
+      <!-- Header center content removed - date selector moved to left panel -->
+    </div>
+    <div class="header-right">
+      <div class="cp-stats-compact">
+        <span class="stat-item">⚖ {{ getCurrentWeight() }}</span>
+        <span class="stat-item">↯ {{ getCurrentCurrency() }}</span>
+        <span class="stat-item time-stat"><mat-icon class="stat-icon">access_time</mat-icon> {{ getCurrentTime() }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Three-Column Grid Layout -->
+  <div class="main-grid-three">
+    <!-- Left Panel: Auth + Date Selector -->
+    <div class="left-panel-narrow">
+      <!-- Compact Auth -->
+      <div class="cp-card auth-compact">
+        <div class="auth-header-compact">
+          <mat-icon class="auth-icon-small">security</mat-icon>
+          <span class="auth-title-small">AUTH</span>
+          <div class="auth-status-compact" [ngClass]="getAuthStatusClass()">
+            <span class="status-dot-small"></span>
+            <span class="status-text-small">{{ getAuthStatusText() }}</span>
+          </div>
+        </div>
+        <app-login-form (cookieRefreshed)="onCookieRefreshed()"></app-login-form>
+      </div>
+
+      <!-- Cyberpunk Calendar -->
+      <div class="cp-card calendar-container-compact">
+                  <div class="calendar-header-compact">
+            <!-- Clickable TARGET DATE heading -->
+            <div *ngIf="!isDateInputMode" 
+                 class="target-date-heading" 
+                 (click)="enableDateInputMode()">
+              TARGET DATE
+            </div>
+            
+            <!-- Date input field (shown when heading is clicked) -->
+            <mat-form-field *ngIf="isDateInputMode" class="date-input-field" appearance="outline">
+              <input matInput 
+                     #dateInput
+                     placeholder="DD/MM/YYYY" 
+                     [(ngModel)]="dateInputValue"
+                     (keyup.enter)="onDateInputSubmit()"
+                     (keyup.escape)="cancelDateInputMode()"
+                     (blur)="onDateInputSubmit()"
+                     (input)="onDateInputChange($event)"
+                     maxlength="10"
+                     class="date-input">
+            </mat-form-field>
+          </div>
+        <app-calendar 
+          [selectedDate]="selectedDate" 
+          [selectionMode]="selectionMode"
+          (dateSelected)="onDateChanged($event)">
+        </app-calendar>
+      </div>
+    </div>
+
+    <!-- Center Panel: Work Hours -->
+    <div class="center-panel">
+      <app-work-hours [selectedDate]="selectedDate" [selectionMode]="selectionMode"></app-work-hours>
+    </div>
+
+    <!-- Right Panel: Swipe Data Accordions -->
+    <div class="right-panel-extra">
+      <app-swipe-data [selectedDate]="selectedDate" (selectionModeChanged)="onSelectionModeChanged($event)"></app-swipe-data>
+    </div>
+  </div>
+
+  <!-- Compact Footer -->
+  <div class="cp-footer-compact">
+    WORKSPAN NEURAL INTERFACE • BUILD {{ getBuildNumber() }}
+  </div>
+</div>

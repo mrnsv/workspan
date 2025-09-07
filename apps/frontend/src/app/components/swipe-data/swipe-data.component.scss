@@ -1,0 +1,705 @@
+/* Right Panel Swipe Data Component */
+
+.compact-swipe-data {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Time Period Switcher - Compact Calendar-Style Design */
+.time-period-switcher {
+  flex-shrink: 0;
+  margin-bottom: 0.5rem; /* Reduced from 1rem */
+  margin-top: 0.25rem; /* Add top margin to prevent hover cutoff */
+  padding: 0.5rem 0 !important; /* Vertical padding only, horizontal handled by header */
+  background: transparent !important; /* Match calendar style */
+  border: 1px solid var(--cp-border) !important;
+  border-radius: 3px !important; /* Match calendar header */
+  backdrop-filter: none; /* Remove blur for cleaner look */
+  transition: all 0.3s ease;
+  overflow: visible !important; /* Prevent hover cutoff */
+
+  &:hover {
+    border-color: var(--cp-accent) !important;
+    background: rgba(72, 230, 255, 0.05) !important; /* Subtle accent background */
+    box-shadow: 0 1px 4px rgba(72, 230, 255, 0.2) !important;
+  }
+}
+
+.switcher-header {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.6rem; /* Match panel title gap */
+  margin-bottom: 0.4rem; /* Reduced margin */
+  padding: 0 1rem; /* Match panel header horizontal padding */
+  white-space: nowrap !important; /* Match panel title */
+  flex-wrap: nowrap !important; /* Match panel title */
+  overflow: hidden !important; /* Match panel title */
+  flex-shrink: 0 !important; /* Match panel title */
+  
+  .switcher-icon {
+    color: var(--cp-accent) !important; /* Match panel icon */
+    font-size: 1rem !important; /* Match panel icon size */
+    width: 1rem !important; /* Match panel icon */
+    height: 1rem !important; /* Match panel icon */
+    flex-shrink: 0 !important; /* Match panel icon */
+  }
+  
+  .switcher-title {
+    color: var(--cp-accent) !important; /* Match panel title */
+    font-size: 0.8rem !important; /* Match panel title size */
+    font-weight: 700 !important; /* Match panel title weight */
+    letter-spacing: 1px !important; /* Match panel title spacing */
+    text-transform: uppercase !important; /* Match panel title */
+    white-space: nowrap !important; /* Match panel title */
+    flex-wrap: nowrap !important; /* Match panel title */
+    overflow: hidden !important; /* Match panel title */
+    flex-shrink: 0 !important; /* Match panel title */
+  }
+}
+
+.period-toggle-group {
+  width: 100%;
+  display: grid; /* Use grid like calendar */
+  grid-template-columns: repeat(3, 1fr); /* 3 equal columns */
+  gap: 0.25px; /* Reduced gap for better fit */
+  border: none; /* Remove outer border */
+  border-radius: 0;
+  background: transparent;
+  overflow: visible !important; /* Prevent hover cutoff */
+  padding: 0 1rem; /* Match panel header horizontal padding */
+  
+  .period-toggle {
+    position: relative;
+    aspect-ratio: 2/1; /* More compact ratio for better fit */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: rgba(0, 0, 0, 0.3) !important; /* Match calendar day background */
+    border: 1px solid var(--cp-border) !important;
+    border-radius: 2px !important; /* Match calendar day radius */
+    color: var(--cp-primary) !important; /* Match calendar day text */
+    font-size: 0.6rem !important; /* Smaller text */
+    font-weight: 600 !important; /* Match calendar day weight */
+    letter-spacing: 0.3px !important;
+    padding: 0 !important; /* Padding handled by button element */
+    min-height: 36px !important; /* Increased height for larger icons */
+    max-width: 100% !important; /* Ensure buttons don't exceed container */
+    transition: all 0.3s ease !important;
+    cursor: pointer !important;
+    overflow: visible !important; /* Prevent hover cutoff */
+    
+    &:hover {
+      background: rgba(72, 230, 255, 0.1) !important; /* Match calendar hover */
+      border-color: var(--cp-accent) !important;
+      transform: scale(1.02) !important; /* Subtle scale like calendar */
+      box-shadow: 0 1px 4px rgba(72, 230, 255, 0.3) !important;
+      color: var(--cp-accent) !important;
+      
+      mat-icon {
+        color: var(--cp-accent) !important;
+      }
+    }
+    
+    &.mat-button-toggle-checked {
+      background: var(--cp-primary) !important; /* Match calendar selected */
+      border: 2px solid var(--cp-primary) !important;
+      box-shadow: 0 0 15px rgba(121, 255, 232, 0.4) !important; /* Match calendar selected glow */
+      color: var(--cp-bg-primary) !important; /* Dark text on bright background */
+      font-weight: 700 !important;
+      
+      mat-icon {
+        color: var(--cp-bg-primary) !important;
+      }
+      
+      span {
+        color: var(--cp-bg-primary) !important;
+        font-weight: 700 !important;
+      }
+    }
+    
+    mat-icon {
+      font-size: 1rem !important; /* Match panel icon size */
+      width: 1rem !important; /* Match panel icon */
+      height: 1rem !important; /* Match panel icon */
+      line-height: 1 !important; /* Proper line height */
+      margin-right: 0.1rem !important; /* Reduced margin for compact fit */
+      color: inherit !important;
+      display: flex !important; /* Flex for better alignment */
+      align-items: center !important; /* Center vertically */
+      justify-content: center !important; /* Center horizontally */
+      flex-shrink: 0 !important; /* Prevent shrinking */
+      vertical-align: middle !important; /* Fallback alignment */
+    }
+    
+    span {
+      font-size: 0.8rem !important; /* Keep original size as requested */
+      font-weight: inherit !important;
+      letter-spacing: 0.5px !important; /* Reduced spacing for compact fit */
+      text-transform: uppercase;
+    }
+    
+    .mat-button-toggle-label-content {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 0.1rem !important; /* More compact gap */
+      line-height: 1 !important;
+      overflow: visible !important; /* Prevent content cutoff */
+      padding: 0 !important; /* Remove padding to let parent handle it */
+      width: 100% !important; /* Ensure full width */
+      box-sizing: border-box !important; /* Include padding in width calculation */
+    }
+  }
+}
+
+/* Override Angular Material button toggle styles */
+::ng-deep .period-toggle-group {
+  .mat-button-toggle {
+    border: none !important;
+    
+    &:not(:first-child) {
+      border-left: none !important;
+    }
+    
+    .mat-button-toggle-button {
+      border: none !important;
+      padding: 0.25rem 0.15rem !important; /* Equal padding on all sides */
+      overflow: visible !important;
+      width: 100% !important;
+      height: 100% !important;
+      box-sizing: border-box !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    
+    .mat-button-toggle-label-content {
+      padding: 0 !important; /* Remove any default padding */
+      margin: 0 !important; /* Remove any default margin */
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+      
+      mat-icon {
+        font-size: 1rem !important;
+        width: 1rem !important;
+        height: 1rem !important;
+        line-height: 1 !important;
+        margin-right: 0.1rem !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex-shrink: 0 !important;
+        vertical-align: middle !important;
+      }
+    }
+    
+    .mat-button-toggle-ripple {
+      border-radius: 2px !important;
+    }
+  }
+}
+
+/* Header Compact */
+.data-header-button {
+  flex-shrink: 0;
+  margin-bottom: 1rem;
+  margin-top: 0.25rem; /* Prevent hover cutoff at top */
+  width: 100%;
+  background: var(--cp-glass) !important;
+  border: 1px solid var(--cp-border) !important;
+  border-radius: 6px !important;
+  backdrop-filter: blur(4px);
+  transition: all 0.3s ease !important;
+  padding: 0.75rem 1rem !important; /* Match accordion header padding */
+  min-height: 48px !important; /* Match accordion header height */
+  text-align: left !important;
+  
+  &:hover {
+    border-color: var(--cp-accent) !important;
+    background: rgba(255, 92, 92, 0.1) !important;
+    box-shadow: 0 4px 15px rgba(255, 92, 92, 0.2) !important;
+    transform: translateY(-0.5px);
+  }
+  
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(255, 92, 92, 0.3) !important;
+  }
+}
+
+.header-button-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  min-height: 1.5rem; /* Ensure consistent height */
+  gap: 1rem; /* Add gap between left and right content */
+}
+
+.header-info-compact {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-icon-compact {
+  color: var(--cp-accent);
+  font-size: 1.2rem;
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.header-title-compact {
+  color: var(--cp-accent);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.refresh-icon-inline {
+  color: var(--cp-primary);
+  font-size: 1.2rem; /* Match header-icon-compact size */
+  width: 1.2rem;
+  height: 1.2rem;
+  opacity: 0.7;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0; /* Prevent icon from shrinking */
+}
+
+.data-header-button:hover .refresh-icon-inline {
+  color: var(--cp-accent);
+  opacity: 1;
+  transform: rotate(180deg);
+}
+
+
+/* Data Content */
+.data-content-compact {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Accordion Compact */
+.accordion-compact {
+  .mat-expansion-panel {
+    background: var(--cp-glass) !important;
+    color: var(--cp-primary) !important;
+    border: 1px solid var(--cp-border) !important;
+    border-radius: 6px !important;
+    margin-bottom: 0.75rem !important;
+    backdrop-filter: blur(4px) !important;
+    overflow: hidden;
+  }
+  
+  .mat-expansion-panel:hover {
+    border-color: var(--cp-accent) !important;
+    box-shadow: 0 4px 15px rgba(255, 92, 92, 0.2) !important;
+  }
+  
+  .mat-expansion-panel-header {
+    background: rgba(128, 0, 0, 0.3) !important;
+    color: var(--cp-primary) !important;
+    font-family: 'Orbitron', monospace !important;
+    border-bottom: 1px solid var(--cp-border) !important;
+    padding: 0.75rem 1rem !important;
+    height: 48px !important; /* Fixed height instead of min-height */
+    min-height: 48px !important; /* Keep as fallback */
+    max-height: 48px !important; /* Prevent growing */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important; /* Changed to flex-start since description is absolutely positioned */
+    position: relative !important; /* Required for absolute positioning of descriptions */
+    flex-shrink: 0 !important; /* Prevent shrinking */
+  }
+  
+  .mat-expansion-panel-header:hover {
+    background: rgba(128, 0, 0, 0.5) !important;
+  }
+  
+  .panel-title-compact {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.6rem;
+    color: var(--cp-accent) !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    font-size: 0.8rem !important;
+    white-space: nowrap !important; /* Prevent text wrapping */
+    flex-wrap: nowrap !important; /* Prevent flex items from wrapping */
+    overflow: hidden !important; /* Prevent content overflow */
+    flex-shrink: 0 !important; /* Prevent shrinking */
+  }
+  
+  .panel-icon-compact {
+    color: var(--cp-accent) !important;
+    font-size: 1rem !important;
+    width: 1rem !important;
+    height: 1rem !important;
+    flex-shrink: 0 !important; /* Prevent icon from shrinking */
+  }
+
+  /* Angular Material override to ensure title content stays on same line */
+  ::ng-deep .panel-title-compact.mat-expansion-panel-header-title {
+    display: flex !important;
+    align-items: center !important;
+    white-space: nowrap !important;
+    flex-wrap: nowrap !important;
+    overflow: hidden !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Ensure expansion panel headers have fixed height */
+  ::ng-deep .mat-expansion-panel-header {
+    height: 48px !important;
+    min-height: 48px !important;
+    max-height: 48px !important;
+    flex-shrink: 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* Override for Angular Material expansion panel header content */
+  ::ng-deep .raw-panel-compact .mat-expansion-panel-header-title {
+    display: flex !important;
+    align-items: center !important;
+    white-space: nowrap !important;
+    flex-wrap: nowrap !important;
+  }
+
+  /* Ensure panel descriptions are perfectly aligned in parallel */
+  ::ng-deep .panel-desc-compact.mat-expansion-panel-header-description {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 2.5rem !important; /* Fixed width for consistent alignment */
+    text-align: center !important;
+    position: absolute !important; /* Absolute positioning for perfect alignment */
+    right: 1rem !important; /* Fixed distance from right edge */
+    top: 50% !important; /* Vertical center */
+    transform: translateY(-50%) !important; /* Perfect vertical centering */
+  }
+  
+  .panel-desc-compact {
+    color: var(--cp-primary) !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    opacity: 0.8 !important;
+    font-size: 0.8rem !important; /* Increased to match panel title size */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 2rem !important; /* Ensure consistent width for alignment */
+    text-align: center !important;
+  }
+  
+  .mat-expansion-panel-body {
+    padding: 0 !important;
+  }
+}
+
+/* Session List Compact */
+.session-list-compact {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.session-item-compact {
+  background: rgba(128, 0, 0, 0.05);
+  border: 1px solid var(--cp-border);
+  border-radius: 4px;
+  padding: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.session-item-compact:hover {
+  border-color: var(--cp-accent);
+  background: rgba(72, 230, 255, 0.05);
+}
+
+.session-item-compact.active {
+  border-color: var(--cp-success);
+  background: rgba(0, 255, 65, 0.05);
+}
+
+.session-header-compact {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.session-num-compact {
+  color: var(--cp-accent);
+  font-size: 1rem;
+  font-weight: 700;
+  background: rgba(72, 230, 255, 0.1);
+  padding: 0.25rem 0.5rem;
+  border-radius: 3px;
+  min-width: 2rem;
+  text-align: center;
+}
+
+.session-duration-compact {
+  color: var(--cp-accent);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.session-times-compact {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.time-entry-compact {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.time-icon-compact {
+  font-size: 0.9rem;
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.time-entry-compact.in .time-icon-compact {
+  color: var(--cp-success);
+}
+
+.time-entry-compact.out .time-icon-compact {
+  color: var(--cp-secondary);
+}
+
+.time-text-compact {
+  color: var(--cp-primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: 'Orbitron', monospace;
+}
+
+.time-separator-compact {
+  color: var(--cp-accent);
+  font-weight: 700;
+  opacity: 0.6;
+}
+
+/* Raw List Compact */
+.raw-list-compact {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.raw-item-compact {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border: 1px solid rgba(255, 92, 92, 0.2);
+  border-radius: 3px;
+  background: rgba(128, 0, 0, 0.02);
+  transition: all 0.3s ease;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.7rem;
+}
+
+.raw-item-compact:hover {
+  border-color: var(--cp-accent);
+  background: rgba(72, 230, 255, 0.05);
+}
+
+.raw-item-compact.in-entry {
+  border-left: 3px solid var(--cp-success);
+}
+
+.raw-item-compact.out-entry {
+  border-left: 3px solid var(--cp-secondary);
+}
+
+.raw-index-compact {
+  color: var(--cp-primary);
+  font-weight: 600;
+  opacity: 0.6;
+  min-width: 1.5rem;
+  text-align: center;
+}
+
+.raw-type-compact {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 3rem;
+}
+
+.raw-icon-compact {
+  font-size: 0.8rem;
+  width: 0.8rem;
+  height: 0.8rem;
+}
+
+.raw-item-compact.in-entry .raw-icon-compact {
+  color: var(--cp-success);
+}
+
+.raw-item-compact.out-entry .raw-icon-compact {
+  color: var(--cp-secondary);
+}
+
+.raw-label-compact {
+  color: var(--cp-accent);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.6rem;
+}
+
+.raw-time-compact {
+  color: var(--cp-primary);
+  font-weight: 600;
+  flex: 1;
+}
+
+/* No Data States */
+.no-data-compact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.no-data-icon-compact {
+  color: var(--cp-secondary);
+  font-size: 2rem;
+  width: 2rem;
+  height: 2rem;
+  opacity: 0.6;
+}
+
+.no-data-text-compact {
+  color: var(--cp-primary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.8;
+  font-size: 0.7rem;
+}
+
+/* Error Compact */
+.error-compact {
+  border-color: var(--cp-secondary) !important;
+  padding: 1rem;
+}
+
+.error-content-compact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+}
+
+.error-icon-compact {
+  color: var(--cp-secondary);
+  font-size: 2rem;
+  width: 2rem;
+  height: 2rem;
+}
+
+.error-text-compact {
+  color: var(--cp-secondary);
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.retry-btn-compact {
+  background: var(--cp-glass) !important;
+  border: 1px solid var(--cp-border-accent) !important;
+  color: var(--cp-primary) !important;
+  font-family: 'Orbitron', monospace !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  font-size: 0.7rem !important;
+  padding: 0.5rem 1rem !important;
+  min-height: 36px !important;
+}
+
+.retry-btn-compact:hover {
+  background: var(--cp-glass-hover) !important;
+  box-shadow: 0 0 10px rgba(72, 230, 255, 0.4) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Scrollbar Styling */
+.session-list-compact::-webkit-scrollbar,
+.raw-list-compact::-webkit-scrollbar,
+.data-content-compact::-webkit-scrollbar {
+  width: 4px;
+}
+
+.session-list-compact::-webkit-scrollbar-track,
+.raw-list-compact::-webkit-scrollbar-track,
+.data-content-compact::-webkit-scrollbar-track {
+  background: var(--cp-bg-secondary);
+}
+
+.session-list-compact::-webkit-scrollbar-thumb,
+.raw-list-compact::-webkit-scrollbar-thumb,
+.data-content-compact::-webkit-scrollbar-thumb {
+  background: var(--cp-secondary);
+  border-radius: 2px;
+}
+
+.session-list-compact::-webkit-scrollbar-thumb:hover,
+.raw-list-compact::-webkit-scrollbar-thumb:hover,
+.data-content-compact::-webkit-scrollbar-thumb:hover {
+  background: var(--cp-accent);
+}
+
+/* Responsive Design */
+@media (max-width: 400px) {
+  .session-header-compact {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+  
+  .session-times-compact {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  
+  .time-separator-compact {
+    transform: rotate(90deg);
+  }
+  
+  .raw-item-compact {
+    flex-direction: column;
+    gap: 0.25rem;
+    text-align: center;
+  }
+}

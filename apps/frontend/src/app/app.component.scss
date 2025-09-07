@@ -1,0 +1,634 @@
+/* Compact Cyberpunk App Layout for 1440x900 */
+
+.cyberpunk-container {
+  height: 100vh;
+  background: linear-gradient(to bottom, #190b0f, #0f0b0d, #071216);
+  color: var(--cp-primary);
+  font-family: 'Orbitron', monospace;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Compact Header - Fixed height */
+.cp-header-compact {
+  height: 60px;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--cp-border);
+  background: linear-gradient(90deg, var(--cp-bg-primary), var(--cp-bg-secondary));
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.cp-header-compact::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(to right, rgba(255, 0, 0, 0.7), rgba(255, 128, 128, 0.4), rgba(255, 0, 0, 0.7));
+  opacity: 0.9;
+}
+
+.header-left,
+.header-center,
+.header-right {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.header-center {
+  justify-content: center;
+  
+  /* Hide when empty or minimal content */
+  &:empty,
+  &:has(> :empty) {
+    display: none;
+  }
+}
+
+.header-right {
+  justify-content: flex-end;
+}
+
+/* Compact Levels */
+.cp-levels-compact {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.cp-level {
+  color: var(--cp-accent);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.cp-label {
+  margin-left: 0.25rem;
+  color: var(--cp-secondary);
+  font-weight: 400;
+  font-size: 0.7rem;
+}
+
+/* Compact Title */
+.cp-title-compact {
+  font-size: 1rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--cp-primary);
+  text-shadow: 0 0 8px rgba(121, 255, 232, 0.5);
+  margin-left: 1rem;
+}
+
+/* Removed old date input styles - now using cyberpunk calendar component */
+
+/* Compact Stats */
+.cp-stats-compact {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: var(--cp-secondary);
+  font-weight: 600;
+}
+
+.stat-item {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid rgba(255, 92, 92, 0.3);
+  border-radius: 3px;
+  background: rgba(128, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  font-size: 0.7rem;
+  min-width: 4.5rem; /* Fixed width to prevent growing/shrinking */
+  text-align: center; /* Center align text for consistent appearance */
+  display: inline-block; /* Ensure proper width behavior */
+}
+
+.stat-item:hover {
+  border-color: var(--cp-accent);
+  background: rgba(72, 230, 255, 0.1);
+  color: var(--cp-accent);
+}
+
+.stat-icon {
+  font-size: 0.8rem !important;
+  width: 0.8rem !important;
+  height: 0.8rem !important;
+  margin-right: 0.25rem;
+  vertical-align: middle;
+  color: rgb(255, 92, 92); /* Red to match stat item theme */
+  transition: all 0.3s ease;
+}
+
+.time-stat {
+  min-width: 8.5rem !important; /* Significantly increased width for optimal visibility */
+  width: 8.5rem !important; /* Force exact width to prevent any changes */
+  text-align: center !important;
+  display: inline-block !important;
+  white-space: nowrap !important; /* Prevent text wrapping */
+  overflow: hidden !important; /* Hide overflow if any */
+  box-sizing: border-box !important; /* Include padding in width calculation */
+}
+
+.time-stat:hover .stat-icon {
+  color: var(--cp-accent) !important; /* Turn blue on hover like other stat-items */
+}
+
+/* Main Three-Column Grid Layout */
+.main-grid-three {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 380px 1fr 380px;
+  gap: 1rem;
+  padding: 1rem;
+  overflow: hidden;
+}
+
+/* Left Panel Narrow */
+.left-panel-narrow {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow-y: auto;
+  padding: 0.25rem 0; /* Add top/bottom padding for hover effects */
+}
+
+/* Center Panel */
+.center-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow-y: auto;
+  padding: 0.25rem 1rem; /* Add top/bottom padding for hover effects */
+}
+
+
+/* Compact Auth Card */
+.auth-compact {
+  background: var(--cp-glass);
+  border: 1px solid var(--cp-border);
+  border-radius: 6px;
+  backdrop-filter: blur(4px);
+  transition: all 0.3s ease;
+  margin-top: 0.25rem; /* Prevent hover cutoff at top */
+  padding: 0.5rem; /* Decreased padding from default */
+}
+
+.auth-compact:hover {
+  border-color: var(--cp-accent);
+  box-shadow: 0 4px 15px rgba(255, 92, 92, 0.2);
+}
+
+/* Calendar Container Card */
+.calendar-container-compact {
+  background: var(--cp-glass);
+  border: 1px solid var(--cp-border);
+  border-radius: 6px;
+  backdrop-filter: blur(4px);
+  transition: all 0.3s ease;
+  margin-top: 0.25rem;
+  overflow: hidden;
+}
+
+.calendar-container-compact:hover {
+  border-color: var(--cp-accent);
+  box-shadow: 0 4px 15px rgba(72, 230, 255, 0.2);
+}
+
+.calendar-header-compact {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid var(--cp-border);
+  margin-bottom: 0;
+  min-height: 40px;
+}
+
+.target-date-heading {
+  color: var(--cp-accent);
+  font-weight: 700;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-family: 'Orbitron', monospace;
+  cursor: pointer;
+  padding: 0.3rem 0.5rem;
+  width: 100%;
+  text-align: center;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    text-shadow: 0 0 8px rgba(72, 230, 255, 0.8);
+    transform: translateY(-1px);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+/* Date Input Field Styling */
+.date-input-field {
+  width: 100%;
+  
+  ::ng-deep .mat-mdc-form-field-wrapper {
+    padding-bottom: 0;
+  }
+  
+  ::ng-deep .mat-mdc-text-field-wrapper {
+    background: transparent;
+    border: 1px solid var(--cp-border);
+    border-radius: 4px;
+    height: 36px;
+    padding: 0 0.5rem;
+    
+    &:hover {
+      border-color: var(--cp-accent);
+      background: rgba(72, 230, 255, 0.05);
+    }
+    
+    &.mdc-text-field--focused {
+      border-color: var(--cp-accent);
+      background: rgba(72, 230, 255, 0.1);
+      box-shadow: 0 0 8px rgba(72, 230, 255, 0.3);
+    }
+  }
+  
+  ::ng-deep .mat-mdc-form-field-outline {
+    display: none;
+  }
+  
+  ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+    display: none;
+  }
+  
+  .date-input {
+    color: var(--cp-accent);
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    text-align: center;
+    background: transparent;
+    border: none;
+    outline: none;
+    width: 100%;
+    height: 100%;
+    
+    &::placeholder {
+      color: var(--cp-secondary);
+      opacity: 0.7;
+      font-size: 0.9rem;
+    }
+    
+    &:focus {
+      color: var(--cp-accent);
+      text-shadow: 0 0 6px rgba(72, 230, 255, 0.6);
+    }
+  }
+}
+
+/* Calendar component wrapper */
+.calendar-container-compact app-calendar {
+  display: block;
+  padding: 0;
+}
+
+.calendar-container-compact {
+  padding: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.auth-header-compact {
+  background: rgba(128, 0, 0, 0.3);
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--cp-border);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+  margin-bottom: 0.75rem; /* Match spacing between USER ID and UPDATE button */
+}
+
+.auth-icon-small {
+  color: var(--cp-accent);
+  font-size: 1.2rem;
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.auth-title-small {
+  color: var(--cp-accent);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  flex: 1;
+}
+
+.auth-status-compact {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.status-dot-small {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--cp-secondary);
+  transition: all 0.3s ease;
+}
+
+.auth-status-compact.ready .status-dot-small {
+  background: var(--cp-success);
+  box-shadow: 0 0 6px var(--cp-success);
+}
+
+.auth-status-compact.syncing .status-dot-small {
+  background: var(--cp-accent);
+  box-shadow: 0 0 6px var(--cp-accent);
+  animation: cp-pulse 1s infinite;
+}
+
+.status-text-small {
+  color: var(--cp-primary);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.auth-status-compact.ready .status-text-small {
+  color: var(--cp-success);
+}
+
+.auth-status-compact.syncing .status-text-small {
+  color: var(--cp-accent);
+}
+
+/* Compact Footer */
+.cp-footer-compact {
+  height: 30px;
+  padding: 0.5rem 1rem;
+  border-top: 1px solid var(--cp-border);
+  background: rgba(128, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  color: rgba(255, 92, 92, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  flex-shrink: 0;
+}
+
+/* Right Panel Swipe Data Styling */
+.right-panel-extra {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow-y: auto;
+  padding: 0.25rem 0; /* Add top/bottom padding for hover effects */
+}
+
+/* Scrollbar Styling for Panels */
+.left-panel-narrow::-webkit-scrollbar,
+.center-panel::-webkit-scrollbar,
+.right-panel-extra::-webkit-scrollbar {
+  width: 6px;
+}
+
+.left-panel-narrow::-webkit-scrollbar-track,
+.center-panel::-webkit-scrollbar-track,
+.right-panel-extra::-webkit-scrollbar-track {
+  background: var(--cp-bg-secondary);
+}
+
+.left-panel-narrow::-webkit-scrollbar-thumb,
+.center-panel::-webkit-scrollbar-thumb,
+.right-panel-extra::-webkit-scrollbar-thumb {
+  background: var(--cp-secondary);
+  border-radius: 3px;
+}
+
+.left-panel-narrow::-webkit-scrollbar-thumb:hover,
+.center-panel::-webkit-scrollbar-thumb:hover,
+.right-panel-extra::-webkit-scrollbar-thumb:hover {
+  background: var(--cp-accent);
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 1440px) {
+  .main-grid-three {
+    grid-template-columns: 360px 1fr 360px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .main-grid-three {
+    grid-template-columns: 1fr 360px;
+    grid-template-rows: auto 1fr;
+  }
+  
+  .left-panel-narrow {
+    order: 2;
+  }
+  
+  .center-panel {
+    order: 1;
+  }
+  
+  .right-panel-extra {
+    order: 3;
+  }
+}
+
+@media (max-width: 1000px) {
+  .main-grid-three {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto 1fr;
+  }
+  
+  .left-panel-narrow {
+    order: 2;
+  }
+  
+  .center-panel {
+    order: 1;
+    padding: 0;
+  }
+  
+  .right-panel-extra {
+    display: none;
+  }
+  
+  .cp-header-compact {
+    flex-direction: column;
+    height: auto;
+    padding: 0.5rem;
+    gap: 0.5rem;
+  }
+  
+  .header-left,
+  .header-center,
+  .header-right {
+    justify-content: center;
+  }
+  
+  .cp-title-compact {
+    margin-left: 0;
+    font-size: 0.9rem;
+  }
+  
+  .cp-levels-compact,
+  .cp-stats-compact {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+/* Custom Animations */
+@keyframes cp-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Snackbar Cyberpunk Styling */
+::ng-deep .mat-mdc-snack-bar-container {
+  &.cyberpunk-snackbar {
+    background: rgba(0, 0, 0, 0.85) !important;
+    color: var(--cp-primary) !important;
+    border: 1px solid var(--cp-border-accent) !important;
+    border-radius: 4px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 
+                0 0 10px rgba(121, 255, 232, 0.2) !important;
+    backdrop-filter: blur(10px) !important;
+    font-family: 'Orbitron', monospace !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    margin-bottom: 60px !important; /* Position above footer */
+    margin-right: 20px !important;
+    width: auto !important; /* Dynamic width based on content */
+    max-width: 80vw !important; /* Prevent overflow on small screens */
+    min-width: auto !important; /* Remove fixed minimum */
+    white-space: nowrap !important; /* Prevent text wrapping */
+    padding: 12px 16px !important; /* Comfortable padding around content */
+    display: flex !important;
+    align-items: center !important; /* Vertical center alignment for container */
+    justify-content: center !important; /* Horizontal center alignment for container */
+    
+    .mdc-snackbar__surface {
+      background: transparent !important;
+      color: inherit !important;
+      width: 100% !important;
+      padding: 0 !important; /* Remove default padding */
+      display: flex !important;
+      align-items: center !important; /* Ensure surface is also flex */
+      justify-content: center !important; /* Center content horizontally */
+    }
+    
+    .mat-mdc-snack-bar-label {
+      color: var(--cp-primary) !important;
+      font-family: 'Orbitron', monospace !important;
+      font-weight: 600 !important;
+      font-size: 13px !important;
+      white-space: nowrap !important;
+      overflow: visible !important;
+      padding: 0 !important; /* Remove default padding */
+      margin: 0 !important; /* Remove default margin */
+      width: 100% !important; /* Full width for centering */
+      display: flex !important;
+      align-items: center !important; /* Vertical center alignment */
+      justify-content: center !important; /* Horizontal center alignment */
+      line-height: 1.2 !important; /* Consistent line height */
+      min-height: 20px !important; /* Minimum height for proper alignment */
+    }
+    
+    /* Handle nested snackbar structure */
+    .mat-mdc-simple-snack-bar {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important; /* Center the entire snackbar content */
+      width: 100% !important;
+      
+      .mdc-snackbar__label {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important; /* Center the label content */
+        flex: 1 !important;
+        text-align: center !important; /* Center text within label */
+      }
+      
+      .mdc-snackbar__actions {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important; /* Center the action button */
+        margin-left: 12px !important;
+      }
+    }
+    
+    .mat-mdc-snack-bar-action {
+      color: var(--cp-accent) !important;
+      font-family: 'Orbitron', monospace !important;
+      font-weight: 700 !important;
+      font-size: 16px !important;
+      min-width: 40px !important;
+      width: 40px !important;
+      height: 40px !important;
+      border-radius: 50% !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      margin: 0 0 0 12px !important; /* Only left margin for spacing from text */
+      flex-shrink: 0 !important; /* Don't shrink the button */
+      text-align: center !important; /* Center text within button */
+      
+      .mdc-button__label {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+      
+      &:hover {
+        background: rgba(72, 230, 255, 0.1) !important;
+      }
+    }
+  }
+  
+  &.snackbar-success {
+    border-color: var(--cp-success) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 
+                0 0 10px rgba(0, 255, 65, 0.3) !important;
+  }
+
+  &.snackbar-error {
+    border-color: var(--cp-secondary) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 
+                0 0 10px rgba(255, 92, 92, 0.3) !important;
+  }
+
+  &.snackbar-warn {
+    border-color: var(--cp-warning) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 
+                0 0 10px rgba(255, 255, 0, 0.3) !important;
+  }
+
+  &.snackbar-info {
+    border-color: var(--cp-accent) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 
+                0 0 10px rgba(72, 230, 255, 0.3) !important;
+  }
+}

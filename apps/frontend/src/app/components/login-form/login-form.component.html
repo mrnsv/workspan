@@ -1,0 +1,81 @@
+<form [formGroup]="loginForm" class="compact-auth-form">
+  
+  <!-- Compact Credentials -->
+  <div class="credentials-compact">
+    <!-- Login ID Field -->
+    <mat-form-field appearance="fill" class="compact-input">
+      <mat-label>USER ID</mat-label>
+      <input matInput 
+             type="text" 
+             formControlName="loginId" 
+             placeholder="ID"
+             class="compact-field">
+      <mat-icon matSuffix class="input-icon-small">person</mat-icon>
+      <mat-error *ngIf="loginForm.get('loginId')?.invalid && loginForm.get('loginId')?.touched">
+        {{ getErrorMessage('loginId') }}
+      </mat-error>
+    </mat-form-field>
+
+    <!-- Password Field -->
+    <mat-form-field appearance="fill" class="compact-input">
+      <mat-label>CODE</mat-label>
+      <input matInput 
+             [type]="hidePassword ? 'password' : 'text'" 
+             formControlName="password" 
+             placeholder="CODE"
+             class="compact-field">
+      <button mat-icon-button 
+              matSuffix 
+              type="button"
+              class="visibility-toggle-small"
+              (click)="hidePassword = !hidePassword">
+        <mat-icon class="input-icon-small">{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+      </button>
+      <mat-error *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+        {{ getErrorMessage('password') }}
+      </mat-error>
+    </mat-form-field>
+  </div>
+
+  <!-- Compact Actions with Overlay Status -->
+  <div class="actions-container">
+    <div class="actions-compact">
+      <!-- Primary Auth Button -->
+      <button mat-stroked-button 
+              type="button"
+              class="compact-button secondary"
+              [disabled]="isRefreshing"
+              (click)="onRefreshCookie()"
+              matTooltip="UPDATE & SYNC">
+        <mat-icon *ngIf="!isRefreshing" class="button-icon-small">refresh</mat-icon>
+        <mat-spinner *ngIf="isRefreshing" diameter="14" class="neural-spinner-small"></mat-spinner>
+        <span class="button-text-small">{{ isRefreshing ? 'SYNC...' : 'UPDATE' }}</span>
+      </button>
+
+      <!-- Quick Sync Button -->
+      <button mat-stroked-button 
+              type="button"
+              class="compact-button secondary"
+              [disabled]="isRefreshing"
+              (click)="onQuickRefresh()"
+              matTooltip="QUICK SYNC">
+        <mat-icon *ngIf="!isRefreshing" class="button-icon-small">cached</mat-icon>
+        <mat-spinner *ngIf="isRefreshing" diameter="14" class="neural-spinner-small"></mat-spinner>
+        <span class="button-text-small">QUICK</span>
+      </button>
+    </div>
+
+    <!-- Overlay Status Display -->
+    <div class="status-overlay" *ngIf="isRefreshing">
+      <div class="status-content">
+        <div class="custom-progress-bar">
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill"></div>
+          </div>
+        </div>
+        <span class="status-text-overlay">SYNCING...</span>
+      </div>
+    </div>
+  </div>
+
+</form>

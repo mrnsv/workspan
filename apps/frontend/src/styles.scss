@@ -1,0 +1,652 @@
+/* Cyberpunk 2077 Global Styles */
+@use '@angular/material' as mat;
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+// Define cyberpunk color palette
+$cp-cyan: (
+  50: #e0f7fa,
+  100: #b2ebf2,
+  200: #80deea,
+  300: #4dd0e1,
+  400: #26c6da,
+  500: #79ffe8,
+  600: #48e6ff,
+  700: #0097a7,
+  800: #00838f,
+  900: #006064,
+  contrast: (
+    50: rgba(black, 0.87),
+    100: rgba(black, 0.87),
+    200: rgba(black, 0.87),
+    300: rgba(black, 0.87),
+    400: rgba(black, 0.87),
+    500: rgba(black, 0.87),
+    600: white,
+    700: white,
+    800: white,
+    900: white,
+  )
+);
+
+$cp-red: (
+  50: #ffebee,
+  100: #ffcdd2,
+  200: #ef9a9a,
+  300: #e57373,
+  400: #ef5350,
+  500: #ff5c5c,
+  600: #e53935,
+  700: #d32f2f,
+  800: #c62828,
+  900: #b71c1c,
+  contrast: (
+    50: rgba(black, 0.87),
+    100: rgba(black, 0.87),
+    200: rgba(black, 0.87),
+    300: rgba(black, 0.87),
+    400: rgba(black, 0.87),
+    500: white,
+    600: white,
+    700: white,
+    800: white,
+    900: white,
+  )
+);
+
+// Define cyberpunk theme
+$cyberpunk-primary: mat.define-palette($cp-cyan, 500);
+$cyberpunk-accent: mat.define-palette($cp-red, 500);
+$cyberpunk-warn: mat.define-palette(mat.$red-palette, 500);
+
+$cyberpunk-theme: mat.define-dark-theme((
+  color: (
+    primary: $cyberpunk-primary,
+    accent: $cyberpunk-accent,
+    warn: $cyberpunk-warn,
+  ),
+  typography: mat.define-typography-config(
+    $font-family: 'Orbitron, monospace'
+  ),
+  density: 0,
+));
+
+// Apply the cyberpunk theme
+@include mat.all-component-themes($cyberpunk-theme);
+
+* {
+  box-sizing: border-box;
+}
+
+html, body { 
+  height: 100%; 
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+body { 
+  font-family: 'Orbitron', monospace;
+  background: linear-gradient(to bottom, #190b0f, #0f0b0d, #071216);
+  color: #79ffe8;
+  line-height: 1.4;
+}
+
+/* Cyberpunk Color Palette */
+:root {
+  --cp-primary: #79ffe8;      /* Cyan */
+  --cp-secondary: #ff5c5c;    /* Red */
+  --cp-accent: #48e6ff;       /* Light Blue */
+  --cp-warning: #ffff00;      /* Yellow */
+  --cp-success: #00ff41;      /* Green */
+  --cp-bg-primary: #190b0f;   /* Dark Red */
+  --cp-bg-secondary: #0f0b0d; /* Darker */
+  --cp-bg-tertiary: #071216;  /* Darkest Blue */
+  --cp-border: rgba(255, 0, 0, 0.4);
+  --cp-border-accent: rgba(72, 230, 255, 0.5);
+  --cp-glass: rgba(128, 0, 0, 0.15);
+  --cp-glass-hover: rgba(128, 0, 0, 0.3);
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--cp-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--cp-secondary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cp-accent);
+}
+
+/* Angular Material Overrides - Cyberpunk Theme */
+.mat-toolbar {
+  background: linear-gradient(90deg, var(--cp-bg-primary), var(--cp-bg-secondary)) !important;
+  color: var(--cp-primary) !important;
+  border-bottom: 1px solid var(--cp-border) !important;
+  font-family: 'Orbitron', monospace !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+}
+
+.mat-card {
+  background: var(--cp-glass) !important;
+  color: var(--cp-primary) !important;
+  border: 1px solid var(--cp-border) !important;
+  border-radius: 6px !important;
+  backdrop-filter: blur(4px) !important;
+  transition: all 0.3s ease !important;
+}
+
+.mat-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 25px rgba(255, 92, 92, 0.3) !important;
+  border-color: var(--cp-secondary) !important;
+}
+
+.mat-card-title {
+  color: var(--cp-accent) !important;
+  font-family: 'Orbitron', monospace !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+}
+
+.mat-form-field {
+  font-family: 'Orbitron', monospace !important;
+  
+  .mat-form-field-label {
+    color: var(--cp-accent) !important;
+    font-weight: 600 !important;
+  }
+  
+  .mat-input-element {
+    color: var(--cp-primary) !important;
+    font-family: 'Orbitron', monospace !important;
+  }
+  
+  .mat-form-field-underline {
+    background-color: var(--cp-border) !important;
+  }
+  
+  .mat-form-field-ripple {
+    background-color: var(--cp-accent) !important;
+  }
+  
+  &.mat-focused .mat-form-field-label {
+    color: var(--cp-accent) !important;
+  }
+}
+
+.mat-button, .mat-raised-button, .mat-icon-button, .mat-stroked-button {
+  color: var(--cp-primary) !important;
+  font-family: 'Orbitron', monospace !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  border-radius: 4px !important;
+  transition: all 0.3s ease !important;
+}
+
+.mat-raised-button {
+  background: var(--cp-glass) !important;
+  border: 1px solid var(--cp-border-accent) !important;
+}
+
+.mat-raised-button:hover {
+  background: var(--cp-glass-hover) !important;
+  box-shadow: 0 0 15px rgba(72, 230, 255, 0.4) !important;
+  transform: translateY(-1px) !important;
+}
+
+.mat-stroked-button {
+  border: 1px solid var(--cp-border-accent) !important;
+}
+
+.mat-stroked-button:hover {
+  background: var(--cp-glass) !important;
+  box-shadow: 0 0 10px rgba(72, 230, 255, 0.3) !important;
+}
+
+.mat-expansion-panel {
+  background: var(--cp-glass) !important;
+  color: var(--cp-primary) !important;
+  border: 1px solid var(--cp-border) !important;
+  border-radius: 6px !important;
+  margin-bottom: 8px !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+.mat-expansion-panel-header {
+  color: var(--cp-accent) !important;
+  font-family: 'Orbitron', monospace !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+.mat-expansion-panel-header:hover {
+  background: var(--cp-glass-hover) !important;
+}
+
+.mat-expansion-panel-body {
+  font-family: 'Orbitron', monospace !important;
+}
+
+.mat-progress-bar {
+  background: rgba(255, 92, 92, 0.2) !important;
+}
+
+.mat-progress-bar-fill::after {
+  background: linear-gradient(90deg, var(--cp-secondary), var(--cp-accent)) !important;
+}
+
+/* Override for login form progress overlay - remove red color */
+.progress-overlay.mat-progress-bar {
+  background: rgba(72, 230, 255, 0.2) !important;
+  
+  .mdc-linear-progress__buffer {
+    background: rgba(72, 230, 255, 0.2) !important;
+  }
+  
+  .mdc-linear-progress__buffer-bar {
+    background: rgba(72, 230, 255, 0.2) !important;
+  }
+  
+  .mdc-linear-progress__primary-bar .mdc-linear-progress__bar-inner {
+    background: linear-gradient(90deg, var(--cp-accent), var(--cp-primary)) !important;
+  }
+  
+  .mdc-linear-progress__secondary-bar {
+    display: none !important;
+  }
+  
+  .mdc-linear-progress__secondary-bar .mdc-linear-progress__bar-inner {
+    background: transparent !important;
+    display: none !important;
+  }
+}
+
+.mat-progress-bar.progress-overlay .mat-progress-bar-fill::after {
+  background: linear-gradient(90deg, var(--cp-accent), var(--cp-primary)) !important;
+}
+
+.mat-progress-spinner circle, .mat-spinner circle {
+  stroke: var(--cp-accent) !important;
+}
+
+.mat-snack-bar-container {
+  background: var(--cp-glass) !important;
+  color: var(--cp-primary) !important;
+  border: 1px solid var(--cp-border-accent) !important;
+  font-family: 'Orbitron', monospace !important;
+}
+
+.mat-datepicker-popup {
+  background: var(--cp-bg-secondary) !important;
+  border: 1px solid var(--cp-border) !important;
+  border-radius: 6px !important;
+}
+
+.mat-calendar {
+  background: transparent !important;
+  color: var(--cp-primary) !important;
+  font-family: 'Orbitron', monospace !important;
+}
+
+.mat-calendar-header {
+  color: var(--cp-accent) !important;
+}
+
+.mat-calendar-body-cell-content {
+  color: var(--cp-primary) !important;
+  border-radius: 4px !important;
+}
+
+.mat-calendar-body-selected {
+  background: var(--cp-secondary) !important;
+  color: white !important;
+}
+
+.mat-calendar-body-today:not(.mat-calendar-body-selected) {
+  border: 1px solid var(--cp-accent) !important;
+}
+
+/* Custom Cyberpunk Classes */
+.cp-glow {
+  box-shadow: 0 0 20px rgba(121, 255, 232, 0.3);
+  transition: box-shadow 0.3s ease;
+}
+
+.cp-glow:hover {
+  box-shadow: 0 0 30px rgba(121, 255, 232, 0.5);
+}
+
+.cp-text-primary { color: var(--cp-primary) !important; }
+.cp-text-secondary { color: var(--cp-secondary) !important; }
+.cp-text-accent { color: var(--cp-accent) !important; }
+.cp-text-success { color: var(--cp-success) !important; }
+.cp-text-warning { color: var(--cp-warning) !important; }
+
+.cp-bg-glass {
+  background: var(--cp-glass) !important;
+  backdrop-filter: blur(4px) !important;
+  border: 1px solid var(--cp-border) !important;
+}
+
+.cp-border-glow {
+  border: 1px solid var(--cp-border-accent) !important;
+  box-shadow: 0 0 10px rgba(72, 230, 255, 0.2) !important;
+}
+
+/* Cyberpunk Header Styles */
+.cp-header {
+  position: relative;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid var(--cp-border);
+  background: linear-gradient(90deg, var(--cp-bg-primary), var(--cp-bg-secondary));
+}
+
+.cp-header::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(to right, rgba(255, 0, 0, 0.7), rgba(255, 128, 128, 0.4), rgba(255, 0, 0, 0.7));
+  opacity: 0.9;
+}
+
+/* Cyberpunk Stats Display */
+.cp-stats {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 0.85rem;
+  color: var(--cp-secondary);
+  font-weight: 600;
+}
+
+.cp-levels {
+  display: flex;
+  gap: 2rem;
+  font-size: 0.85rem;
+}
+
+.cp-level {
+  color: var(--cp-accent);
+  font-weight: 700;
+}
+
+.cp-label {
+  margin-left: 0.25rem;
+  color: var(--cp-secondary);
+  font-weight: 400;
+}
+
+/* Cyberpunk Card Grid */
+.cp-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin: 2rem 0;
+}
+
+.cp-card {
+  background: var(--cp-glass);
+  border: 1px solid var(--cp-border);
+  border-radius: 6px;
+  padding: 1.5rem;
+  backdrop-filter: blur(4px);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.cp-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--cp-accent), transparent);
+  transition: left 0.5s ease;
+}
+
+.cp-card:hover::before {
+  left: 100%;
+}
+
+.cp-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(255, 92, 92, 0.4);
+  border-color: var(--cp-accent);
+}
+
+/* Cyberpunk Time Display */
+.cp-time {
+  background: rgba(128, 0, 0, 0.6);
+  border: 1px solid var(--cp-secondary);
+  padding: 0.5rem 1.25rem;
+  border-radius: 4px;
+  font-weight: bold;
+  color: #ffe5e5;
+  font-family: 'Orbitron', monospace;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Cyberpunk Menu Items */
+.cp-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--cp-border);
+  padding: 0.75rem;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--cp-primary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 0.5rem;
+  font-family: 'Orbitron', monospace;
+}
+
+.cp-menu-item:hover {
+  background: var(--cp-glass-hover);
+  box-shadow: 0 0 15px rgba(72, 230, 255, 0.3);
+  border-color: var(--cp-accent);
+}
+
+.cp-menu-item.active {
+  background: rgba(128, 0, 0, 0.6);
+  box-shadow: 0 0 10px rgba(255, 92, 92, 0.5);
+  border-color: var(--cp-secondary);
+}
+
+/* Animations */
+@keyframes cp-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes cp-glow {
+  0%, 100% { box-shadow: 0 0 5px rgba(121, 255, 232, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(121, 255, 232, 0.6); }
+}
+
+@keyframes cp-scan {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.cp-pulse {
+  animation: cp-pulse 2s infinite;
+}
+
+.cp-glow-animate {
+  animation: cp-glow 3s infinite;
+}
+
+.cp-scan {
+  position: relative;
+  overflow: hidden;
+}
+
+.cp-scan::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(121, 255, 232, 0.1), transparent);
+  animation: cp-scan 3s infinite;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .cp-card-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .cp-stats {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .cp-levels {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+/* Footer */
+.cp-footer {
+  position: fixed;
+  bottom: 1rem;
+  left: 1rem;
+  font-size: 0.7rem;
+  color: rgba(255, 92, 92, 0.6);
+  font-family: 'Orbitron', monospace;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Angular Material Date Picker Overlay - Cyberpunk Theme */
+.mat-datepicker-popup {
+  background: var(--cp-bg-primary) !important;
+  border: 1px solid var(--cp-accent) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8), 0 0 20px rgba(72, 230, 255, 0.3) !important;
+  backdrop-filter: blur(10px);
+}
+
+.mat-calendar {
+  background: transparent !important;
+  font-family: 'Orbitron', monospace !important;
+}
+
+.mat-calendar-header {
+  background: var(--cp-glass) !important;
+  border-bottom: 1px solid var(--cp-border) !important;
+  color: var(--cp-accent) !important;
+}
+
+.mat-calendar-arrow {
+  fill: var(--cp-accent) !important;
+}
+
+.mat-calendar-next-button,
+.mat-calendar-previous-button {
+  color: var(--cp-primary) !important;
+  
+  &:hover {
+    color: var(--cp-accent) !important;
+    background: rgba(72, 230, 255, 0.1) !important;
+  }
+}
+
+.mat-calendar-period-button {
+  color: var(--cp-accent) !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  
+  &:hover {
+    background: rgba(72, 230, 255, 0.1) !important;
+  }
+}
+
+.mat-calendar-table-header th {
+  color: var(--cp-secondary) !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  font-size: 0.7rem !important;
+  letter-spacing: 1px !important;
+}
+
+.mat-calendar-body-cell {
+  color: var(--cp-primary) !important;
+  font-weight: 600 !important;
+  
+  &:hover {
+    background: rgba(72, 230, 255, 0.1) !important;
+    color: var(--cp-accent) !important;
+  }
+  
+  &.mat-calendar-body-active {
+    background: var(--cp-accent) !important;
+    color: var(--cp-bg-primary) !important;
+    font-weight: 700 !important;
+  }
+  
+  &.mat-calendar-body-selected {
+    background: var(--cp-primary) !important;
+    color: var(--cp-bg-primary) !important;
+    font-weight: 700 !important;
+  }
+  
+  &.mat-calendar-body-today {
+    border: 1px solid var(--cp-accent) !important;
+    color: var(--cp-accent) !important;
+  }
+  
+  &.mat-calendar-body-disabled {
+    color: var(--cp-secondary) !important;
+    opacity: 0.5;
+  }
+}
+
+.mat-calendar-body-cell-content {
+  border-radius: 4px !important;
+  transition: all 0.3s ease !important;
+}
+
+/* Date Picker Actions */
+.mat-datepicker-actions {
+  background: var(--cp-glass) !important;
+  border-top: 1px solid var(--cp-border) !important;
+  
+  button {
+    color: var(--cp-primary) !important;
+    font-family: 'Orbitron', monospace !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    
+    &:hover {
+      background: rgba(72, 230, 255, 0.1) !important;
+      color: var(--cp-accent) !important;
+    }
+  }
+}

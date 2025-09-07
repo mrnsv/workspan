@@ -1,0 +1,442 @@
+/* Calendar Component - Compact Version */
+
+.calendar {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  backdrop-filter: none;
+  padding: 0.1rem;
+  font-family: 'Orbitron', monospace;
+  transition: all 0.3s ease;
+}
+
+/* Calendar Header */
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.2rem;
+  padding: 0.2rem 0.3rem;
+  background: rgba(128, 0, 0, 0.1);
+  border: 1px solid var(--cp-border);
+  border-radius: 3px;
+}
+
+.nav-btn {
+  color: var(--cp-primary) !important;
+  background: transparent !important;
+  border: 1px solid var(--cp-border) !important;
+  border-radius: 2px !important;
+  width: 32px !important; /* Increased for better usability */
+  height: 32px !important; /* Increased for better usability */
+  min-width: 32px !important;
+  display: flex !important; /* Ensure proper centering */
+  align-items: center !important; /* Center vertically */
+  justify-content: center !important; /* Center horizontally */
+  transition: all 0.3s ease !important;
+  
+  &:hover {
+    color: var(--cp-accent) !important;
+    border-color: var(--cp-accent) !important;
+    background: rgba(72, 230, 255, 0.1) !important;
+    transform: scale(1.05);
+  }
+  
+  mat-icon {
+    font-size: 1.1rem; /* Increased for better visibility */
+    width: 1.1rem;
+    height: 1.1rem;
+    line-height: 1 !important; /* Ensure proper vertical alignment */
+    display: flex !important; /* Ensure icon centers properly */
+    align-items: center !important;
+    justify-content: center !important;
+  }
+}
+
+.month-year {
+  flex: 1;
+  text-align: center;
+}
+
+.month-text {
+  color: var(--cp-accent);
+  font-weight: 700;
+  font-size: 0.8rem; /* Increased for better readability */
+  text-transform: uppercase;
+  letter-spacing: 0.6px; /* Slightly increased */
+  text-shadow: 0 0 6px rgba(72, 230, 255, 0.4);
+}
+
+
+/* Week Days Header */
+.weekdays-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  margin-bottom: 0.15rem;
+  padding: 0.1rem 0;
+  border-bottom: 1px solid var(--cp-border);
+}
+
+.weekday {
+  text-align: center;
+  color: var(--cp-secondary);
+  font-weight: 700;
+  font-size: 0.6rem; /* Increased for better readability */
+  text-transform: uppercase;
+  letter-spacing: 0.4px; /* Slightly increased */
+  padding: 0.1rem 0.02rem;
+}
+
+/* Calendar Grid */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(6, 1fr); /* Fixed 6 rows for consistent layout */
+  gap: 0.5px; /* Reduced from 1px */
+  min-height: 180px; /* Fixed minimum height to prevent shrinking */
+}
+
+.calendar-day {
+  position: relative;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--cp-border);
+  border-radius: 2px; /* Reduced from 3px */
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 26px; /* Reduced from 32px */
+  
+  &:hover {
+    background: rgba(72, 230, 255, 0.1);
+    border-color: var(--cp-accent);
+    transform: scale(1.02); /* Reduced from 1.03 */
+    box-shadow: 0 1px 4px rgba(72, 230, 255, 0.3);
+  }
+}
+
+.day-number {
+  color: var(--cp-primary);
+  font-weight: 600;
+  font-size: 0.75rem; /* Increased for better readability */
+  z-index: 2;
+  position: relative;
+}
+
+/* Calendar Day States */
+.calendar-day.other-month {
+  opacity: 0.4; /* Slightly more visible */
+  cursor: pointer; /* Indicate clickable */
+  
+  .day-number {
+    color: var(--cp-secondary);
+  }
+  
+  &:hover {
+    opacity: 0.7; /* More visible on hover */
+    background: rgba(72, 230, 255, 0.1);
+    transform: scale(1.05);
+    
+    .day-number {
+      color: var(--cp-accent);
+    }
+  }
+}
+
+.calendar-day.weekend {
+  background: rgba(255, 92, 92, 0.1);
+  
+  .day-number {
+    color: var(--cp-warning);
+  }
+}
+
+.calendar-day.today {
+  background: rgba(72, 230, 255, 0.2) !important;
+  border: 2px solid var(--cp-accent) !important;
+  box-shadow: 0 0 15px rgba(72, 230, 255, 0.4);
+  
+  .day-number {
+    color: var(--cp-accent);
+    font-weight: 700;
+    text-shadow: 0 0 5px rgba(72, 230, 255, 0.8);
+  }
+}
+
+.calendar-day.selected {
+  background: var(--cp-primary) !important;
+  border: 2px solid var(--cp-primary) !important;
+  box-shadow: 0 0 20px rgba(121, 255, 232, 0.6);
+  
+  .day-number {
+    color: var(--cp-bg-primary);
+    font-weight: 700;
+  }
+}
+
+/* Week selection mode - use same primary color as day mode but with reduced opacity for range */
+.calendar-day.selected-week {
+  background: rgba(121, 255, 232, 0.2) !important;
+  border: 1px solid rgba(121, 255, 232, 0.5) !important;
+  
+  .day-number {
+    color: var(--cp-primary);
+    font-weight: 600;
+  }
+}
+
+/* Month selection mode - use same primary color as day mode but with reduced opacity for range */
+.calendar-day.selected-month {
+  background: rgba(121, 255, 232, 0.1) !important;
+  border: 1px solid rgba(121, 255, 232, 0.3) !important;
+  
+  .day-number {
+    color: var(--cp-primary);
+    font-weight: 500;
+  }
+}
+
+/* Ensure the primary selected day styling takes precedence in week/month modes */
+.calendar-day.selected-week.selected,
+.calendar-day.selected-month.selected {
+  background: var(--cp-primary) !important;
+  border: 2px solid var(--cp-primary) !important;
+  box-shadow: 0 0 20px rgba(121, 255, 232, 0.6);
+  
+  .day-number {
+    color: var(--cp-bg-primary) !important;
+    font-weight: 700 !important;
+  }
+}
+
+/* Day Indicator */
+.day-indicator {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  z-index: 3;
+}
+
+.indicator-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--cp-accent);
+  box-shadow: 0 0 4px rgba(72, 230, 255, 0.8);
+}
+
+.calendar-day.selected .indicator-dot {
+  background: var(--cp-bg-primary);
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+}
+
+/* Calendar Footer */
+.calendar-footer {
+  margin-top: 0.2rem;
+  padding: 0.2rem 0.3rem;
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--cp-border);
+  border-radius: 2px;
+  text-align: center;
+}
+
+.selected-date {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Changed from center to space-between */
+  gap: 0.3rem;
+  color: var(--cp-accent);
+  font-weight: 600;
+  font-size: 0.65rem; /* Increased for better readability */
+  text-transform: uppercase;
+  letter-spacing: 0.4px; /* Slightly increased */
+}
+
+.date-info {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  
+  mat-icon {
+    font-size: 0.9rem; /* Increased to match larger text */
+    width: 0.9rem;
+    height: 0.9rem;
+  }
+}
+
+.today-btn-footer {
+  color: var(--cp-accent) !important;
+  background: transparent !important;
+  border: 1px solid var(--cp-border) !important;
+  border-radius: 2px !important;
+  width: 32px !important; /* Match nav button size */
+  height: 32px !important; /* Match nav button size */
+  min-width: 32px !important;
+  display: flex !important; /* Ensure proper centering */
+  align-items: center !important; /* Center vertically */
+  justify-content: center !important; /* Center horizontally */
+  transition: all 0.3s ease !important;
+  padding: 0 !important; /* Remove any default padding */
+  overflow: visible !important; /* Ensure icon is not clipped */
+  
+  &:hover {
+    background: rgba(72, 230, 255, 0.1) !important;
+    box-shadow: 0 0 8px rgba(72, 230, 255, 0.3) !important;
+    transform: scale(1.05);
+    
+    mat-icon {
+      color: var(--cp-accent) !important; /* Blue on hover like stat-icon */
+    }
+  }
+  
+  mat-icon {
+    font-size: 1rem; /* Reduced for better visibility within button */
+    width: 1rem;
+    height: 1rem;
+    line-height: 1 !important; /* Ensure proper vertical alignment */
+    display: flex !important; /* Ensure icon centers properly */
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: visible !important; /* Ensure icon is not clipped */
+    color: rgb(255, 92, 92) !important; /* Red to match stat item theme */
+    transition: all 0.3s ease; /* Smooth color transition */
+  }
+}
+
+/* Animations */
+@keyframes cyberpunk-glow {
+  0%, 100% { 
+    box-shadow: 0 0 5px rgba(72, 230, 255, 0.3); 
+  }
+  50% { 
+    box-shadow: 0 0 20px rgba(72, 230, 255, 0.6); 
+  }
+}
+
+.calendar-day.today {
+  animation: cyberpunk-glow 2s ease-in-out infinite;
+}
+
+/* Responsive Design */
+@media (max-width: 320px) {
+  .calendar-day {
+    min-height: 22px; /* Even smaller for mobile */
+  }
+  
+  .day-number {
+    font-size: 0.65rem; /* Increased for mobile readability */
+  }
+  
+  .weekday {
+    font-size: 0.55rem; /* Increased for mobile readability */
+    padding: 0.15rem 0.03rem; /* Less padding */
+  }
+  
+  .month-text {
+    font-size: 0.7rem; /* Increased for mobile readability */
+    letter-spacing: 0.3px;
+  }
+  
+  .nav-btn {
+    width: 28px !important; /* Increased for better mobile touch targets */
+    height: 28px !important;
+    min-width: 28px !important;
+    
+    mat-icon {
+      font-size: 1rem; /* Increased for better mobile visibility */
+      width: 1rem;
+      height: 1rem;
+    }
+  }
+  
+  .today-btn-footer {
+    width: 28px !important; /* Match nav button mobile size */
+    height: 28px !important;
+    min-width: 28px !important;
+    
+    mat-icon {
+      font-size: 0.9rem; /* Slightly smaller for mobile visibility */
+      width: 0.9rem;
+      height: 0.9rem;
+    }
+  }
+  
+  .calendar {
+    padding: 0.05rem;
+  }
+}
+
+/* Override Angular Material button styles for navigation buttons */
+::ng-deep .nav-btn.mat-mdc-icon-button {
+  color: var(--cp-primary) !important;
+  background: transparent !important;
+  border: 1px solid var(--cp-border) !important;
+  border-radius: 2px !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  
+  .mat-mdc-button-persistent-ripple {
+    border-radius: 2px !important;
+  }
+  
+  &:hover {
+    color: var(--cp-accent) !important;
+    border-color: var(--cp-accent) !important;
+    background: rgba(72, 230, 255, 0.1) !important;
+  }
+  
+  mat-icon {
+    color: inherit !important;
+    font-size: 1.1rem !important;
+    width: 1.1rem !important;
+    height: 1.1rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+  }
+}
+
+/* Override Angular Material button styles for today button */
+::ng-deep .today-btn-footer.mat-mdc-icon-button {
+  color: var(--cp-accent) !important;
+  background: transparent !important;
+  border: 1px solid var(--cp-border) !important;
+  border-radius: 2px !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important; /* Remove any default padding */
+  
+  .mat-mdc-button-persistent-ripple {
+    border-radius: 2px !important;
+  }
+  
+  mat-icon {
+    color: rgb(255, 92, 92) !important; /* Red to match stat item theme */
+    transition: all 0.3s ease; /* Smooth color transition */
+  }
+  
+  &:hover {
+    color: var(--cp-accent) !important;
+    border-color: var(--cp-accent) !important;
+    background: rgba(72, 230, 255, 0.1) !important;
+    
+    mat-icon {
+      color: var(--cp-accent) !important; /* Blue on hover like stat-icon */
+    }
+  }
+  
+  /* Removed duplicate mat-icon styling - handled above */
+}
