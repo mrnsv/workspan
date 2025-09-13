@@ -120,15 +120,39 @@
     </mat-accordion>
 
     <!-- Error State -->
-    <div class="cp-card error-compact" *ngIf="!swipeData">
-      <div class="error-content-compact">
+    <div class="cp-card error-compact" *ngIf="(error$ | async)">
+      <div class="error-header-compact">
         <mat-icon class="error-icon-compact">error_outline</mat-icon>
-        <span class="error-text-compact">DATA ERROR</span>
+        <span class="error-title-compact">SYSTEM ERROR</span>
+      </div>
+      <div class="error-message-compact">
+        {{ error$ | async }}
+      </div>
+      <div class="error-actions-compact">
         <button mat-raised-button class="retry-btn-compact" (click)="onRefresh()">
           <mat-icon>refresh</mat-icon>
           RETRY
         </button>
+        <button mat-button class="dismiss-btn-compact" (click)="clearErrors()">
+          <mat-icon>close</mat-icon>
+          DISMISS
+        </button>
       </div>
+    </div>
+
+    <!-- No Data State (when no error but no data) -->
+    <div class="cp-card no-data-compact" *ngIf="!swipeData && !(error$ | async)">
+      <div class="no-data-header-compact">
+        <mat-icon class="no-data-icon-compact">swap_vertical_circle</mat-icon>
+        <span class="no-data-title-compact">NO DATA</span>
+      </div>
+      <div class="no-data-message-compact">
+        No swipe data available for the selected {{ selectedTimePeriod }}.
+      </div>
+      <button mat-raised-button class="retry-btn-compact" (click)="onRefresh()">
+        <mat-icon>refresh</mat-icon>
+        LOAD DATA
+      </button>
     </div>
 
   </div>

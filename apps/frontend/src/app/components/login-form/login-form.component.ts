@@ -31,43 +31,35 @@ export class LoginFormComponent {
       this.isRefreshing = true;
       const credentials: LoginCredentials = this.loginForm.value;
       
-      this.authService.refreshCookie(credentials).subscribe({
+      this.authService.login(credentials).subscribe({
         next: (response) => {
           this.isRefreshing = false;
           if (response.success) {
-            this.showSnackBar('🍪 Cookie refreshed successfully!', 'success');
+            let successMessage = '✅ Authentication successful!';
+            if (response.sessionData) {
+              successMessage += ` Welcome, ${response.sessionData.employeeName} (${response.sessionData.employeeNumber})`;
+            }
+            this.showSnackBar(successMessage, 'success');
             this.cookieRefreshed.emit();
           } else {
-            this.showSnackBar('❌ Failed to refresh cookie', 'error');
+            this.showSnackBar('❌ Authentication failed. Please verify your credentials.', 'error');
           }
         },
         error: (error) => {
           this.isRefreshing = false;
-          console.error('Cookie refresh error:', error);
-          this.showSnackBar('❌ Cookie refresh failed', 'error');
+          const errorMessage = error.message || 'Authentication failed';
+          this.showSnackBar(`❌ ${errorMessage}`, 'error');
         }
       });
     } else {
-      this.showSnackBar('⚠️ Please fill in both fields', 'warn');
+      this.showSnackBar('⚠️ Please complete all required fields', 'warn');
       this.markFormGroupTouched();
     }
   }
 
   onQuickRefresh() {
-    this.isRefreshing = true;
-    
-    // Simulate quick refresh without credentials update
-    this.authService.refreshCookie().subscribe({
-      next: (response) => {
-        this.isRefreshing = false;
-        this.showSnackBar('🔄 Cookie refreshed with existing credentials', 'success');
-        this.cookieRefreshed.emit();
-      },
-      error: (error) => {
-        this.isRefreshing = false;
-        this.showSnackBar('❌ Quick refresh failed', 'error');
-      }
-    });
+    // Quick refresh not available with simplified authentication
+    this.showSnackBar('⚠️ Please enter your credentials to authenticate', 'warn');
   }
 
   private markFormGroupTouched() {
@@ -80,21 +72,21 @@ export class LoginFormComponent {
     const control = this.loginForm.get(fieldName);
     
     if (control?.hasError('required')) {
-      return `${fieldName === 'loginId' ? 'NEURAL ID' : 'ACCESS CODE'} REQUIRED`;
+      return `${fieldName === 'loginId' ? 'Employee ID' : 'Password'} is required`;
     }
     
     return '';
   }
 
-  // Cyberpunk UI Methods
+  // Professional Authentication Status Methods
   getAuthStatusClass(): string {
-    if (this.isRefreshing) return 'syncing';
+    if (this.isRefreshing) return 'authenticating';
     if (this.loginForm.valid) return 'ready';
     return 'standby';
   }
 
   getAuthStatusText(): string {
-    if (this.isRefreshing) return 'SYNCING';
+    if (this.isRefreshing) return 'AUTHENTICATING';
     if (this.loginForm.valid) return 'READY';
     return 'STANDBY';
   }
@@ -108,11 +100,11 @@ export class LoginFormComponent {
   private showSnackBar(message: string, type: 'success' | 'error' | 'warn' | 'info') {
     const config = {
       duration: 4000,
-      panelClass: [`snackbar-${type}`, 'cyberpunk-snackbar'],
+      panelClass: [`snackbar-${type}`, 'theme-snackbar'],
       horizontalPosition: 'right' as const,
       verticalPosition: 'bottom' as const
     };
     
-    this.snackBar.open(message.toUpperCase(), 'X', config);
+    this.snackBar.open(message, 'Dismiss', config);
   }
 }

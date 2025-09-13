@@ -66,42 +66,39 @@
       </div>
     </div>
 
-    <!-- Session Summary Compact -->
-    <div class="cp-card session-summary-compact" *ngIf="workHoursData">
-      <div class="summary-header-compact">
-        <span class="summary-title-compact">SESSION DATA</span>
-        <button mat-icon-button class="refresh-btn-compact" (click)="onRefresh()" matTooltip="REFRESH">
-          <mat-icon class="refresh-icon-inline">refresh</mat-icon>
-        </button>
+    <!-- Error State -->
+    <div class="cp-card error-compact" *ngIf="(error$ | async) && !(loading$ | async)">
+      <div class="error-header-compact">
+        <mat-icon class="error-icon-compact">error_outline</mat-icon>
+        <span class="error-title-compact">SYSTEM ERROR</span>
       </div>
-      <div class="summary-stats-compact">
-        <div class="summary-item-compact">
-          <mat-icon class="summary-icon-compact">swap_vertical_circle</mat-icon>
-          <span class="summary-value-compact">{{ workHoursData.totalSwipes }}</span>
-          <span class="summary-label-compact">SWIPES</span>
-        </div>
-        <div class="summary-item-compact">
-          <mat-icon class="summary-icon-compact">event_available</mat-icon>
-          <span class="summary-value-compact">{{ workHoursData.sessions.swipePairs?.length || 0 }}</span>
-          <span class="summary-label-compact">SESSIONS</span>
-        </div>
-        <div class="summary-item-compact">
-          <mat-icon class="summary-icon-compact">access_time</mat-icon>
-          <span class="summary-value-compact">{{ workHoursData.sessions.formattedTime }}</span>
-          <span class="summary-label-compact">TOTAL</span>
-        </div>
+      <div class="error-message-compact">
+        {{ error$ | async }}
+      </div>
+      <div class="error-actions-compact">
+        <button mat-raised-button class="retry-btn-compact" (click)="onRefresh()">
+          <mat-icon>refresh</mat-icon>
+          RETRY
+        </button>
+        <button mat-button class="dismiss-btn-compact" (click)="clearErrors()">
+          <mat-icon>close</mat-icon>
+          DISMISS
+        </button>
       </div>
     </div>
 
-    <!-- Error State -->
-    <div class="cp-card error-compact" *ngIf="!workHoursData && !(loading$ | async)">
-      <div class="error-header-compact">
-        <mat-icon class="error-icon-compact">error_outline</mat-icon>
-        <span class="error-title-compact">DATA ERROR</span>
+    <!-- No Data State (when no error but no data) -->
+    <div class="cp-card no-data-compact" *ngIf="!workHoursData && !(loading$ | async) && !(error$ | async)">
+      <div class="no-data-header-compact">
+        <mat-icon class="no-data-icon-compact">schedule</mat-icon>
+        <span class="no-data-title-compact">NO DATA</span>
+      </div>
+      <div class="no-data-message-compact">
+        No work hours data available for the selected date.
       </div>
       <button mat-raised-button class="retry-btn-compact" (click)="onRefresh()">
         <mat-icon>refresh</mat-icon>
-        RETRY
+        LOAD DATA
       </button>
     </div>
 

@@ -1,14 +1,20 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, BehaviorSubject, of } from 'rxjs';
-import { map, tap, shareReplay } from 'rxjs/operators';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, BehaviorSubject, throwError } from 'rxjs';
+import { map, tap, shareReplay, catchError } from 'rxjs/operators';
 import { WorkHoursStats, UnifiedWorkHoursResponse } from '../models/work-hours.model';
+import { EnvironmentService } from '../config/environment.config';
+import { AuthService, BrowserSessionData } from './auth.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class WorkHoursService {
-  private readonly API_BASE_URL = 'http://localhost:3000/api';
+  private readonly environmentService = EnvironmentService.getInstance();
+  
+  private get API_BASE_URL(): string {
+    return this.environmentService.getApiBaseUrl();
+  }
   
   private loadingSubject = new BehaviorSubject<boolean>(false);
   public loading$ = this.loadingSubject.asObservable();
@@ -19,25 +25,78 @@ export class WorkHoursService {
   private employeeSubject = new BehaviorSubject<{employeeId: number, employeeName: string, employeeNumber: string} | null>(null);
   public employee$ = this.employeeSubject.asObservable();
 
+  private errorSubject = new BehaviorSubject<string | null>(null);
+  public error$ = this.errorSubject.asObservable();
+
   // Caching mechanism
   private unifiedCache = new Map<string, Observable<UnifiedWorkHoursResponse>>();
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService
+  ) {}
 
   /**
-   * Get work logs data (replaces separate sessions + swipes calls)
-   * This single API call returns all data with pre-calculated values
+   * Handle HTTP errors
+   */
+  private handleHttpError(error: HttpErrorResponse): Observable<never> {
+    this.loadingSubject.next(false);
+    
+    let errorMessage = 'An unexpected error occurred';
+    
+    if (error.error instanceof ErrorEvent) {
+      // Client-side or network error
+      errorMessage = `Network error: ${error.error.message}`;
+    } else {
+      // Backend returned an unsuccessful response code
+      if (typeof error.error === 'string' && error.error.includes('<html')) {
+        // HTML response detected (likely an error page)
+        if (error.status === 500) {
+          errorMessage = 'Server configuration error. Please check backend setup and environment variables.';
+        } else if (error.status === 403) {
+          errorMessage = 'Authentication failed. Please refresh your session or check credentials.';
+        } else if (error.status === 404) {
+          errorMessage = 'API endpoint not found. Please check backend configuration.';
+        } else {
+          errorMessage = `Server error (${error.status}). Please check backend configuration.`;
+        }
+      } else if (error.error && typeof error.error === 'object' && error.error.message) {
+        // JSON error response
+        errorMessage = error.error.message;
+      } else {
+        // Other types of errors
+        errorMessage = `HTTP ${error.status}: ${error.statusText || 'Unknown error'}`;
+      }
+    }
+    
+    console.error('API Error:', {
+      status: error.status,
+      statusText: error.statusText,
+      error: error.error,
+      message: errorMessage
+    });
+    
+    this.errorSubject.next(errorMessage);
+    return throwError(() => new Error(errorMessage));
+  }
+
+  /**
+   * Clear any existing error state
+   */
+  clearError(): void {
+    this.errorSubject.next(null);
+  }
+
+  /**
+   * Get work logs data using session data stored in browser
    */
   getWorkLogs(date?: string, period: string = 'day'): Observable<UnifiedWorkHoursResponse> {
     const targetDate = date || this.formatDate(new Date());
     const cacheKey = this.generateCacheKey(targetDate, period);
     
-    console.log(`🎯 getWorkLogs called with date: ${date}, period: ${period}, cacheKey: ${cacheKey}`);
-    
     // Check if we have a cached observable for this date
     if (this.unifiedCache.has(cacheKey)) {
-      console.log(`🟢 Using cached work logs data for ${cacheKey}`);
       const cachedObservable = this.unifiedCache.get(cacheKey)!;
       
       // Ensure stats are updated even when using cached data
@@ -51,7 +110,6 @@ export class WorkHoursService {
             isComplete: response.stats.isComplete,
             completionPercentage: response.stats.completionPercentage
           };
-          console.log('📊 Updating workHoursSubject with cached stats:', stats);
           this.workHoursSubject.next(stats);
           
           // Update employee data
@@ -62,21 +120,32 @@ export class WorkHoursService {
       );
     }
 
-    console.log(`🔵 Fetching work logs data for ${cacheKey}`);
     this.loadingSubject.next(true);
     
     // Calculate startDate and endDate based on period
     const { startDate, endDate } = this.calculateDateRange(targetDate, period);
     
-    let params = new HttpParams();
-    params = params.set('period', period);
-    params = params.set('startDate', startDate);
-    if (period !== 'day') {
-      params = params.set('endDate', endDate);
+    // Get session data from AuthService
+    const sessionData = this.authService.getSessionData();
+    
+    if (!sessionData) {
+      this.loadingSubject.next(false);
+      return throwError(() => new Error('No session data available. Please login first.'));
     }
 
+    // Clear any existing errors
+    this.clearError();
+
+    // Prepare request body with session data
+    const requestBody = {
+      sessionData: sessionData,
+      startDate: startDate,
+      endDate: endDate,
+      period: period
+    };
+
     // Create the HTTP observable with caching
-    const request$ = this.http.get<UnifiedWorkHoursResponse>(`${this.API_BASE_URL}/hours/worklogs`, { params })
+    const request$ = this.http.post<UnifiedWorkHoursResponse>(`${this.API_BASE_URL}/hours/worklogs`, requestBody)
       .pipe(
         map(response => {
           this.loadingSubject.next(false);
@@ -89,7 +158,6 @@ export class WorkHoursService {
             isComplete: response.stats.isComplete,
             completionPercentage: response.stats.completionPercentage
           };
-          console.log('📊 Updating workHoursSubject with stats:', stats);
           this.workHoursSubject.next(stats);
           
           // Update employee data
@@ -99,12 +167,12 @@ export class WorkHoursService {
           
           return response;
         }),
+        catchError(error => this.handleHttpError(error)),
         shareReplay(1), // Cache the result and share it among multiple subscribers
         tap(() => {
           // Auto-expire cache after duration
           setTimeout(() => {
             this.unifiedCache.delete(cacheKey);
-            console.log(`🗑️ Expired unified cache for ${cacheKey}`);
           }, this.CACHE_DURATION);
         })
       );
@@ -114,36 +182,17 @@ export class WorkHoursService {
     return request$;
   }
 
-
-  getDailyHours(date?: string): Observable<any> {
-    let params = new HttpParams();
-    if (date) {
-      params = params.set('date', date);
-    }
-
-    return this.http.get(`${this.API_BASE_URL}/hours/daily`, { params });
-  }
-
-  refreshCookie(): Observable<any> {
-    return this.http.post(`${this.API_BASE_URL}/refresh-cookie`, {});
-  }
-
   /**
    * Clear all cached data to force fresh API calls
    */
   clearCache(): void {
-    console.log('🗑️ Clearing all cached data');
     this.unifiedCache.clear();
-    // Don't reset stats to null - preserve existing data during refresh to prevent UI flicker
-    // The new data will update the stats naturally when it arrives
   }
 
   /**
    * Force refresh data for a specific date and period
    */
   forceRefresh(dateString: string, period: string = 'day'): Observable<UnifiedWorkHoursResponse> {
-    console.log(`🔄 Force refreshing data for ${dateString} (${period})`);
-    
     // Clear specific cache entry
     this.clearDateCache(dateString, period);
     
@@ -156,12 +205,8 @@ export class WorkHoursService {
    */
   clearDateCache(date: string, period: string = 'day'): void {
     const cacheKey = this.generateCacheKey(date, period);
-    console.log(`🗑️ Clearing cache for date: ${date}, period: ${period}, cacheKey: ${cacheKey}`);
     this.unifiedCache.delete(cacheKey);
-    // Don't reset stats here - let the new data update them naturally
   }
-
-
 
   formatHours(hours: number): string {
     const wholeHours = Math.floor(hours);
@@ -249,8 +294,6 @@ export class WorkHoursService {
 
   /**
    * Generate cache key based on period type
-   * For week/month modes, use the start date of the period to ensure
-   * all dates within the same period use the same cache key
    */
   private generateCacheKey(dateString: string, period: string): string {
     const { startDate } = this.calculateDateRange(dateString, period);

@@ -23,18 +23,66 @@ async function readCookieFromFile(): Promise<string> {
   try {
     const cookieFileContent = await fs.readFile(cookiesPath, 'utf8');
     const cookieData: CookieData = JSON.parse(cookieFileContent);
-    console.log(`🍪 Using cookie from cookies.json (${cookieData.cookie.length} chars)`);
-    return cookieData.cookie;
+    
+    // Check if cookie key exists and has a valid value
+    if (!cookieData.hasOwnProperty('cookie')) {
+      console.log('🔄 Cookie key missing in cookies.json, refreshing...');
+      return await refreshCookie();
+    }
+    
+    if (!cookieData.cookie || cookieData.cookie.trim() === '' || cookieData.cookie === null || cookieData.cookie === undefined) {
+      console.log('🔄 Cookie value is missing/empty/null in cookies.json, refreshing...');
+      return await refreshCookie();
+    }
+    
+    // Basic validation - check if cookie looks valid (contains common cookie patterns)
+    const cookieStr = cookieData.cookie.toString().trim();
+    if (cookieStr.length < 10 || !cookieStr.includes('=')) {
+      console.log('🔄 Cookie value appears invalid in cookies.json, refreshing...');
+      return await refreshCookie();
+    }
+    
+    return cookieStr;
+    
   } catch (error) {
-    console.warn('⚠️ Could not read cookies.json, falling back to env COOKIE');
-    return env.COOKIE || '';
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      console.log('🔄 cookies.json file missing, refreshing...');
+    } else {
+      console.log('🔄 cookies.json file is invalid/corrupted, refreshing...');
+    }
+    return await refreshCookie();
   }
 }
 
 async function readEmployeeDataFromFile(): Promise<{ employeeId: number; cookie: string }> {
   try {
+    // Always read fresh data from file (no caching)
     const cookieFileContent = await fs.readFile(cookiesPath, 'utf8');
     const cookieData: CookieData = JSON.parse(cookieFileContent);
+    
+    console.log(`📄 Fresh read from cookies.json - Employee ID: ${cookieData.employeeId}`);
+    
+    // Check for missing/invalid cookie first - refresh if needed
+    if (!cookieData.hasOwnProperty('cookie') || 
+        !cookieData.cookie || 
+        cookieData.cookie.trim() === '' || 
+        cookieData.cookie === null || 
+        cookieData.cookie === undefined) {
+      console.log('🔄 Cookie missing/invalid in readEmployeeDataFromFile, refreshing...');
+      await refreshCookie();
+      // Re-read the file after refresh
+      const refreshedContent = await fs.readFile(cookiesPath, 'utf8');
+      const refreshedData: CookieData = JSON.parse(refreshedContent);
+      
+      if (!refreshedData.employeeId) {
+        throw new Error('employeeId not found in cookies.json after refresh');
+      }
+      
+      return {
+        employeeId: refreshedData.employeeId,
+        cookie: refreshedData.cookie
+      };
+    }
     
     if (!cookieData.employeeId) {
       throw new Error('employeeId not found in cookies.json');
@@ -45,13 +93,34 @@ async function readEmployeeDataFromFile(): Promise<{ employeeId: number; cookie:
       cookie: cookieData.cookie
     };
   } catch (error) {
-    console.error('❌ Could not read employee data from cookies.json:', error);
-    throw new Error('Failed to read employee data from cookies.json');
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      console.log('🔄 cookies.json file missing in readEmployeeDataFromFile, refreshing...');
+      await refreshCookie();
+      // Try reading again after refresh
+      try {
+        const refreshedContent = await fs.readFile(cookiesPath, 'utf8');
+        const refreshedData: CookieData = JSON.parse(refreshedContent);
+        
+        if (!refreshedData.employeeId) {
+          throw new Error('employeeId not found in cookies.json after refresh');
+        }
+        
+        return {
+          employeeId: refreshedData.employeeId,
+          cookie: refreshedData.cookie
+        };
+      } catch (refreshError) {
+        console.error('❌ Failed to read employee data after cookie refresh:', refreshError);
+        throw new Error('Failed to read employee data from cookies.json after refresh');
+      }
+    } else {
+      console.error('❌ Could not read employee data from cookies.json:', error);
+      throw new Error('Failed to read employee data from cookies.json');
+    }
   }
 }
 
 async function refreshCookie(): Promise<string> {
-  console.log('🔄 Refreshing expired cookie...');
   
   return new Promise((promiseResolve, promiseReject) => {
     // Run the get-token script
@@ -64,7 +133,6 @@ async function refreshCookie(): Promise<string> {
 
     getTokenProcess.on('close', async (code) => {
       if (code === 0) {
-        console.log('✅ Cookie refresh completed successfully');
         try {
           const newCookie = await readCookieFromFile();
           promiseResolve(newCookie);
@@ -100,17 +168,20 @@ export interface SwipeApiResponse {
 }
 
 export async function fetchSwipes(startDate: string): Promise<Swipe[]> {
-  // Get employee data and cookie from JSON file
+  // Get employee data and cookie from JSON file (always fresh read)
   let employeeData = await readEmployeeDataFromFile();
+  
+  console.log(`🔍 Using Employee ID: ${employeeData.employeeId} for API call`);
   
   // Replace {employeeId} placeholder in SWIPES_URL with actual employeeId
   const swipesUrl = env.SWIPES_URL?.replace('{employeeId}', employeeData.employeeId.toString());
+  
+  console.log(`🌐 API URL: ${swipesUrl}`);
   
   if (!swipesUrl) {
     throw new Error('SWIPES_URL not configured in environment');
   }
   
-  console.log(`🔗 Calling SWIPES API: ${swipesUrl}`);
   
   try {
     const res = await axios.get<SwipeApiResponse>(swipesUrl, {
@@ -132,16 +203,20 @@ export async function fetchSwipes(startDate: string): Promise<Swipe[]> {
     // If GreytHR API call fails (any HTTP error or network issue), try to refresh the cookie
     if (error.response || error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
       const statusCode = error.response?.status || 'Network Error';
-      console.log(`🔐 GreytHR API call failed (${statusCode}), attempting to refresh cookie...`);
       
       try {
         // Refresh the cookie and get updated employee data
         await refreshCookie();
         employeeData = await readEmployeeDataFromFile();
         
-        // Retry the request with the new cookie
-        console.log('🔄 Retrying request with refreshed cookie...');
-        const retryRes = await axios.get<SwipeApiResponse>(swipesUrl, {
+        console.log(`🔄 Retry with fresh Employee ID: ${employeeData.employeeId}`);
+        
+        // Rebuild the URL with fresh employee ID
+        const retrySwipesUrl = env.SWIPES_URL?.replace('{employeeId}', employeeData.employeeId.toString());
+        console.log(`🌐 Retry API URL: ${retrySwipesUrl}`);
+        
+        // Retry the request with the new cookie and fresh employee ID
+        const retryRes = await axios.get<SwipeApiResponse>(retrySwipesUrl, {
           params: {
             startDate,
             endDate: "",
@@ -153,7 +228,6 @@ export async function fetchSwipes(startDate: string): Promise<Swipe[]> {
           },
         });
         
-        console.log('✅ Request successful after cookie refresh');
         return retryRes.data.swipe || [];
         
       } catch (refreshError) {

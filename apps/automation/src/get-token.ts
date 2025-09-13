@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { createRequire } from 'module';
+import dotenv from 'dotenv';
 
 // Get directory paths
 const __filename = fileURLToPath(import.meta.url);
@@ -10,8 +11,15 @@ const __dirname = dirname(__filename);
 const projectRoot = resolve(__dirname, '../../../');
 const outputPath = resolve(projectRoot, 'apps/env/cookies.json');
 
-// Import shared environment
-const { env } = await import('../../env/env.js');
+// Load environment variables directly (avoiding circular dependency with env.ts)
+dotenv.config({ path: resolve(projectRoot, 'apps/env/.env') });
+
+// Environment configuration for get-token script
+const env = {
+  GREYTHR_URL: process.env.GREYTHR_URL,
+  ATTENDANCE_INFO_URL: process.env.ATTENDANCE_INFO_URL,
+  // LOGIN_ID and PASSWORD now passed as function parameters for security
+};
 
 interface CookieData {
   cookie: string;
@@ -39,13 +47,16 @@ class CookieExtractor {
     });
   }
 
-  async extractCookie(): Promise<CookieData | null> {
+  async extractCookie(loginId?: string, password?: string): Promise<CookieData | null> {
     if (!this.page) throw new Error('Page not initialized');
 
     const greythrUrl = env.GREYTHR_URL;
     const attendanceInfoUrl = env.ATTENDANCE_INFO_URL;
-    const loginId = env.LOGIN_ID;
-    const password = env.PASSWORD;
+    
+    // Credentials must be provided as parameters for security
+    if (!loginId || !password) {
+      throw new Error('LOGIN_ID and PASSWORD must be provided as parameters');
+    }
 
     if (!greythrUrl) {
       throw new Error('GREYTHR_URL not found in environment variables');
@@ -55,37 +66,9 @@ class CookieExtractor {
       throw new Error('ATTENDANCE_INFO_URL not found in environment variables');
     }
 
-    // Set up request interception to capture headers and responses
-    let capturedCookie = '';
+    // Set up response interception to capture login-status API response
     let employeeData: { employeeId?: number; employeeName?: string; employeeNumber?: string } = {};
     
-    this.page.on('request', request => {
-      const url = request.url();
-      if (url.includes('swipes')) {
-        const headers = request.headers();
-        if (headers.cookie) {
-          capturedCookie = headers.cookie;
-          console.log(`🍪 Cookie captured from swipes API`);
-        } else {
-          // Fallback: get cookies from browser context
-          this.page?.context().cookies().then(cookies => {
-            const sessionCookies = cookies.filter(c => 
-              c.name.includes('JSESSIONID') || 
-              c.name.includes('access_token') ||
-              c.name.includes('PLAY_SESSION') ||
-              (c.value.length > 100 && !c.name.includes('csrf'))
-            );
-            
-            if (sessionCookies.length > 0) {
-              capturedCookie = sessionCookies.map(c => `${c.name}=${c.value}`).join('; ');
-              console.log(`🍪 Cookie captured from browser context`);
-            }
-          });
-        }
-      }
-    });
-
-    // Set up response interception to capture login-status API response
     this.page.on('response', async response => {
       const url = response.url();
       if (url.includes('login-status')) {
@@ -114,7 +97,6 @@ class CookieExtractor {
       });
 
       const currentUrl = this.page.url();
-      console.log(`🔍 Current URL: ${currentUrl}`);
 
       // Check if we need to login
       const needsLogin = currentUrl.includes('login') || 
@@ -124,9 +106,7 @@ class CookieExtractor {
       if (needsLogin) {
         console.log('🔐 Authentication required');
         
-        if (!loginId || !password) {
-          throw new Error('LOGIN_ID or PASSWORD not found in environment variables');
-        }
+        // Credentials validation already done above
 
         // Navigate to login page if not already there
         if (!currentUrl.includes('login')) {
@@ -155,36 +135,54 @@ class CookieExtractor {
         await this.page.waitForTimeout(2000);
       }
 
-      // Navigate to ATTENDANCE_INFO_URL to trigger swipes API
+      // Navigate to ATTENDANCE_INFO_URL to ensure we're on the right page
       console.log(`📍 Navigating to attendance page`);
       await this.page.goto(attendanceInfoUrl, { 
         waitUntil: 'domcontentloaded',
         timeout: 15000 
       });
       
-      // Wait for swipes API to be triggered
+      // Wait for the page to fully load and any additional requests
       await this.page.waitForTimeout(3000);
 
-      if (capturedCookie) {
-        const cookieData: CookieData = {
-          cookie: capturedCookie,
-          extractedAt: new Date().toISOString(),
-          url: this.page.url(),
-          ...employeeData
-        };
-
-        await this.saveCookie(cookieData);
-        console.log('✅ Cookie successfully extracted and saved!');
-        
-        if (employeeData.employeeId) {
-          console.log(`👤 Employee: ${employeeData.employeeName} (${employeeData.employeeNumber})`);
-        }
-        
-        return cookieData;
-      } else {
-        console.log('❌ No cookie found');
+      // Extract cookies directly from browser context
+      console.log('🍪 Extracting cookies from browser context...');
+      const cookies = await this.page.context().cookies();
+      
+      // Filter and format important session cookies
+      const sessionCookies = cookies.filter(c => 
+        c.name.includes('JSESSIONID') || 
+        c.name.includes('access_token') ||
+        c.name.includes('PLAY_SESSION') ||
+        c.name.includes('csrf') ||
+        (c.value.length > 50 && !c.name.includes('_ga'))
+      );
+      
+      if (sessionCookies.length === 0) {
+        console.log('❌ No session cookies found');
         return null;
       }
+      
+      // Format cookies as a cookie header string
+      const cookieHeader = cookies.map(c => `${c.name}=${c.value}`).join('; ');
+      
+      console.log(`✅ Extracted ${sessionCookies.length} session cookies (total ${cookies.length} cookies)`);
+      
+      const cookieData: CookieData = {
+        cookie: cookieHeader,
+        extractedAt: new Date().toISOString(),
+        url: this.page.url(),
+        ...employeeData
+      };
+
+      await this.saveCookie(cookieData);
+      console.log('✅ Cookie successfully extracted and saved!');
+      
+      if (employeeData.employeeId) {
+        console.log(`👤 Employee: ${employeeData.employeeName} (${employeeData.employeeNumber})`);
+      }
+      
+      return cookieData;
 
     } catch (error) {
       console.error('❌ Error during navigation:', error);
@@ -241,11 +239,23 @@ class CookieExtractor {
 }
 
 async function main() {
+  // Get credentials from environment for backward compatibility
+  // In production, these should be passed as parameters
+  const loginId = process.env.LOGIN_ID;
+  const password = process.env.PASSWORD;
+  
+  if (!loginId || !password) {
+    console.error('💥 LOGIN_ID and PASSWORD must be provided');
+    console.error('🔐 For security, credentials are no longer stored in .env');
+    console.error('📱 Use the frontend login form to refresh cookies');
+    process.exit(1);
+  }
+  
   const extractor = new CookieExtractor();
   
   try {
     await extractor.init();
-    const result = await extractor.extractCookie();
+    const result = await extractor.extractCookie(loginId, password);
     
     if (result) {
       console.log('🎉 Cookie extraction completed successfully!');
@@ -258,6 +268,24 @@ async function main() {
   } catch (error) {
     console.error('💥 Fatal error:', error);
     process.exit(1);
+  } finally {
+    await extractor.cleanup();
+  }
+}
+
+// Export function for backend use with explicit credentials
+export async function extractGreytHRCookie(loginId: string, password: string): Promise<CookieData> {
+  const extractor = new CookieExtractor();
+  
+  try {
+    await extractor.init();
+    const result = await extractor.extractCookie(loginId, password);
+    
+    if (!result) {
+      throw new Error('Failed to extract cookie');
+    }
+    
+    return result;
   } finally {
     await extractor.cleanup();
   }

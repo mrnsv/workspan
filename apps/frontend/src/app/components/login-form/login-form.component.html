@@ -1,35 +1,38 @@
-<form [formGroup]="loginForm" class="compact-auth-form">
+<form [formGroup]="loginForm" class="professional-auth-form">
   
-  <!-- Compact Credentials -->
-  <div class="credentials-compact">
-    <!-- Login ID Field -->
-    <mat-form-field appearance="fill" class="compact-input">
-      <mat-label>USER ID</mat-label>
+  <!-- Professional Credentials Section -->
+  <div class="credentials-section">
+    <!-- Employee ID Field -->
+    <mat-form-field appearance="outline" class="professional-input">
+      <mat-label>Employee ID</mat-label>
       <input matInput 
              type="text" 
              formControlName="loginId" 
-             placeholder="ID"
-             class="compact-field">
-      <mat-icon matSuffix class="input-icon-small">person</mat-icon>
+             placeholder="Enter your employee ID"
+             class="professional-field"
+             autocomplete="username">
+      <mat-icon matSuffix class="professional-icon">badge</mat-icon>
       <mat-error *ngIf="loginForm.get('loginId')?.invalid && loginForm.get('loginId')?.touched">
         {{ getErrorMessage('loginId') }}
       </mat-error>
     </mat-form-field>
 
     <!-- Password Field -->
-    <mat-form-field appearance="fill" class="compact-input">
-      <mat-label>CODE</mat-label>
+    <mat-form-field appearance="outline" class="professional-input">
+      <mat-label>Password</mat-label>
       <input matInput 
              [type]="hidePassword ? 'password' : 'text'" 
              formControlName="password" 
-             placeholder="CODE"
-             class="compact-field">
+             placeholder="Enter your password"
+             class="professional-field"
+             autocomplete="current-password">
       <button mat-icon-button 
               matSuffix 
               type="button"
-              class="visibility-toggle-small"
-              (click)="hidePassword = !hidePassword">
-        <mat-icon class="input-icon-small">{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              class="visibility-toggle"
+              (click)="hidePassword = !hidePassword"
+              matTooltip="{{ hidePassword ? 'Show Password' : 'Hide Password' }}">
+        <mat-icon class="professional-icon">{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
       </button>
       <mat-error *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
         {{ getErrorMessage('password') }}
@@ -37,43 +40,32 @@
     </mat-form-field>
   </div>
 
-  <!-- Compact Actions with Overlay Status -->
-  <div class="actions-container">
-    <div class="actions-compact">
-      <!-- Primary Auth Button -->
-      <button mat-stroked-button 
+  <!-- Professional Actions Section -->
+  <div class="actions-section">
+    <div class="action-buttons">
+      <!-- Primary Authentication Button -->
+      <button mat-raised-button 
               type="button"
-              class="compact-button secondary"
+              class="primary-action"
+              color="primary"
               [disabled]="isRefreshing"
               (click)="onRefreshCookie()"
-              matTooltip="UPDATE & SYNC">
-        <mat-icon *ngIf="!isRefreshing" class="button-icon-small">refresh</mat-icon>
-        <mat-spinner *ngIf="isRefreshing" diameter="14" class="neural-spinner-small"></mat-spinner>
-        <span class="button-text-small">{{ isRefreshing ? 'SYNC...' : 'UPDATE' }}</span>
-      </button>
-
-      <!-- Quick Sync Button -->
-      <button mat-stroked-button 
-              type="button"
-              class="compact-button secondary"
-              [disabled]="isRefreshing"
-              (click)="onQuickRefresh()"
-              matTooltip="QUICK SYNC">
-        <mat-icon *ngIf="!isRefreshing" class="button-icon-small">cached</mat-icon>
-        <mat-spinner *ngIf="isRefreshing" diameter="14" class="neural-spinner-small"></mat-spinner>
-        <span class="button-text-small">QUICK</span>
+              matTooltip="Authenticate and establish secure session">
+        <mat-icon *ngIf="!isRefreshing" class="action-icon">login</mat-icon>
+        <mat-spinner *ngIf="isRefreshing" diameter="16" class="auth-spinner"></mat-spinner>
+        <span class="action-text">{{ isRefreshing ? 'Authenticating...' : 'Authenticate' }}</span>
       </button>
     </div>
 
-    <!-- Overlay Status Display -->
-    <div class="status-overlay" *ngIf="isRefreshing">
+    <!-- Authentication Status Display -->
+    <div class="auth-status" *ngIf="isRefreshing">
       <div class="status-content">
-        <div class="custom-progress-bar">
-          <div class="progress-bar-track">
-            <div class="progress-bar-fill"></div>
+        <div class="professional-progress-bar">
+          <div class="progress-track">
+            <div class="progress-fill"></div>
           </div>
         </div>
-        <span class="status-text-overlay">SYNCING...</span>
+        <span class="status-text">Establishing secure connection...</span>
       </div>
     </div>
   </div>

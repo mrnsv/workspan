@@ -1,19 +1,36 @@
 /* Compact Cyberpunk App Layout for 1440x900 */
 
+/* Global horizontal scroll prevention for resolutions >= 390px */
+@media (min-width: 390px) {
+  html, body {
+    overflow-x: hidden !important; /* Prevent horizontal scroll globally */
+    width: 100% !important;
+    max-width: 100vw !important;
+  }
+  
+  * {
+    box-sizing: border-box !important; /* Ensure all elements use border-box */
+  }
+}
+
 .cyberpunk-container {
   height: 100vh;
-  background: linear-gradient(to bottom, #190b0f, #0f0b0d, #071216);
-  color: var(--cp-primary);
-  font-family: 'Orbitron', monospace;
+  background: linear-gradient(to bottom, var(--cp-bg-primary), var(--cp-bg-secondary), var(--cp-bg-tertiary));
+  color: var(--cp-text);
+  font-family: var(--cp-font-family);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  transition: background 0.5s ease, color 0.3s ease;
+  width: 100% !important;
+  max-width: 100vw !important;
+  box-sizing: border-box !important;
 }
 
-/* Compact Header - Fixed height */
+/* Professional Header - Optimized for better visibility and consistency */
 .cp-header-compact {
-  height: 60px;
-  padding: 0.5rem 1rem;
+  height: 70px; /* Increased height for better visibility */
+  padding: 0.75rem 1.5rem; /* Increased padding for better spacing */
   border-bottom: 1px solid var(--cp-border);
   background: linear-gradient(90deg, var(--cp-bg-primary), var(--cp-bg-secondary));
   backdrop-filter: blur(10px);
@@ -22,6 +39,8 @@
   justify-content: space-between;
   position: relative;
   flex-shrink: 0;
+  z-index: 1001;
+  box-sizing: border-box;
 }
 
 .cp-header-compact::after {
@@ -31,7 +50,7 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(to right, rgba(255, 0, 0, 0.7), rgba(255, 128, 128, 0.4), rgba(255, 0, 0, 0.7));
+  background: linear-gradient(to right, var(--cp-glow-secondary), var(--cp-glow-secondary), var(--cp-glow-secondary));
   opacity: 0.9;
 }
 
@@ -40,11 +59,18 @@
 .header-right {
   display: flex;
   align-items: center;
-  flex: 1;
+  height: 100%; /* Ensure all sections use full header height */
+  min-height: 50px; /* Minimum height for consistency */
+}
+
+.header-left {
+  flex: 1.5; /* More space for employee info and title */
+  gap: 1.5rem; /* Increased gap between elements */
 }
 
 .header-center {
   justify-content: center;
+  flex: 0.5; /* Minimal space since it's empty */
   
   /* Hide when empty or minimal content */
   &:empty,
@@ -55,92 +81,141 @@
 
 .header-right {
   justify-content: flex-end;
+  flex: 1.5; /* More space for stats and theme switcher */
+  gap: 1rem;
 }
 
-/* Compact Levels */
+/* Professional Levels - Increased size and better spacing */
 .cp-levels-compact {
   display: flex;
-  gap: 1rem;
-  font-size: 0.8rem;
-  font-weight: 600;
+  gap: 1.5rem; /* Increased gap for better separation */
+  font-size: var(--cp-component-font-size-base); /* Increased font size */
+  font-weight: var(--cp-component-font-weight-semibold);
+  align-items: center;
+  height: 100%; /* Use full header height */
 }
 
 .cp-level {
   color: var(--cp-accent);
-  font-weight: 700;
+  font-weight: var(--cp-component-font-weight-bold);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: var(--cp-component-letter-spacing-wide);
+  font-size: var(--cp-component-font-size-base); /* Increased font size */
+  padding: 0.5rem 0.75rem; /* Added padding for better appearance */
+  border: 1px solid var(--cp-border);
+  border-radius: 4px;
+  background: var(--cp-glass);
+  backdrop-filter: blur(4px);
+  transition: all 0.3s ease;
+  min-height: 40px; /* Consistent height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cp-level:hover {
+  border-color: var(--cp-accent);
+  background: var(--cp-component-accent-light);
+  transform: translateY(-1px);
 }
 
 .cp-label {
-  margin-left: 0.25rem;
+  margin-left: 0.5rem; /* Increased margin */
   color: var(--cp-secondary);
-  font-weight: 400;
-  font-size: 0.7rem;
+  font-weight: var(--cp-component-font-weight-normal);
+  font-size: var(--cp-component-font-size-sm); /* Increased font size */
 }
 
-/* Compact Title */
+/* Professional Title - Simple text styling */
 .cp-title-compact {
-  font-size: 1rem;
-  font-weight: 900;
+  font-size: var(--cp-component-font-size-xl); /* Increased font size */
+  font-weight: var(--cp-component-font-weight-extra-bold);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: var(--cp-component-letter-spacing-wide);
   color: var(--cp-primary);
-  text-shadow: 0 0 8px rgba(121, 255, 232, 0.5);
-  margin-left: 1rem;
+  text-shadow: 0 0 8px var(--cp-glow-primary);
+  margin-left: 1.5rem; /* Increased margin */
+  padding: 0.5rem 0; /* Minimal vertical padding only */
+  min-height: 40px; /* Consistent height */
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* Left align text */
 }
 
 /* Removed old date input styles - now using cyberpunk calendar component */
 
-/* Compact Stats */
+/* Professional Stats - Increased size and better styling */
 .cp-stats-compact {
   display: flex;
   gap: 1rem;
-  font-size: 0.8rem;
+  font-size: var(--cp-component-font-size-base); /* Increased font size */
   color: var(--cp-secondary);
-  font-weight: 600;
+  font-weight: var(--cp-component-font-weight-semibold);
+  align-items: center;
+  height: 100%; /* Use full header height */
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .stat-item {
-  padding: 0.25rem 0.5rem;
-  border: 1px solid rgba(255, 92, 92, 0.3);
-  border-radius: 3px;
-  background: rgba(128, 0, 0, 0.1);
+  padding: 0.5rem 0.75rem; /* Increased padding */
+  border: 1px solid var(--cp-border);
+  border-radius: 4px; /* Increased border radius */
+  background: var(--cp-glass);
+  backdrop-filter: blur(4px);
   transition: all 0.3s ease;
-  font-size: 0.7rem;
-  min-width: 4.5rem; /* Fixed width to prevent growing/shrinking */
-  text-align: center; /* Center align text for consistent appearance */
-  display: inline-block; /* Ensure proper width behavior */
+  font-size: var(--cp-component-font-size-sm); /* Increased font size */
+  min-width: 5.5rem; /* Increased width */
+  min-height: 40px; /* Consistent height */
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
 }
 
 .stat-item:hover {
   border-color: var(--cp-accent);
-  background: rgba(72, 230, 255, 0.1);
+  background: var(--cp-component-accent-light);
   color: var(--cp-accent);
+  transform: translateY(-1px);
 }
 
 .stat-icon {
-  font-size: 0.8rem !important;
-  width: 0.8rem !important;
-  height: 0.8rem !important;
-  margin-right: 0.25rem;
+  font-size: var(--cp-component-font-size-lg) !important; /* Increased icon size */
+  width: 1.25rem !important; /* Increased width */
+  height: 1.25rem !important; /* Increased height */
+  margin-right: 0.5rem; /* Increased margin */
   vertical-align: middle;
-  color: rgb(255, 92, 92); /* Red to match stat item theme */
+  color: var(--cp-secondary);
   transition: all 0.3s ease;
 }
 
 .time-stat {
-  min-width: 8.5rem !important; /* Significantly increased width for optimal visibility */
-  width: 8.5rem !important; /* Force exact width to prevent any changes */
+  width: 12rem !important; /* Fixed width - increased for better visibility */
+  height: 50px !important; /* Fixed height - increased to match header height */
+  min-width: 12rem !important; /* Prevent shrinking */
+  max-width: 12rem !important; /* Prevent growing */
+  min-height: 50px !important; /* Prevent shrinking */
+  max-height: 50px !important; /* Prevent growing */
   text-align: center !important;
-  display: inline-block !important;
-  white-space: nowrap !important; /* Prevent text wrapping */
-  overflow: hidden !important; /* Hide overflow if any */
-  box-sizing: border-box !important; /* Include padding in width calculation */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  font-size: var(--cp-component-font-size-base) !important; /* Increased font size */
+  font-weight: var(--cp-component-font-weight-semibold) !important; /* Added font weight */
+  padding: 0.75rem 1rem !important; /* Increased padding */
 }
 
 .time-stat:hover .stat-icon {
-  color: var(--cp-accent) !important; /* Turn blue on hover like other stat-items */
+  color: var(--cp-accent) !important;
 }
 
 /* Main Three-Column Grid Layout */
@@ -185,7 +260,7 @@
 
 .auth-compact:hover {
   border-color: var(--cp-accent);
-  box-shadow: 0 4px 15px rgba(255, 92, 92, 0.2);
+  box-shadow: var(--cp-component-error-shadow);
 }
 
 /* Calendar Container Card */
@@ -201,7 +276,7 @@
 
 .calendar-container-compact:hover {
   border-color: var(--cp-accent);
-  box-shadow: 0 4px 15px rgba(72, 230, 255, 0.2);
+  box-shadow: var(--cp-component-glow-hover);
 }
 
 .calendar-header-compact {
@@ -216,11 +291,11 @@
 
 .target-date-heading {
   color: var(--cp-accent);
-  font-weight: 700;
-  font-size: 1rem;
+  font-weight: var(--cp-component-font-weight-bold);
+  font-size: var(--cp-font-size-base);
   text-transform: uppercase;
-  letter-spacing: 1.2px;
-  font-family: 'Orbitron', monospace;
+  letter-spacing: var(--cp-component-letter-spacing-wider);
+  font-family: var(--cp-font-family);
   cursor: pointer;
   padding: 0.3rem 0.5rem;
   width: 100%;
@@ -228,7 +303,7 @@
   transition: all 0.3s ease;
   
   &:hover {
-    text-shadow: 0 0 8px rgba(72, 230, 255, 0.8);
+    text-shadow: var(--cp-component-glow-hover);
     transform: translateY(-1px);
   }
   
@@ -254,13 +329,13 @@
     
     &:hover {
       border-color: var(--cp-accent);
-      background: rgba(72, 230, 255, 0.05);
+      background: var(--cp-component-accent-light);
     }
     
     &.mdc-text-field--focused {
       border-color: var(--cp-accent);
-      background: rgba(72, 230, 255, 0.1);
-      box-shadow: 0 0 8px rgba(72, 230, 255, 0.3);
+      background: var(--cp-component-accent-light);
+      box-shadow: var(--cp-component-glow-hover);
     }
   }
   
@@ -274,11 +349,11 @@
   
   .date-input {
     color: var(--cp-accent);
-    font-family: 'Orbitron', monospace;
-    font-size: 1rem;
-    font-weight: 700;
+    font-family: var(--cp-font-family);
+    font-size: var(--cp-font-size-base);
+    font-weight: var(--cp-component-font-weight-bold);
     text-transform: uppercase;
-    letter-spacing: 1.2px;
+    letter-spacing: var(--cp-component-letter-spacing-wider);
     text-align: center;
     background: transparent;
     border: none;
@@ -289,12 +364,12 @@
     &::placeholder {
       color: var(--cp-secondary);
       opacity: 0.7;
-      font-size: 0.9rem;
+      font-size: var(--cp-component-font-size-lg);
     }
     
     &:focus {
       color: var(--cp-accent);
-      text-shadow: 0 0 6px rgba(72, 230, 255, 0.6);
+      text-shadow: var(--cp-component-glow-hover);
     }
   }
 }
@@ -312,28 +387,28 @@
 }
 
 .auth-header-compact {
-  background: rgba(128, 0, 0, 0.3);
+  background: var(--cp-glass);
   padding: 0.5rem 1rem;
   border-bottom: 1px solid var(--cp-border);
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  font-size: 0.8rem;
+  font-size: var(--cp-component-font-size-sm);
   margin-bottom: 0.75rem; /* Match spacing between USER ID and UPDATE button */
 }
 
 .auth-icon-small {
   color: var(--cp-accent);
-  font-size: 1.2rem;
+  font-size: var(--cp-component-font-size-xl);
   width: 1.2rem;
   height: 1.2rem;
 }
 
 .auth-title-small {
   color: var(--cp-accent);
-  font-weight: 700;
+  font-weight: var(--cp-component-font-weight-bold);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: var(--cp-component-letter-spacing-wide);
   flex: 1;
 }
 
@@ -364,10 +439,10 @@
 
 .status-text-small {
   color: var(--cp-primary);
-  font-size: 0.7rem;
-  font-weight: 600;
+  font-size: var(--cp-component-font-size-xs);
+  font-weight: var(--cp-component-font-weight-semibold);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: var(--cp-component-letter-spacing-tight);
 }
 
 .auth-status-compact.ready .status-text-small {
@@ -383,14 +458,14 @@
   height: 30px;
   padding: 0.5rem 1rem;
   border-top: 1px solid var(--cp-border);
-  background: rgba(128, 0, 0, 0.1);
+  background: var(--cp-component-error-light);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.6rem;
-  color: rgba(255, 92, 92, 0.6);
+  font-size: var(--cp-component-font-size-xs);
+  color: var(--cp-component-error);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: var(--cp-component-letter-spacing-wide);
   flex-shrink: 0;
 }
 
@@ -429,10 +504,160 @@
   background: var(--cp-accent);
 }
 
+/* Hide scrollbars on mobile since individual panels don't scroll */
+@media (max-width: 1000px) {
+  .left-panel-narrow::-webkit-scrollbar,
+  .center-panel::-webkit-scrollbar,
+  .right-panel-extra::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .left-panel-narrow,
+  .center-panel,
+  .right-panel-extra {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+}
+
 /* Responsive adjustments for smaller screens */
 @media (max-width: 1440px) {
   .main-grid-three {
     grid-template-columns: 360px 1fr 360px;
+  }
+}
+
+/* Adjust widths for resolutions >= 390x844 to prevent horizontal scroll */
+@media (min-width: 390px) and (max-width: 1200px) {
+  html, body {
+    overflow-x: hidden !important; /* Force prevent horizontal scrolling */
+    width: 100% !important;
+    max-width: 100vw !important;
+  }
+  
+  .cyberpunk-container {
+    overflow-x: hidden !important; /* Prevent horizontal scrolling */
+    overflow-y: auto !important; /* Allow vertical scrolling */
+    width: 100vw !important; /* Use full viewport width */
+    max-width: 100vw !important; /* Ensure no overflow */
+    box-sizing: border-box !important;
+  }
+  
+  .main-grid-three {
+    width: 100% !important; /* Full width */
+    max-width: 100% !important; /* Prevent overflow */
+    padding: 0.5rem !important; /* Reduced padding */
+    gap: 0.5rem !important; /* Reduced gap */
+    box-sizing: border-box !important; /* Include padding in width calculation */
+    overflow-x: hidden !important; /* Prevent horizontal overflow */
+  }
+  
+  .left-panel-narrow,
+  .right-panel-extra {
+    width: 100% !important; /* Full width */
+    max-width: 100% !important; /* Prevent overflow */
+    box-sizing: border-box !important; /* Include padding in width calculation */
+    overflow-x: hidden !important; /* Prevent horizontal overflow */
+  }
+  
+  .center-panel {
+    width: 100% !important; /* Full width */
+    max-width: 100% !important; /* Prevent overflow */
+    padding: 0.25rem 0.5rem !important; /* Reduced padding */
+    box-sizing: border-box !important; /* Include padding in width calculation */
+    overflow-x: hidden !important; /* Prevent horizontal overflow */
+  }
+  
+  .cp-header-compact {
+    width: 100% !important; /* Full width */
+    max-width: 100% !important; /* Prevent overflow */
+    padding: 0.5rem !important; /* Reduced padding */
+    box-sizing: border-box !important; /* Include padding in width calculation */
+    overflow-x: hidden !important; /* Prevent horizontal overflow */
+  }
+  
+  /* Ensure all cards and components fit within viewport */
+  .cp-card,
+  .auth-compact,
+  .calendar-container-compact {
+    width: 100% !important; /* Full width */
+    max-width: 100% !important; /* Prevent overflow */
+    box-sizing: border-box !important; /* Include padding in width calculation */
+    overflow-x: hidden !important; /* Prevent horizontal overflow */
+  }
+  
+  /* Form fields and inputs */
+  .mat-mdc-form-field {
+    width: 100% !important; /* Full width */
+    max-width: 100% !important; /* Prevent overflow */
+    box-sizing: border-box !important;
+  }
+  
+  .mat-mdc-form-field .mat-mdc-text-field-wrapper {
+    width: 100% !important; /* Full width */
+    max-width: 100% !important; /* Prevent overflow */
+    box-sizing: border-box !important;
+  }
+  
+  /* Buttons and interactive elements */
+  .mat-mdc-button,
+  .mat-mdc-icon-button {
+    max-width: 100% !important; /* Prevent overflow */
+    box-sizing: border-box !important; /* Include padding in width calculation */
+  }
+  
+  /* Prevent any element from causing horizontal overflow */
+  * {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+}
+
+/* Additional width constraints for larger screens to prevent horizontal scroll */
+@media (min-width: 1200px) and (max-width: 1440px) {
+  html, body {
+    overflow-x: hidden !important; /* Force prevent horizontal scrolling */
+    width: 100% !important;
+    max-width: 100vw !important;
+  }
+  
+  .cyberpunk-container {
+    overflow-x: hidden !important; /* Prevent horizontal scrolling */
+    overflow-y: auto !important; /* Allow vertical scrolling */
+    width: 100vw !important; /* Use full viewport width */
+    max-width: 100vw !important; /* Ensure no overflow */
+    box-sizing: border-box !important;
+  }
+  
+  .main-grid-three {
+    width: 100% !important; /* Full width */
+    max-width: 100% !important; /* Prevent overflow */
+    padding: 0.75rem !important; /* Slightly reduced padding */
+    gap: 0.75rem !important; /* Slightly reduced gap */
+    box-sizing: border-box !important; /* Include padding in width calculation */
+    overflow-x: hidden !important; /* Prevent horizontal overflow */
+  }
+  
+  .left-panel-narrow,
+  .right-panel-extra {
+    width: 100% !important; /* Full width */
+    max-width: 100% !important; /* Prevent overflow */
+    box-sizing: border-box !important; /* Include padding in width calculation */
+    overflow-x: hidden !important; /* Prevent horizontal overflow */
+  }
+  
+  .center-panel {
+    width: 100% !important; /* Full width */
+    max-width: 100% !important; /* Prevent overflow */
+    padding: 0.25rem 0.75rem !important; /* Slightly reduced padding */
+    box-sizing: border-box !important; /* Include padding in width calculation */
+    overflow-x: hidden !important; /* Prevent horizontal overflow */
+  }
+  
+  /* Prevent any element from causing horizontal overflow */
+  * {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
   }
 }
 
@@ -458,20 +683,35 @@
 @media (max-width: 1000px) {
   .main-grid-three {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto 1fr;
+    grid-template-rows: auto auto auto; /* Three rows for three sections */
+    overflow: visible !important; /* Allow content to flow naturally */
   }
   
   .left-panel-narrow {
-    order: 2;
+    order: 2; /* Second section - Auth + Calendar */
+    overflow-y: visible; /* Disable individual panel scrolling */
+    height: auto; /* Allow natural height */
   }
   
   .center-panel {
-    order: 1;
+    order: 1; /* First section - Work Hours */
     padding: 0;
+    overflow-y: visible; /* Disable individual panel scrolling */
+    height: auto; /* Allow natural height */
   }
   
   .right-panel-extra {
-    display: none;
+    order: 3; /* Third section - Swipe Data */
+    display: block; /* Make right section visible */
+    overflow-y: visible; /* Disable individual panel scrolling */
+    height: auto; /* Allow natural height */
+  }
+  
+  /* Enable scrolling for the whole site in mobile */
+  .cyberpunk-container {
+    overflow: auto !important; /* Force enable scrolling for the whole site */
+    height: auto !important; /* Allow natural height for scrolling */
+    min-height: 100vh; /* Ensure minimum viewport height */
   }
   
   .cp-header-compact {
@@ -489,7 +729,7 @@
   
   .cp-title-compact {
     margin-left: 0;
-    font-size: 0.9rem;
+    font-size: var(--cp-component-font-size-lg);
   }
   
   .cp-levels-compact,
@@ -499,26 +739,62 @@
   }
 }
 
+/* Additional mobile styles for phones */
+@media (max-width: 768px) {
+  .cyberpunk-container {
+    overflow: auto !important; /* Force enable scrolling on phones */
+    height: auto !important; /* Allow natural height for scrolling */
+    min-height: 100vh; /* Ensure minimum viewport height */
+  }
+  
+  .main-grid-three {
+    padding: 0.5rem; /* Reduce padding on phones */
+    gap: 0.5rem;
+    overflow: visible !important; /* Ensure content can flow naturally */
+  }
+  
+  .left-panel-narrow,
+  .center-panel,
+  .right-panel-extra {
+    overflow-y: visible; /* Ensure no individual scrolling */
+    height: auto;
+  }
+  
+  .cp-header-compact {
+    padding: 0.25rem;
+    gap: 0.25rem;
+  }
+  
+  .cp-levels-compact,
+  .cp-stats-compact {
+    font-size: var(--cp-component-font-size-xs);
+    gap: 0.5rem;
+  }
+  
+  .cp-title-compact {
+    font-size: var(--cp-component-font-size-md);
+  }
+}
+
 /* Custom Animations */
 @keyframes cp-pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.7; }
 }
 
-/* Snackbar Cyberpunk Styling */
+/* Snackbar Theme-Based Styling */
 ::ng-deep .mat-mdc-snack-bar-container {
-  &.cyberpunk-snackbar {
-    background: rgba(0, 0, 0, 0.85) !important;
-    color: var(--cp-primary) !important;
-    border: 1px solid var(--cp-border-accent) !important;
+  &.theme-snackbar {
+    background: var(--cp-notification-background) !important;
+    color: var(--cp-notification-text) !important;
+    border: 1px solid var(--cp-notification-border) !important;
     border-radius: 4px !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 
-                0 0 10px rgba(121, 255, 232, 0.2) !important;
+    box-shadow: var(--cp-notification-shadow) !important;
     backdrop-filter: blur(10px) !important;
-    font-family: 'Orbitron', monospace !important;
-    font-weight: 600 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
+    font-family: var(--cp-notification-font-family) !important;
+    font-weight: var(--cp-notification-font-weight) !important;
+    text-transform: var(--cp-notification-text-transform) !important;
+    letter-spacing: var(--cp-notification-letter-spacing) !important;
     margin-bottom: 60px !important; /* Position above footer */
     margin-right: 20px !important;
     width: auto !important; /* Dynamic width based on content */
@@ -541,10 +817,10 @@
     }
     
     .mat-mdc-snack-bar-label {
-      color: var(--cp-primary) !important;
-      font-family: 'Orbitron', monospace !important;
-      font-weight: 600 !important;
-      font-size: 13px !important;
+      color: var(--cp-notification-text) !important;
+      font-family: var(--cp-notification-font-family) !important;
+      font-weight: var(--cp-notification-font-weight) !important;
+      font-size: var(--cp-notification-font-size) !important;
       white-space: nowrap !important;
       overflow: visible !important;
       padding: 0 !important; /* Remove default padding */
@@ -553,7 +829,7 @@
       display: flex !important;
       align-items: center !important; /* Vertical center alignment */
       justify-content: center !important; /* Horizontal center alignment */
-      line-height: 1.2 !important; /* Consistent line height */
+      line-height: var(--cp-component-line-height-tight) !important; /* Consistent line height */
       min-height: 20px !important; /* Minimum height for proper alignment */
     }
     
@@ -582,9 +858,9 @@
     
     .mat-mdc-snack-bar-action {
       color: var(--cp-accent) !important;
-      font-family: 'Orbitron', monospace !important;
-      font-weight: 700 !important;
-      font-size: 16px !important;
+      font-family: var(--cp-notification-font-family) !important;
+      font-weight: var(--cp-notification-action-font-weight) !important;
+      font-size: var(--cp-notification-action-font-size) !important;
       min-width: 40px !important;
       width: 40px !important;
       height: 40px !important;
@@ -603,32 +879,28 @@
       }
       
       &:hover {
-        background: rgba(72, 230, 255, 0.1) !important;
+        background: var(--cp-notification-action-hover) !important;
       }
     }
   }
   
   &.snackbar-success {
-    border-color: var(--cp-success) !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 
-                0 0 10px rgba(0, 255, 65, 0.3) !important;
+    border-color: var(--cp-notification-success-border) !important;
+    box-shadow: var(--cp-notification-success-shadow) !important;
   }
 
   &.snackbar-error {
-    border-color: var(--cp-secondary) !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 
-                0 0 10px rgba(255, 92, 92, 0.3) !important;
+    border-color: var(--cp-notification-error-border) !important;
+    box-shadow: var(--cp-notification-error-shadow) !important;
   }
 
   &.snackbar-warn {
-    border-color: var(--cp-warning) !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 
-                0 0 10px rgba(255, 255, 0, 0.3) !important;
+    border-color: var(--cp-notification-warning-border) !important;
+    box-shadow: var(--cp-notification-warning-shadow) !important;
   }
 
   &.snackbar-info {
-    border-color: var(--cp-accent) !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 
-                0 0 10px rgba(72, 230, 255, 0.3) !important;
+    border-color: var(--cp-notification-info-border) !important;
+    box-shadow: var(--cp-notification-info-shadow) !important;
   }
 }

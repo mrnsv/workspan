@@ -1,0 +1,40 @@
+<div class="theme-switcher" (blur)="onBlur()" tabindex="0">
+  <button 
+    class="theme-toggle-btn"
+    (click)="toggleDropdown()"
+    [attr.aria-expanded]="isDropdownOpen"
+    aria-label="Change theme">
+    <mat-icon class="theme-icon">palette</mat-icon>
+    <span class="theme-name">{{ currentTheme?.displayName || 'Theme' }}</span>
+    <mat-icon class="dropdown-arrow" [class.open]="isDropdownOpen">keyboard_arrow_down</mat-icon>
+  </button>
+  
+  <div class="theme-dropdown" [class.open]="isDropdownOpen">
+    <div class="dropdown-header">
+      <mat-icon class="header-icon">palette</mat-icon>
+      <span class="header-text">Select Theme</span>
+    </div>
+    
+    <div class="theme-options">
+      <button 
+        *ngFor="let theme of availableThemes"
+        class="theme-option"
+        [class.active]="currentTheme?.name === theme.name"
+        (click)="selectTheme(theme)">
+        
+        <div class="theme-preview">
+          <div class="color-swatch primary" [style.background-color]="theme.colors.primary"></div>
+          <div class="color-swatch secondary" [style.background-color]="theme.colors.secondary"></div>
+          <div class="color-swatch accent" [style.background-color]="theme.colors.accent"></div>
+        </div>
+        
+        <div class="theme-info">
+          <span class="theme-display-name">{{ theme.displayName }}</span>
+          <span class="theme-description">{{ getThemeDescription(theme.name) }}</span>
+        </div>
+        
+        <mat-icon *ngIf="currentTheme?.name === theme.name" class="check-icon">check</mat-icon>
+      </button>
+    </div>
+  </div>
+</div>

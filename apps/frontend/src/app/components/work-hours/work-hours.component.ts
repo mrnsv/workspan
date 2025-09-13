@@ -19,6 +19,7 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
   workHoursStats: WorkHoursStats | null = null;
   loading$: Observable<boolean>;
   loadingMessage$: Observable<string>;
+  error$: Observable<string | null>;
   
   private subscriptions = new Subscription();
   
@@ -47,12 +48,19 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
         return 'DATA SYNC';
       })
     );
+
+    // Combine error streams from both services
+    this.error$ = combineLatest([
+      this.workHoursService.error$,
+      this.authService.error$
+    ]).pipe(
+      map(([workHoursError, authError]) => workHoursError || authError)
+    );
   }
 
   ngOnInit() {
     // Subscribe to work hours stats
     const statsSubscription = this.workHoursService.workHours$.subscribe(stats => {
-      console.log('📈 WorkHours stats updated:', stats);
       this.workHoursStats = stats;
       
       // Trigger change detection to ensure UI updates
@@ -64,24 +72,16 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    // Only reload if selectedDate changes, not selectionMode
-    // The swipe-data component will handle the selectionMode changes
-    if (changes['selectedDate'] && !changes['selectedDate'].firstChange) {
-      console.log(`🔄 Reloading work hours due to date change: ${changes['selectedDate']?.currentValue}`);
+    // Reload data when either selectedDate or selectionMode changes
+    if ((changes['selectedDate'] && !changes['selectedDate'].firstChange) ||
+        (changes['selectionMode'] && !changes['selectionMode'].firstChange)) {
       this.loadWorkHours();
-    }
-    
-    // If only selectionMode changed, don't make a new API call
-    // The swipe-data component will handle this and update the shared service
-    if (changes['selectionMode'] && !changes['selectionMode'].firstChange && !changes['selectedDate']) {
-      console.log(`🔄 Selection mode changed to: ${changes['selectionMode']?.currentValue}, but not making API call (handled by swipe-data component)`);
     }
   }
 
   private loadWorkHours() {
     const dateString = this.workHoursService.formatDate(this.selectedDate);
     
-    console.log(`🗓️ Loading work hours for selectedDate: ${this.selectedDate}, formatted: ${dateString}, selectionMode: ${this.selectionMode}`);
     
     // Only clear cache if this is a refresh action, not on normal date changes
     // this.workHoursService.clearDateCache(dateString);
@@ -89,7 +89,6 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
     // Use the work logs API that provides all data in one call
     const apiSubscription = this.workHoursService.getWorkLogs(dateString, this.selectionMode).subscribe({
       next: (data) => {
-        console.log('🔄 Unified API response received:', data);
         this.workHoursData = data;
         
         // Manually update stats to ensure they're always current (even from cache)
@@ -105,7 +104,6 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
           isComplete: data.stats.isComplete,
           completionPercentage: data.stats.completionPercentage
         };
-        console.log('🎯 Component manually updating stats:', stats);
         this.workHoursStats = stats;
         
         // Trigger change detection to ensure UI updates
@@ -177,10 +175,19 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   onRefresh() {
+    // Clear errors before retry
+    this.workHoursService.clearError();
+    this.authService.clearError();
+    
     // Clear cache only on explicit refresh
     const dateString = this.workHoursService.formatDate(this.selectedDate);
     this.workHoursService.clearDateCache(dateString);
     this.loadWorkHours();
+  }
+
+  clearErrors(): void {
+    this.workHoursService.clearError();
+    this.authService.clearError();
   }
 
   // Cyberpunk UI Methods
@@ -237,21 +244,7 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
 
   private getRandomDataSyncMessage(): string {
     const messages = [
-      'DATA SYNC',
-      'NEURAL INTERFACE SYNC',
-      'QUANTUM DATA STREAM',
-      'MATRIX SYNCHRONIZATION',
-      'CYBER GRID UPDATE',
-      'NEURAL NET CALIBRATION',
-      'DATA STREAM ANALYSIS',
-      'SYSTEM DIAGNOSTICS',
-      'MEMORY BANK ACCESS',
-      'DIGITAL CORTEX SYNC',
-      'BIODATA PROCESSING',
-      'NEURAL PATHWAY SCAN',
-      'CYBER CONSCIOUSNESS',
-      'DATA MATRIX LOADING',
-      'VIRTUAL REALITY SYNC'
+      'DATA SYNC'
     ];
     
     const randomIndex = Math.floor(Math.random() * messages.length);

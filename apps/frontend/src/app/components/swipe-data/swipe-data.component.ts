@@ -1,6 +1,9 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { MatButtonToggleChange } from '@angular/material/button-toggle';
+import { Observable, combineLatest } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { WorkHoursService } from '../../services/work-hours.service';
+import { AuthService } from '../../services/auth.service';
 import { SwipeData, SwipePair, UnifiedWorkHoursResponse } from '../../models/work-hours.model';
 
 export type TimePeriod = 'day' | 'week' | 'month';
@@ -12,12 +15,24 @@ export type TimePeriod = 'day' | 'week' | 'month';
 })
 export class SwipeDataComponent implements OnInit, OnChanges {
   @Input() selectedDate!: Date;
+  @Input() selectionMode: TimePeriod = 'day';
   @Output() selectionModeChanged = new EventEmitter<TimePeriod>();
   
   unifiedData: UnifiedWorkHoursResponse | null = null;
   selectedTimePeriod: TimePeriod = 'day';
+  error$: Observable<string | null>;
   
-  constructor(private workHoursService: WorkHoursService) {
+  constructor(
+    private workHoursService: WorkHoursService,
+    private authService: AuthService
+  ) {
+    // Combine error streams from both services
+    this.error$ = combineLatest([
+      this.workHoursService.error$,
+      this.authService.error$
+    ]).pipe(
+      map(([workHoursError, authError]) => workHoursError || authError)
+    );
   }
 
   ngOnInit() {
@@ -28,18 +43,40 @@ export class SwipeDataComponent implements OnInit, OnChanges {
     if (changes['selectedDate'] && !changes['selectedDate'].firstChange) {
       this.loadSwipeData();
     }
+    
+    if (changes['selectionMode'] && !changes['selectionMode'].firstChange) {
+      this.selectedTimePeriod = this.selectionMode;
+      this.loadSwipeData();
+    }
   }
 
   private loadSwipeData() {
+    // Delegate to the appropriate period-specific method
+    switch (this.selectedTimePeriod) {
+      case 'day':
+        this.loadDailyData();
+        break;
+      case 'week':
+        this.loadWeeklyData();
+        break;
+      case 'month':
+        this.loadMonthlyData();
+        break;
+      default:
+        this.loadDailyData();
+        break;
+    }
+  }
+
+  private loadDailyData(): void {
     const dateString = this.workHoursService.formatDate(this.selectedDate);
     
-    // Use the work logs API that provides all data in one call
-    this.workHoursService.getWorkLogs(dateString, this.selectedTimePeriod).subscribe({
+    this.workHoursService.getWorkLogs(dateString, 'day').subscribe({
       next: (data) => {
         this.unifiedData = data;
       },
       error: (error) => {
-        console.error('Error loading unified work hours:', error);
+        console.error('Error loading daily work hours:', error);
         this.unifiedData = null;
       }
     });
@@ -64,7 +101,6 @@ export class SwipeDataComponent implements OnInit, OnChanges {
       }
       return timeString;
     } catch (error) {
-      console.warn('Error extracting time from string:', timeString, error);
       return timeString; // Fallback to original string
     }
   }
@@ -102,10 +138,19 @@ export class SwipeDataComponent implements OnInit, OnChanges {
   }
 
   onRefresh() {
+    // Clear errors before retry
+    this.workHoursService.clearError();
+    this.authService.clearError();
+    
     // Clear cache for the current date and period to force fresh data
     const dateString = this.workHoursService.formatDate(this.selectedDate);
     this.workHoursService.clearDateCache(dateString, this.selectedTimePeriod);
     this.loadSwipeData();
+  }
+
+  clearErrors(): void {
+    this.workHoursService.clearError();
+    this.authService.clearError();
   }
 
   // Cyberpunk UI Methods
@@ -121,7 +166,6 @@ export class SwipeDataComponent implements OnInit, OnChanges {
       
       return '';
     } catch (error) {
-      console.warn('Error parsing session outSwipe date:', session.outSwipe, error);
       return ''; // Default to inactive if parsing fails
     }
   }
@@ -136,7 +180,6 @@ export class SwipeDataComponent implements OnInit, OnChanges {
       const timePart = timeString.split(', ')[1]; // Get "8:58:07 am"
       return timePart || timeString;
     } catch (error) {
-      console.warn('Error extracting time from string:', timeString, error);
       return timeString; // Fallback to original string
     }
   }
@@ -152,7 +195,6 @@ export class SwipeDataComponent implements OnInit, OnChanges {
 
   onTimePeriodChange(event: MatButtonToggleChange): void {
     const newPeriod = event.value as TimePeriod;
-    console.log(`🔄 Time period changed from ${this.selectedTimePeriod} to ${newPeriod}`);
     
     this.selectedTimePeriod = newPeriod;
     this.selectionModeChanged.emit(newPeriod);
@@ -160,16 +202,13 @@ export class SwipeDataComponent implements OnInit, OnChanges {
     // TODO: Implement different data loading logic based on time period
     switch (newPeriod) {
       case 'day':
-        console.log('📅 Loading daily data for:', this.selectedDate);
         this.loadSwipeData(); // Current implementation
         break;
       case 'week':
-        console.log('📅 Loading weekly data for week containing:', this.selectedDate);
         // TODO: Implement weekly data loading
         this.loadWeeklyData();
         break;
       case 'month':
-        console.log('📅 Loading monthly data for month containing:', this.selectedDate);
         // TODO: Implement monthly data loading
         this.loadMonthlyData();
         break;
@@ -178,7 +217,6 @@ export class SwipeDataComponent implements OnInit, OnChanges {
 
   private loadWeeklyData(): void {
     const dateString = this.workHoursService.formatDate(this.selectedDate);
-    console.log('📅 Loading weekly data for week containing:', this.selectedDate);
     
     this.workHoursService.getWorkLogs(dateString, 'week').subscribe({
       next: (data) => {
@@ -193,7 +231,6 @@ export class SwipeDataComponent implements OnInit, OnChanges {
 
   private loadMonthlyData(): void {
     const dateString = this.workHoursService.formatDate(this.selectedDate);
-    console.log('📅 Loading monthly data for month containing:', this.selectedDate);
     
     this.workHoursService.getWorkLogs(dateString, 'month').subscribe({
       next: (data) => {

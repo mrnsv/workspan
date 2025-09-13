@@ -18,23 +18,18 @@ console.log('');
 
 console.log('🌐 Environment Variables:');
 console.log(`ATTENDANCE_INFO_URL: ${env.ATTENDANCE_INFO_URL ? '✅ Set' : '❌ Missing'}`);
-console.log(`LOGIN_ID: ${env.LOGIN_ID ? '✅ Set' : '❌ Missing'}`);
-console.log(`PASSWORD: ${env.PASSWORD ? '✅ Set' : '❌ Missing'}`);
+console.log('🔐 LOGIN_ID and PASSWORD: Removed from .env for security');
+console.log('📱 Use frontend login form for authentication');
 console.log('');
 
 if (!env.ATTENDANCE_INFO_URL) {
   console.log('❌ ATTENDANCE_INFO_URL is required');
 }
-if (!env.LOGIN_ID) {
-  console.log('❌ LOGIN_ID is required');
-}
-if (!env.PASSWORD || env.PASSWORD === 'your_password_here') {
-  console.log('❌ PASSWORD needs to be set to your actual password');
-}
 
-if (env.ATTENDANCE_INFO_URL && env.LOGIN_ID && env.PASSWORD && env.PASSWORD !== 'your_password_here') {
-  console.log('✅ All required environment variables are configured');
-  console.log('📝 You can now run: npm run get-token');
+if (env.ATTENDANCE_INFO_URL) {
+  console.log('✅ Required environment variables are configured');
+  console.log('🔐 For cookie refresh: Use the frontend login form');
+  console.log('📝 Backend URL configuration is ready');
 } else {
-  console.log('⚠️ Please update apps/env/.env with your actual credentials');
+  console.log('⚠️ Please update apps/env/.env with your GreytHR URLs');
 }

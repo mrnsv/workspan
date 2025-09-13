@@ -1,71 +1,66 @@
-import * as dotenv from "dotenv";
-import * as path from "path";
+import dotenv from "dotenv";
 import { fileURLToPath } from "url";
-import { promises as fs } from "fs";
+import { dirname, resolve } from "path";
 
 // Get current directory in ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Load environment variables from .env in the same directory
-dotenv.config({ path: path.resolve(__dirname, ".env") });
+dotenv.config({ path: resolve(__dirname, ".env") });
 
 interface Environment {
+  // Server Configuration
+  PORT?: string;
+  BACKEND_URL?: string;
+  FRONTEND_URL?: string;
+  ALLOWED_ORIGINS?: string;
+  
+  // GreytHR API Configuration
   GREYTHR_URL: string;
   SWIPES_URL: string;
   COOKIE: string;
   ATTENDANCE_INFO_URL?: string;
   TOTAL_HOURS_URL?: string;
   INSIGHTS_URL?: string;
-  LOGIN_ID?: string;
-  PASSWORD?: string;
 }
 
-async function loadCookieFromFile(): Promise<string | undefined> {
-  try {
-    const cookiesPath = path.resolve(__dirname, "cookies.json");
-    const cookieData = JSON.parse(await fs.readFile(cookiesPath, 'utf8'));
-    return cookieData.cookie;
-  } catch (error) {
-    // Cookie file doesn't exist or is invalid, return undefined
-    return undefined;
-  }
-}
-
-async function validateEnv(): Promise<Environment> {
-  // Try to load cookie from cookies.json first, then fall back to .env
-  const cookieFromFile = await loadCookieFromFile();
+/**
+ * Creates and validates environment configuration
+ */
+async function createEnvironment(): Promise<Environment> {
+  // No longer loading cookies from file - using browser-based sessions
+  // Cookies are now provided via frontend authentication
   
-  const envVars = {
-    GREYTHR_URL: process.env.GREYTHR_URL,
-    SWIPES_URL: process.env.SWIPES_URL,
-    COOKIE: cookieFromFile || process.env.COOKIE,
+  const env: Environment = {
+    // Server Configuration
+    PORT: process.env.PORT || '3000',
+    BACKEND_URL: process.env.BACKEND_URL || 'http://localhost:3000',
+    FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:4200',
+    ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS || 'http://localhost:4200,http://127.0.0.1:4200',
+    
+    // GreytHR API Configuration
+    GREYTHR_URL: process.env.GREYTHR_URL!,
+    SWIPES_URL: process.env.SWIPES_URL!,
+    COOKIE: '', // Empty - cookies provided via frontend sessions
     ATTENDANCE_INFO_URL: process.env.ATTENDANCE_INFO_URL,
     TOTAL_HOURS_URL: process.env.TOTAL_HOURS_URL,
     INSIGHTS_URL: process.env.INSIGHTS_URL,
-    LOGIN_ID: process.env.LOGIN_ID,
-    PASSWORD: process.env.PASSWORD,
+    
+    // Authentication removed from environment for security
+    // Credentials are now provided via frontend authentication
   };
 
-  // Only validate required vars for backend API
-  const requiredVars = ['SWIPES_URL'];
-  const missingVars = requiredVars.filter(key => !envVars[key as keyof typeof envVars]);
+  // Validate required environment variables
+  const requiredVars = ['SWIPES_URL'] as const;
+  const missingVars = requiredVars.filter(key => !env[key]);
 
   if (missingVars.length > 0) {
-    console.warn(
-      `Missing required environment variables: ${missingVars.join(", ")}`
-    );
+    console.warn(`⚠️  Missing required environment variables: ${missingVars.join(", ")}`);
   }
 
-  // Warn if no cookie is available from either source
-  if (!envVars.COOKIE) {
-    console.warn(
-      `No COOKIE found in cookies.json or .env file. Run 'npm run get-token' to extract a fresh cookie.`
-    );
-  }
-
-  return envVars as Environment;
+  console.log('✅ Environment initialized with browser-based session management');
+  return env;
 }
 
 // Export validated environment variables
-export const env = await validateEnv();
+export const env = await createEnvironment();

@@ -1,6 +1,6 @@
 # Workspan Hours Tracker API
 
-A Node.js/TypeScript API that calculates actual work hours from employee swipe data with precise timezone handling and intelligent minute rounding.
+A comprehensive Node.js/TypeScript API with Angular frontend that calculates actual work hours from employee swipe data with precise timezone handling, intelligent minute rounding, and advanced caching optimization.
 
 ## 📋 Table of Contents
 
@@ -20,7 +20,7 @@ A Node.js/TypeScript API that calculates actual work hours from employee swipe d
 
 ## 🎯 Overview
 
-The Workspan Hours Tracker API integrates with GreytHR attendance systems to fetch employee swipe data and calculate precise work hours. It handles timezone conversion (UTC to IST), creates intelligent swipe pairs (IN-OUT), and provides detailed work session breakdowns.
+The Workspan Hours Tracker API integrates with GreytHR attendance systems to fetch employee swipe data and calculate precise work hours. It features a modern Angular frontend with intelligent caching, handles timezone conversion (UTC to IST), creates intelligent swipe pairs (IN-OUT), and provides detailed work session breakdowns.
 
 ## ✨ Features
 
@@ -37,7 +37,7 @@ The Workspan Hours Tracker API integrates with GreytHR attendance systems to fet
 - **Smart Cookie Management**: Uses cookies.json for reliable authentication
 
 ### 🎨 Frontend Features
-- **Modern Dark Theme**: Beautiful gradient backgrounds with glass morphism effects
+- **Modern Cyberpunk Theme**: Dark theme with neon accents and glass morphism effects
 - **Real-time Work Hours**: Live calculation and display of daily work hours
 - **Progress Tracking**: Visual progress bars and completion percentage
 - **Shortfall/Excess Display**: Clear indication of remaining or overtime hours
@@ -51,6 +51,7 @@ The Workspan Hours Tracker API integrates with GreytHR attendance systems to fet
 - **Smart API Caching**: Intelligent caching system to eliminate duplicate API calls
 - **Performance Optimization**: 40% reduction in API calls with automatic cache management
 - **Real-time Cache Management**: Auto-expiring cache with manual refresh capabilities
+- **Unified API Integration**: Single API call providing all data (sessions + swipes + calculations)
 
 ### 🤖 Automation Features
 - **Automated Cookie Extraction**: Playwright automation for GreytHR session management
@@ -58,14 +59,15 @@ The Workspan Hours Tracker API integrates with GreytHR attendance systems to fet
 - **Smart Form Detection**: Adapts to different login page layouts
 - **Backend Integration**: Automatically updates API credentials
 - **Configuration Validation**: Pre-flight checks for environment setup
+- **Optimized Performance**: Fast execution with reduced wait times
 
 ## 🛠 Technology Stack
 
 ### Frontend
 - **Framework**: Angular 17
-- **UI Library**: Angular Material with dark theme
-- **Styling**: SCSS with custom animations
-- **State Management**: RxJS Observables
+- **UI Library**: Angular Material with custom cyberpunk dark theme
+- **Styling**: SCSS with custom animations and glass morphism
+- **State Management**: RxJS Observables with intelligent caching
 - **Icons**: Material Icons
 - **Module System**: ES Modules (ESM)
 
@@ -109,9 +111,10 @@ workspan/
 │   │   │   │   ├── app.component.ts      # 🏠 Main app component
 │   │   │   │   └── app.module.ts         # 📦 App module config
 │   │   │   ├── assets/                   # 🎭 Static assets
-│   │   │   └── styles.scss               # 🎨 Global styles
+│   │   │   └── styles.scss               # 🎨 Global cyberpunk styles
 │   │   ├── tsconfig.app.json             # App TypeScript config
-│   │   └── tsconfig.spec.json            # Test TypeScript config
+│   │   ├── tsconfig.spec.json            # Test TypeScript config
+│   │   └── UNIFIED_API_USAGE.md          # API usage documentation
 │   ├── backend/                           # ⚙️ Node.js API server
 │   │   └── src/
 │   │       ├── controllers/
@@ -141,6 +144,7 @@ workspan/
 - npm or yarn
 - Access to GreytHR API
 - Valid GreytHR login credentials
+- Chrome/Chromium browser (for automation)
 
 ### Setup Steps
 
@@ -162,18 +166,13 @@ workspan/
    cp apps/env/.env.example apps/env/.env
    ```
 
-4. **Install all dependencies (consolidated)**
-   ```bash
-   npm install
-   ```
-
-5. **Set up automation (optional)**
+4. **Set up automation (optional)**
    ```bash
    npm run install-browsers
    npm run test-config  # Validate environment setup
    ```
 
-6. **Start the applications**
+5. **Start the applications**
    ```bash
    # Option 1: Start both backend and frontend together
    npm run dev:full
@@ -191,11 +190,14 @@ Create `apps/env/.env` with the following variables:
 
 ```env
 # GreytHR API Configuration
-SWIPES_URL=https://waydot.greythr.com/latte/v3/attendance/info/689/swipes
+SWIPES_URL=https://your-greythr-domain.com/api/attendance/info/{employeeId}/swipes
+TOTAL_HOURS_URL=https://your-greythr-domain.com/api/attendance/info/{employeeId}/total-hours
+INSIGHTS_URL=https://your-greythr-domain.com/api/attendance/insights/{employeeId}
 COOKIE=your_greythr_session_cookie
 
 # Automation Configuration (for cookie extraction)
-ATTENDANCE_INFO_URL=https://waydot.greythr.com/v3/portal/ess/attendance/attendance-info
+GREYTHR_URL=https://your-greythr-domain.com/portal/ess/attendance/attendance-info
+ATTENDANCE_INFO_URL=https://your-greythr-domain.com/portal/ess/attendance/attendance-info
 LOGIN_ID=your_login_id
 PASSWORD=your_password
 
@@ -303,53 +305,11 @@ graph TB
     CM -->|"🗑️ Auto-cleanup<br/>after 5min"| CM
 ```
 
-#### Detailed Architecture Breakdown
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    🌐 FRONTEND (Angular 17)                     │
-├─────────────────────────────────────────────────────────────────┤
-│  🎨 UI Components    │  🧠 Smart Services   │  📊 State Mgmt    │
-│  ┌─────────────────┐ │  ┌─────────────────┐ │  ┌──────────────┐ │
-│  │ • Calendar      │ │  │ • WorkHours     │ │  │ • RxJS       │ │
-│  │ • Login Form    │ │  │ • Auth Service  │ │  │ • Observables│ │
-│  │ • Swipe Data    │ │  │ • HTTP Client   │ │  │ • Caching    │ │
-│  │ • Work Hours    │ │  │ • Cache Manager │ │  │ • Loading    │ │
-│  └─────────────────┘ │  └─────────────────┘ │  └──────────────┘ │
-└─────────────────────────────────────────────────────────────────┘
-                                │ HTTP/REST
-                                ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    ⚙️ BACKEND API (Node.js)                     │
-├─────────────────────────────────────────────────────────────────┤
-│  🛤️ Controllers      │  🧮 Business Logic  │  🔗 External APIs  │
-│  ┌─────────────────┐ │  ┌─────────────────┐ │  ┌──────────────┐ │
-│  │ • Hours Router  │ │  │ • Swipe Pairing │ │  │ • GreytHR    │ │
-│  │ • Ping Health   │ │  │ • Time Calc     │ │  │ • Attendance │ │
-│  │ • Error Handler │ │  │ • Timezone Conv │ │  │ • Cookie Mgmt│ │
-│  │ • CORS Setup    │ │  │ • Data Validate │ │  │ • Auto Retry │ │
-│  └─────────────────┘ │  └─────────────────┘ │  └──────────────┘ │
-└─────────────────────────────────────────────────────────────────┘
-                                │ Web Scraping
-                                ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                  🤖 AUTOMATION (Playwright)                     │
-├─────────────────────────────────────────────────────────────────┤
-│  🔐 Auth Flow        │  🍪 Cookie Extract  │  ⚡ Performance    │
-│  ┌─────────────────┐ │  ┌─────────────────┐ │  ┌──────────────┐ │
-│  │ • Login Bot     │ │  │ • Session Mgmt  │ │  │ • Headless   │ │
-│  │ • Form Fill     │ │  │ • Token Extract │ │  │ • Fast Load  │ │
-│  │ • Redirect Hand │ │  │ • JSON Storage  │ │  │ • Smart Wait │ │
-│  │ • Error Recovery│ │  │ • Backend Sync  │ │  │ • Optimized  │ │
-│  └─────────────────┘ │  └─────────────────┘ │  └──────────────┘ │
-└─────────────────────────────────────────────────────────────────┘
-```
-
 ### 🚀 API Call Optimization System
 
 The system implements intelligent caching to eliminate duplicate API calls:
 
-#### Before Optimization (5 API Calls)
+#### Before Optimization (Multiple API Calls)
 ```
 🌐 Website Load
 ├── App Component        → 🔴 /api/hours/sessions (duplicate)
@@ -359,64 +319,15 @@ The system implements intelligent caching to eliminate duplicate API calls:
 └── App Component        → 🟢 /api/ping
 ```
 
-#### After Optimization (3 API Calls)
+#### After Optimization (Unified API)
 ```
 🌐 Website Load
-├── Work Hours Component → 🟢 /api/hours/sessions (cached & shared)
-├── Swipe Data Component → 🟢 /api/swipes (cached)
+├── Work Hours Component → 🟢 /api/hours/worklogs (unified, cached & shared)
+├── Swipe Data Component → 🟢 Uses shared cache
 └── App Component        → 🟢 /api/ping
 ```
 
-**Performance Improvement: 40% reduction in API calls**
-
-### 🧠 Smart Caching Architecture
-
-```typescript
-// WorkHoursService Caching System
-class CacheManager {
-  private sessionsCache = new Map<string, Observable<WorkHoursResponse>>();
-  private swipesCache = new Map<string, Observable<SwipesResponse>>();
-  
-  // Cache Strategy:
-  // ✅ shareReplay(1) - Multiple subscribers share same request
-  // ✅ Auto-expiry - 5 minute cache duration
-  // ✅ Manual clearing - Refresh button clears cache
-  // ✅ Date-specific - Separate cache per date
-}
-```
-
-### 📊 Data Flow Architecture
-
-```
-┌─────────────┐    ┌──────────────┐    ┌─────────────┐
-│   Browser   │───▶│   Angular    │───▶│  Node.js    │
-│   Client    │    │   Frontend   │    │   Backend   │
-└─────────────┘    └──────────────┘    └─────────────┘
-       │                   │                   │
-       │            ┌──────▼──────┐           │
-       │            │ Cache Layer │           │
-       │            │ ┌─────────┐ │           │
-       │            │ │Sessions │ │           │
-       │            │ │ Cache   │ │           │
-       │            │ └─────────┘ │           │
-       │            │ ┌─────────┐ │           │
-       │            │ │ Swipes  │ │           │
-       │            │ │ Cache   │ │           │
-       │            │ └─────────┘ │           │
-       │            └─────────────┘           │
-       │                                      │
-       │                              ┌──────▼──────┐
-       │                              │   GreytHR   │
-       │                              │   External  │
-       │                              │     API     │
-       │                              └─────────────┘
-       │
-┌──────▼──────┐
-│ Playwright  │
-│ Automation  │
-│   Engine    │
-└─────────────┘
-```
+**Performance Improvement: 60% reduction in API calls with unified endpoint**
 
 ## 🔌 API Endpoints
 
@@ -431,13 +342,58 @@ http://localhost:3000
 |----------|--------|-------------|------------|
 | `/` | GET | API health check | None |
 | `/ping` | GET | Server status | None |
-| `/api/swipes` | GET | View raw swipe data | `date` (optional) |
+| `/api/ping` | GET | API ping status | None |
 | `/api/hours/daily` | GET | Daily work hours summary | `date` (optional) |
-| `/api/hours/sessions` | GET | Detailed swipe pairs with work sessions | `date` (optional) |
+| `/api/hours/worklogs` | GET | **Unified endpoint** - Complete work data with sessions, swipes, and stats | `startDate`, `endDate`, `period` |
 
 ### Query Parameters
 
 - **date** (optional): Date in `YYYY-MM-DD` format (defaults to today)
+- **startDate**: Start date for work logs
+- **endDate**: End date for work logs  
+- **period**: Time period (`day`, `week`, `month`)
+
+### Unified API Response
+
+The `/api/hours/worklogs` endpoint provides comprehensive data in a single call:
+
+```json
+{
+  "success": true,
+  "startDate": "2025-01-04",
+  "endDate": "2025-01-04", 
+  "period": "day",
+  "totalSwipes": 12,
+  "allSwipes": [...],
+  "sessions": {
+    "totalActualHours": 8.22,
+    "formattedTime": "8h 13m",
+    "isCurrentlyWorking": false,
+    "swipePairs": [...]
+  },
+  "stats": {
+    "actualHours": 8.22,
+    "requiredHours": 8,
+    "shortfallHours": 0,
+    "excessHours": 0.22,
+    "isComplete": true,
+    "completionPercentage": 102.75
+  },
+  "display": {
+    "activeHours": "8h 13m",
+    "requiredHours": "8h 0m", 
+    "actualRequiredHours": "8h 0m",
+    "excessTime": "0h 13m",
+    "progressPercentage": 103,
+    "statusMessage": "OVERDRIVE MODE: +0h 13m"
+  },
+  "employee": {
+    "employeeId": 689,
+    "employeeName": "John Doe",
+    "employeeNumber": "WI/745"
+  }
+}
+```
 
 ## ⚡ Performance Optimizations
 
@@ -449,9 +405,8 @@ The frontend implements a sophisticated caching mechanism to optimize API calls 
 ```typescript
 // WorkHoursService - Smart Caching Implementation
 export class WorkHoursService {
-  // Cache maps with date-based keys
-  private sessionsCache = new Map<string, Observable<WorkHoursResponse>>();
-  private swipesCache = new Map<string, Observable<SwipesResponse>>();
+  // Unified cache with date-based keys
+  private unifiedCache = new Map<string, Observable<UnifiedWorkHoursResponse>>();
   
   // 5-minute auto-expiry cache
   private readonly CACHE_DURATION = 5 * 60 * 1000;
@@ -464,109 +419,15 @@ export class WorkHoursService {
 |-------------|-------------------|-------------|
 | **shareReplay(1)** | Multiple subscribers share same HTTP request | Eliminates duplicate API calls |
 | **Auto-expiry** | 5-minute cache duration with setTimeout | Fresh data without manual intervention |
-| **Date-specific** | Separate cache key per date | Accurate historical data |
+| **Date-specific** | Separate cache key per date and period | Accurate historical data |
 | **Manual clearing** | clearCache() and clearDateCache() methods | Force refresh when needed |
-| **Console logging** | 🔵 Fetching / 🟢 Cached indicators | Easy debugging and monitoring |
 
-#### Cache Flow Diagram
-```
-Component Request → Cache Check → Result
-       │              │            │
-       │              ▼            │
-       │         ┌─────────┐       │
-       │         │ Cache   │       │
-       │         │ Hit?    │       │
-       │         └─────────┘       │
-       │              │            │
-       │         Yes  │  No        │
-       │              │            │
-       ▼              ▼            ▼
-  🟢 Return      🔵 HTTP Call   ✅ Component
-   Cached         → Cache        Receives
-    Data           Result         Data
-```
+#### Performance Metrics
 
-### 📊 Performance Metrics
-
-#### API Call Reduction
-- **Before**: 5 API calls during page load
-- **After**: 3 API calls during page load
-- **Improvement**: 40% reduction in network requests
-
-#### Load Time Optimization
-- **First Load**: Normal API response time (~500ms)
-- **Subsequent Requests**: Instant cache response (~5ms)
+- **API Call Reduction**: 60% fewer API calls with unified endpoint
+- **Response Time**: < 500ms for initial API calls, ~5ms for cached responses
 - **Cache Hit Rate**: 85-95% for repeated date requests
-
-#### Memory Efficiency
-- **Cache Size**: Minimal memory footprint per date
-- **Auto-cleanup**: Automatic cache expiry prevents memory leaks
-- **Observable Sharing**: Single HTTP request serves multiple components
-
-### 🔄 Cache Management API
-
-#### Automatic Cache Management
-```typescript
-// Automatic cache expiry
-setTimeout(() => {
-  this.sessionsCache.delete(cacheKey);
-  console.log(`🗑️ Expired cache for ${cacheKey}`);
-}, this.CACHE_DURATION);
-```
-
-#### Manual Cache Control
-```typescript
-// Clear all cached data
-workHoursService.clearCache();
-
-// Clear specific date cache
-workHoursService.clearDateCache('2025-09-05');
-
-// Triggered on refresh button clicks
-onRefresh() {
-  this.workHoursService.clearDateCache(this.selectedDate);
-  this.loadData(); // Fresh API call
-}
-```
-
-#### Console Debugging
-The system provides clear console feedback:
-- **🔵 Fetching data for 2025-09-05**: New API call
-- **🟢 Using cached data for 2025-09-05**: Cache hit
-- **🗑️ Expired cache for 2025-09-05**: Auto-cleanup
-- **🗑️ Clearing all cached data**: Manual clear
-
-### 🎯 Optimization Impact
-
-#### Network Traffic Reduction
-```
-Before Optimization:
-┌─────────────────┐
-│ Page Load       │ → 5 API calls
-├─────────────────┤
-│ Date Change     │ → 3 API calls  
-├─────────────────┤
-│ Manual Refresh  │ → 3 API calls
-└─────────────────┘
-Total: 11 API calls
-
-After Optimization:
-┌─────────────────┐
-│ Page Load       │ → 3 API calls (2 cached after first)
-├─────────────────┤
-│ Date Change     │ → 0-2 API calls (cached if repeated)
-├─────────────────┤
-│ Manual Refresh  │ → 2-3 API calls (forced fresh)
-└─────────────────┘
-Total: 3-8 API calls (27-73% reduction)
-```
-
-#### User Experience Improvements
-- **⚡ Instant Response**: Cached data loads immediately
-- **🔄 Smart Refresh**: Manual refresh still fetches fresh data
-- **📱 Reduced Loading**: Less spinner/loading states
-- **🌐 Lower Bandwidth**: Reduced data consumption
-- **⚙️ Better Performance**: Smoother UI interactions
+- **Memory Efficiency**: Minimal memory footprint with auto-expiring cache
 
 ## 🤖 Automation Usage
 
@@ -595,8 +456,6 @@ npm run refresh-cookie
 - **Regular maintenance**: Periodically refresh cookies (weekly/monthly)
 - **Troubleshooting**: When authentication issues occur
 
-See the detailed automation guide below for complete setup and usage instructions.
-
 ## 🤖 Detailed Automation Guide
 
 ### Overview
@@ -612,6 +471,7 @@ The automation module uses Playwright to automate cookie extraction from the Gre
 - **Backend Integration**: Automatically updates API credentials
 - **Browser Management**: Handles browser lifecycle and cleanup
 - **Error Recovery**: Robust error handling and fallback strategies
+- **Employee Data Capture**: Extracts employee ID, name, and number
 
 ### Automation Setup
 
@@ -626,25 +486,19 @@ npm install
 npm run install-browsers
 ```
 
-#### 3. Install System Dependencies (if needed)
-```bash
-# Ubuntu/Debian
-sudo npx playwright install-deps
-
-# Or manually install missing dependencies
-sudo apt-get install libavif16
-```
-
-#### 4. Configure Environment Variables
+#### 3. Configure Environment Variables
 Ensure your `apps/env/.env` file contains:
 ```env
 # Required for automation
-ATTENDANCE_INFO_URL="https://waydot.greythr.com/v3/portal/ess/attendance/attendance-info"
+GREYTHR_URL="https://your-greythr-domain.com/portal/ess/attendance/attendance-info"
+ATTENDANCE_INFO_URL="https://your-greythr-domain.com/portal/ess/attendance/attendance-info"
 LOGIN_ID="your_login_id"
 PASSWORD="your_actual_password"
 
-# Required for API
-SWIPES_URL="https://waydot.greythr.com/latte/v3/attendance/info/689/swipes"
+# Required for API (auto-updated by automation)
+SWIPES_URL="https://your-greythr-domain.com/api/attendance/info/{employeeId}/swipes"
+TOTAL_HOURS_URL="https://your-greythr-domain.com/api/attendance/info/{employeeId}/total-hours"
+INSIGHTS_URL="https://your-greythr-domain.com/api/attendance/insights/{employeeId}"
 COOKIE="your_session_cookie"
 ```
 
@@ -660,10 +514,11 @@ Validates that all required environment variables are properly configured.
 ```bash
 npm run get-token
 ```
-- Launches browser (non-headless by default for debugging)
+- Launches browser (configurable headless mode)
 - Navigates to attendance info URL
 - Handles login if redirected
 - Extracts Cookie header from network requests
+- Captures employee data from login-status API
 - Saves cookie data to `apps/env/cookies.json`
 
 #### Backend Integration  
@@ -680,33 +535,6 @@ npm run refresh-cookie
 ```
 Runs complete cookie refresh: extraction → backend update
 
-### Automation Configuration
-
-#### Browser Settings
-Edit `apps/automation/src/get-token.ts` to customize:
-
-```typescript
-// Browser launch options
-this.browser = await chromium.launch({ 
-  headless: false,  // Set to true for headless mode
-  slowMo: 500      // Optimized speed (reduced from 1000ms)
-});
-```
-
-#### Performance Optimizations
-The script includes several speed optimizations:
-- **Smart Redirect Detection**: Skips unnecessary navigation if already on attendance page
-- **Faster Loading Strategy**: Uses `domcontentloaded` instead of `networkidle` 
-- **Reduced Wait Times**: Optimized timeouts (25s, 12s, 2s vs 30s, 15s, 3s)
-- **Early Authentication**: Detects existing authentication to skip login
-- **Reduced Animation Delay**: `slowMo: 500ms` for faster execution
-
-#### Debugging Options
-- **Headed Mode**: Set `headless: false` to watch automation
-- **Screenshots**: Browser automatically saves screenshots on errors
-- **Slow Motion**: Adjust `slowMo` value to control action speed
-- **Console Logs**: Detailed logging shows each automation step
-
 ### Cookie Data Format
 
 Extracted cookies are saved as structured JSON:
@@ -714,137 +542,42 @@ Extracted cookies are saved as structured JSON:
 {
   "cookie": "JSESSIONID=...; access_token=...; PLAY_SESSION=...",
   "extractedAt": "2025-01-04T10:30:00.000Z", 
-  "url": "https://waydot.greythr.com/v3/portal/ess/attendance/attendance-info"
+  "url": "https://your-greythr-domain.com/portal/ess/attendance/attendance-info",
+  "employeeId": 689,
+  "employeeName": "John Doe",
+  "employeeNumber": "WI/745"
 }
 ```
 
-### Login Form Handling
+### Performance Optimizations
 
-The automation handles various login form layouts:
-
-#### Supported Login Field Selectors
-- `input[name="username"]`
-- `input[name="email"]` 
-- `input[name="login"]`
-- `input[type="email"]`
-- `input[type="text"]:first-of-type`
-
-#### Supported Password Field Selectors  
-- `input[name="password"]`
-- `input[type="password"]`
-- `input[id="password"]`
-
-#### Supported Submit Button Selectors
-- `button[type="submit"]`
-- `input[type="submit"]`
-- `button:has-text("Login")`
-- `button:has-text("Sign In")`
-- `button:has-text("Submit")`
-
-### Troubleshooting Automation
-
-#### Common Issues & Solutions
-
-**Login Fails**
-- Verify `LOGIN_ID` and `PASSWORD` in `.env`
-- Check if login form layout changed
-- Run in headed mode to see what's happening
-- Update selectors in `get-token.ts` if needed
-
-**Browser Installation Issues**  
-```bash
-# Install browsers
-npm run install-browsers
-
-# Install system dependencies  
-npm run install-deps
-```
-
-**Selectors Don't Work**
-1. Run in headed mode (`headless: false`)
-2. Inspect the login page
-3. Update selectors in `performLogin()` method
-4. Test with new selectors
-
-**Network/Cookie Issues**
-- Check if site structure changed
-- Verify attendance URL is correct
-- Ensure network connectivity
-- Look for new cookie names/formats
-
-#### Debug Commands
-```bash
-# Validate configuration
-npm run test-config
-
-# Check browser installation
-npx playwright --version
-
-# Test connectivity  
-curl -I "https://waydot.greythr.com"
-
-# View extracted cookies
-cat apps/env/cookies.json | jq
-```
-
-### Security Considerations
-
-- **Credentials**: Store securely in `.env` file (gitignored)
-- **Cookie Storage**: Cookies saved to gitignored `cookies.json`
-- **Browser Data**: No persistent browser data stored
-- **Network**: All requests go directly to GreytHR (no proxies)
-- **Automation Detection**: Uses realistic user agent and timing
-
-### Maintenance Schedule
-
-**Weekly**: Run `npm run refresh-cookie` to ensure fresh sessions
-**Monthly**: Verify automation still works with any site updates  
-**As Needed**: Update selectors if login form changes
+The automation script includes several speed optimizations:
+- **Smart Redirect Detection**: Skips unnecessary navigation if already authenticated
+- **Faster Loading Strategy**: Uses `domcontentloaded` instead of `networkidle` 
+- **Reduced Wait Times**: Optimized timeouts for faster execution
+- **Early Authentication**: Detects existing authentication to skip login
+- **Reduced Animation Delay**: Faster execution with optimized timing
 
 ## 📖 API Usage Examples
 
-### 1. Get Today's Work Sessions
+### 1. Get Today's Unified Work Data
 ```bash
-curl "http://localhost:3000/api/hours/sessions"
+curl "http://localhost:3000/api/hours/worklogs"
 ```
 
-### 2. Get Specific Date Work Sessions
+### 2. Get Specific Date Work Data
 ```bash
-curl "http://localhost:3000/api/hours/sessions?date=2025-09-03"
+curl "http://localhost:3000/api/hours/worklogs?startDate=2025-01-04&period=day"
 ```
 
-### 3. Get Daily Work Hours Summary
+### 3. Get Weekly Work Data
 ```bash
-curl "http://localhost:3000/api/hours/daily?date=2025-09-03"
+curl "http://localhost:3000/api/hours/worklogs?startDate=2025-01-01&endDate=2025-01-07&period=week"
 ```
 
-### 4. Get Raw Swipe Data
+### 4. Get Monthly Work Data
 ```bash
-curl "http://localhost:3000/api/swipes?date=2025-09-03"
-```
-
-### Sample Response (Work Sessions)
-```json
-{
-  "success": true,
-  "date": "2025-09-03",
-  "totalSwipes": 12,
-  "totalActualHours": 8.22,
-  "formattedTime": "8h 13m",
-  "isCurrentlyWorking": false,
-  "swipePairs": [
-    {
-      "inSwipe": "3/9/2025, 9:12:01 am",
-      "outSwipe": "3/9/2025, 9:30:01 am",
-      "duration": "0h 18m"
-    },
-    {
-      "inSwipe": "3/9/2025, 9:31:48 am",
-      "outSwipe": "3/9/2025, 12:54:28 pm",
-      "duration": "3h 23m"
-    }
-  ]
-}
+curl "http://localhost:3000/api/hours/worklogs?startDate=2025-01-01&endDate=2025-01-31&period=month"
 ```
 
 ## ⚡ Work Hours Calculation Logic
@@ -865,6 +598,14 @@ curl "http://localhost:3000/api/swipes?date=2025-09-03"
 6. **Apply Rounding**: Round to nearest minute (≥30 seconds rounds up)
 7. **Convert Timezone**: UTC to IST (Asia/Kolkata)
 
+### Enhanced Calculation for Weekly/Monthly
+
+For week and month periods, the system provides enhanced calculations:
+- **GreytHR Integration**: Uses total hours from GreytHR API
+- **Real-time Addition**: Adds current day actual hours if in date range
+- **Yesterday Hours**: Includes yesterday's hours if before 10:30 AM
+- **Attendance Deduction**: Accounts for holidays, leaves, and other attendance status
+
 ### Minute Rounding Rules
 - **< 30 seconds**: Ignore (round down)
 - **≥ 30 seconds**: Add 1 minute (round up)
@@ -873,12 +614,6 @@ Examples:
 - `2m 15s` → `2m`
 - `2m 45s` → `3m`
 - `3h 22m 40s` → `3h 23m`
-
-### Missing Session Handling
-If the first swipe is OUT (indicating work started before tracking):
-- Estimate missing session duration
-- Use average of other sessions or default assumptions
-- Include in total work hours calculation
 
 ## 🔧 Development
 
@@ -994,7 +729,7 @@ pkill -f tsx
 
 #### 4. API Request Failures
 - **Auto-refresh**: The system automatically refreshes expired cookies on 403 errors
-- Check SWIPES_URL is correct
+- Check API URLs contain correct employee ID placeholders
 - Ensure network connectivity to GreytHR API
 - Manual refresh: `npm run refresh-cookie` (if auto-refresh fails)
 - Check `apps/env/cookies.json` for valid session cookies
@@ -1004,6 +739,12 @@ pkill -f tsx
 - Check LOGIN_ID and PASSWORD are correct in `.env`
 - Ensure Playwright browsers are installed: `npm run install-browsers`
 - If headless mode fails, set `headless: false` in `get-token.ts` for debugging
+
+#### 6. Frontend Issues
+- **Build errors**: Check Angular version compatibility
+- **Styling issues**: Verify SCSS compilation
+- **API errors**: Check backend is running on correct port
+- **Caching issues**: Use browser dev tools to clear cache
 
 ### Debug Commands
 
@@ -1016,6 +757,10 @@ npm start
 
 # Test API endpoints
 curl -v http://localhost:3000/ping
+curl -v http://localhost:3000/api/hours/worklogs
+
+# Check frontend build
+npm run frontend:build
 ```
 
 ## 📝 API Response Formats
@@ -1043,337 +788,13 @@ curl -v http://localhost:3000/ping
 - **Calculation**: All durations calculated in UTC, then converted for display
 - **Timezone**: Asia/Kolkata (UTC+5:30)
 
-## 🗺️ UI Layout & Element Position Map
-
-### 📱 Application Interface Layout
-
-The Workspan application follows a three-panel layout with a header and footer:
-
-```
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                           🏠 HEADER SECTION                                  │
-├──────────────────────────────────────────────────────────────────────────────┤
-│  📊 Status Bar: RDY | ⏰ Current Time | 📅 Today's Date | 🔄 Auth Button    │
-│  🎯 Title: "WORKSPAN NEURAL INTERFACE • BUILD {version}"                    │
-└──────────────────────────────────────────────────────────────────────────────┘
-
-┌─────────────────┬─────────────────┬──────────────────────────────────────────┐
-│   📅 LEFT       │   ⏰ CENTER     │           📋 RIGHT PANEL                │
-│   CALENDAR      │   WORK HOURS    │        SWIPE DATA ACCORDION             │
-│   PANEL         │   DISPLAY       │                                         │
-│                 │                 │                                         │
-│ ┌─────────────┐ │ ┌─────────────┐ │ ┌─────────────────────────────────────┐ │
-│ │📅 Date Input│ │ │⏰ Work Hours│ │ │🔄 [SWIPE DATA] Refresh Button      │ │
-│ │   Field     │ │ │   Summary   │ │ │                                    │ │
-│ └─────────────┘ │ └─────────────┘ │ │📊 ┌─ SESSIONS (Expandable)        │ │
-│                 │                 │ │   │ Session 1: 09:12 → 09:30     │ │
-│ ┌─────────────┐ │ ┌─────────────┐ │ │   │ Session 2: 09:31 → 12:54     │ │
-│ │  📅 Monthly │ │ │📊 Progress  │ │ │   └─ (3h 23m total)              │ │
-│ │   Calendar  │ │ │    Bars     │ │ │                                    │ │
-│ │             │ │ │             │ │ │📋 ┌─ RAW SWIPES (Expandable)     │ │
-│ │ Mo Tu We Th │ │ │ ████████░░░ │ │ │   │ IN  → 09:12:01 (login)      │ │
-│ │ Fr Sa Su    │ │ │ Required: 8h│ │ │   │ OUT → 09:30:01 (logout)     │ │
-│ │             │ │ │ Actual: 6.5h│ │ │   │ IN  → 09:31:48 (login)      │ │
-│ │ [Selected]  │ │ │ Short: 1.5h │ │ │   └─ OUT → 12:54:28 (logout)    │ │
-│ │   Date      │ │ │             │ │ │                                    │ │
-│ └─────────────┘ │ └─────────────┘ │ └─────────────────────────────────────┘ │
-│                 │                 │                                         │
-│                 │ ┌─────────────┐ │                                         │
-│                 │ │📈 Stats     │ │                                         │
-│                 │ │   Display   │ │                                         │
-│                 │ │ • Completion│ │                                         │
-│                 │ │ • Shortfall │ │                                         │
-│                 │ │ • Status    │ │                                         │
-│                 │ └─────────────┘ │                                         │
-└─────────────────┴─────────────────┴──────────────────────────────────────────┘
-
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                          🦶 FOOTER SECTION                                   │
-├──────────────────────────────────────────────────────────────────────────────┤
-│     "WORKSPAN NEURAL INTERFACE • BUILD {buildNumber}"                       │
-└──────────────────────────────────────────────────────────────────────────────┘
-```
-
-### 🎯 Detailed Element Positioning
-
-#### **Header Section (Top Bar)**
-```
-Position: Fixed top, full width
-Elements:
-├── 📊 Status Indicators (Left)
-│   ├── 🟢 "RDY" (Connection Status)
-│   ├── ⏰ Live Time Display
-│   └── 📅 Current Date
-├── 🏠 Title (Center)
-│   └── "WORKSPAN NEURAL INTERFACE"
-└── 🔐 Authentication Controls (Right)
-    └── 🔄 Auth Refresh Button
-```
-
-#### **Left Panel: Calendar Section**
-```
-Position: Left column, 25% width
-Elements:
-├── 📅 Date Input Field
-│   ├── 📝 Manual date entry (YYYY-MM-DD)
-│   └── ✅ Validation on input
-├── 📅 Interactive Calendar Widget
-│   ├── 🗓️ Month/Year navigation arrows
-│   ├── 📊 Week day headers (SUN-SAT)
-│   ├── 🎯 Clickable date cells
-│   ├── 🔵 Today highlight
-│   └── 🟡 Selected date highlight
-└── 🎛️ Calendar Controls
-    ├── ◀️ Previous month
-    ├── 📅 Month/Year display
-    └── ▶️ Next month
-```
-
-#### **Center Panel: Work Hours Display**
-```
-Position: Center column, 50% width
-Elements:
-├── ⏰ Work Hours Summary Card
-│   ├── 📊 Total Hours Display
-│   ├── 🕐 Required vs Actual
-│   └── ⚡ Real-time updates
-├── 📈 Progress Visualization
-│   ├── 🟢 Completion Progress Bar
-│   ├── 📊 Percentage indicator
-│   └── 🎯 8-hour target line
-├── 📊 Statistics Grid
-│   ├── ✅ Completed Hours
-│   ├── ⚠️ Shortfall Hours
-│   ├── 🎉 Excess Hours
-│   └── 📋 Session Count
-└── 🎨 Status Indicators
-    ├── 🟢 Complete (≥8h)
-    ├── 🟡 In Progress
-    └── 🔴 Incomplete
-```
-
-#### **Right Panel: Swipe Data Accordion**
-```
-Position: Right column, 25% width
-Elements:
-├── 🔄 SWIPE DATA Header Button
-│   ├── 📋 "SWIPE DATA" title
-│   ├── 🔄 Refresh icon (rotates on hover)
-│   └── 💡 Click to refresh tooltip
-├── 📊 SESSIONS Accordion Panel
-│   ├── ⏰ "SESSIONS" title + count badge
-│   ├── ▼ Expandable content
-│   ├── 📋 Session List (when expanded)
-│   │   ├── 🔢 Session number
-│   │   ├── ⏰ IN time → OUT time
-│   │   ├── ⏱️ Duration display
-│   │   └── 🎨 Status color coding
-│   └── 📊 Session summary
-└── 📋 RAW SWIPES Accordion Panel
-    ├── 📋 "RAW SWIPES" title + count badge
-    ├── ▼ Expandable content
-    ├── 📊 Swipe List (when expanded)
-    │   ├── 🔵 IN swipes (login icon)
-    │   ├── 🔴 OUT swipes (logout icon)
-    │   ├── ⏰ Precise timestamps
-    │   └── 🎨 Type color coding
-    └── 📈 Raw data summary
-```
-
-### 🎨 Color Coding & Visual Hierarchy
-
-#### **Color Scheme Map**
-```
-🎨 Theme Colors:
-├── 🔴 Primary Red: #ff5c5c (Accent elements)
-├── 🔵 Primary Blue: #4CAF50 (Success states)
-├── 🟡 Warning Yellow: #FFC107 (Pending states)
-├── ⚫ Dark Background: #1a1a1a (Main bg)
-├── 🌫️ Glass Effect: rgba(255,255,255,0.1) (Cards)
-└── 🌟 Neon Glow: 0 0 20px rgba(255,92,92,0.5)
-
-Status Color Coding:
-├── 🟢 Complete/Success: Green variants
-├── 🟡 Warning/Pending: Yellow/Orange variants  
-├── 🔴 Error/Incomplete: Red variants
-├── 🔵 Info/Neutral: Blue variants
-└── ⚪ Loading/Disabled: Gray variants
-```
-
-#### **Typography Hierarchy**
-```
-📝 Text Sizing:
-├── 🏠 Main Title: 1.5rem, bold, uppercase
-├── 📊 Panel Headers: 1.2rem, bold, spaced
-├── 📋 Data Labels: 1rem, medium weight
-├── 🔢 Data Values: 0.9rem, monospace
-└── 💡 Helper Text: 0.8rem, regular
-```
-
-### 📱 Responsive Behavior
-
-#### **Desktop Layout (>1024px)**
-```
-┌─────────┬─────────────┬─────────┐
-│ Calendar│ Work Hours  │ Swipes  │
-│  25%    │    50%      │  25%    │
-└─────────┴─────────────┴─────────┘
-```
-
-#### **Tablet Layout (768px-1024px)**
-```
-┌─────────────────────────────────┐
-│        Work Hours (100%)        │
-├─────────────────────────────────┤
-│ Calendar (50%) │ Swipes (50%)   │
-└─────────────────────────────────┘
-```
-
-#### **Mobile Layout (<768px)**
-```
-┌─────────────────────────────────┐
-│        Work Hours (100%)        │
-├─────────────────────────────────┤
-│        Calendar (100%)          │
-├─────────────────────────────────┤
-│         Swipes (100%)           │
-└─────────────────────────────────┘
-```
-
-### 🎛️ Interactive Elements Map
-
-#### **Clickable Areas**
-```
-🖱️ Interactive Elements:
-├── 📅 Calendar dates → Select new date
-├── 🔄 Refresh button → Clear cache & reload
-├── ▼ Accordion headers → Expand/collapse
-├── 📅 Date input → Manual date entry
-├── 🔐 Auth button → Credential refresh
-└── ◀️▶️ Navigation → Change month/year
-
-⌨️ Keyboard Support:
-├── 📅 Arrow keys → Navigate calendar
-├── ↵️ Enter → Select date
-├── 🔤 Tab → Focus navigation
-└── 🔄 Space → Activate buttons
-```
-
-## 🗺️ Component Architecture Map
-
-### Frontend Component Hierarchy
-
-```
-app-root (Main Application)
-│
-├── 📅 app-calendar
-│   ├── 🎯 Purpose: Interactive date selection
-│   ├── 📊 Features: Month/year navigation, date highlighting
-│   └── 🔗 Events: dateSelected → updates selectedDate
-│
-├── ⏰ app-work-hours  
-│   ├── 🎯 Purpose: Display work hours summary
-│   ├── 📊 Features: Progress bars, completion stats
-│   ├── 🔗 Input: selectedDate from app-root
-│   └── 🌐 API: /api/hours/sessions (cached)
-│
-├── 📋 app-swipe-data
-│   ├── 🎯 Purpose: Detailed swipe data accordion
-│   ├── 📊 Features: Sessions view, raw swipes, refresh
-│   ├── 🔗 Input: selectedDate from app-root  
-│   ├── 🌐 API: /api/hours/sessions + /api/swipes (cached)
-│   └── 🔄 Actions: Manual refresh clears cache
-│
-└── 🔐 app-login-form
-    ├── 🎯 Purpose: Authentication management
-    ├── 📊 Features: Credential input, cookie refresh
-    └── 🔗 Integration: Updates backend credentials
-```
-
-### Service Architecture Map
-
-```
-🧠 WorkHoursService (Core Data Service)
-├── 🗂️ Cache Management
-│   ├── sessionsCache: Map<date, Observable<WorkHoursResponse>>
-│   ├── swipesCache: Map<date, Observable<SwipesResponse>>
-│   ├── clearCache(): void
-│   └── clearDateCache(date): void
-│
-├── 🌐 API Methods  
-│   ├── getWorkHours(date): Observable<WorkHoursResponse>
-│   ├── getSwipes(date): Observable<SwipesResponse>
-│   └── formatDate(date): string
-│
-├── 📊 Data Processing
-│   ├── updateWorkHoursStats(response): void
-│   ├── calculateStats(hours): WorkHoursStats
-│   └── formatHours(hours): string
-│
-└── 🔄 State Management
-    ├── loading$: BehaviorSubject<boolean>
-    └── workHours$: BehaviorSubject<WorkHoursStats>
-
-🔐 AuthService (Authentication)
-├── 🌐 API Methods
-│   ├── testConnection(): Observable<any> → /api/ping
-│   ├── refreshCookie(): Observable<CookieRefreshResponse>
-│   └── updateCredentials(): Observable<any>
-│
-└── 🔄 State Management
-    └── refreshing$: BehaviorSubject<boolean>
-```
-
-### Data Model Architecture
-
-```typescript
-// Core Data Models
-interface WorkHoursResponse {
-  success: boolean;
-  date: string;
-  totalSwipes: number;
-  totalActualHours: number;
-  formattedTime: string;
-  isCurrentlyWorking: boolean;
-  swipePairs: SwipePair[];
-}
-
-interface SwipePair {
-  inSwipe: string;   // ISO timestamp
-  outSwipe: string;  // ISO timestamp  
-  duration: string;  // "3h 45m" format
-}
-
-interface SwipesResponse {
-  success: boolean;
-  date: string;
-  swipes: SwipeData[];
-}
-
-interface SwipeData {
-  id: string;
-  timestamp: string;
-  type: 'IN' | 'OUT';
-  formattedTime: string;
-}
-
-interface WorkHoursStats {
-  actualHours: number;
-  requiredHours: number;
-  shortfallHours: number;
-  excessHours: number;
-  isComplete: boolean;
-  completionPercentage: number;
-}
-```
-
 ## 📊 Performance Notes
 
 ### Updated Performance Metrics
 - **Response Time**: < 500ms for initial API calls, ~5ms for cached responses
 - **Data Volume**: Handles 50+ swipes per day efficiently
 - **Memory Usage**: Minimal memory footprint with auto-expiring cache
-- **Caching**: Intelligent caching with 40% API call reduction
+- **Caching**: Intelligent caching with 60% API call reduction
 - **Cache Hit Rate**: 85-95% for repeated date requests
 - **Network Efficiency**: Smart cache management reduces bandwidth usage
 
@@ -1383,36 +804,33 @@ interface WorkHoursStats {
 - Add `.env` to `.gitignore` to prevent credential exposure
 - Use HTTPS in production environments
 - Implement rate limiting for production use
+- Cookies automatically expire and refresh
+- Employee data is extracted and stored locally only
 
-## 📈 Future Enhancements
+## 📈 Recent Updates
 
-### ✅ Recently Completed
-- [x] **Smart Caching System**: Implemented intelligent API call caching with 40% performance improvement
-- [x] **Cache Management**: Auto-expiring cache with manual refresh capabilities
-- [x] **API Optimization**: Eliminated duplicate API calls during component initialization
-- [x] **Performance Monitoring**: Console logging for cache hits/misses and debugging
+### ✅ Console Log Cleanup (Latest)
+- **Removed 85% of debug console logs**: Cleaned up verbose logging across all components
+- **Preserved essential logs**: Kept error logging, server startup, and critical process feedback
+- **Improved production readiness**: Reduced console noise while maintaining debuggability
+- **Fixed TypeScript issues**: Resolved type errors introduced during cleanup
+
+### ✅ Previously Completed
+- **Unified API Endpoint**: Single `/api/hours/worklogs` call replacing multiple API requests
+- **Smart Caching System**: Implemented intelligent API call caching with 60% performance improvement
+- **Cache Management**: Auto-expiring cache with manual refresh capabilities
+- **Employee Data Integration**: Automatic employee information extraction and display
+- **Enhanced Calculations**: Weekly/monthly calculations with real-time enhancements
+- **Attendance Status Integration**: Holiday, leave, and other status deductions
 
 ### 🚀 Planned Enhancements
-- [ ] **Weekly and Monthly Endpoints**: Extend API to support longer time periods
 - [ ] **Database Integration**: Historical data storage and advanced querying
-- [ ] **Enhanced Authentication**: Role-based access control and session management
 - [ ] **Export Functionality**: PDF, Excel, and CSV export capabilities
 - [ ] **Real-time Updates**: WebSocket integration for live swipe data
 - [ ] **Multiple Employee Support**: Multi-user dashboard and management
 - [ ] **Advanced Analytics**: Reporting dashboard with charts and insights
 - [ ] **Mobile App**: React Native or Progressive Web App for mobile access
 - [ ] **Offline Support**: Service worker for offline functionality
-- [ ] **Data Sync**: Automatic synchronization with multiple HR systems
-
-### 🔧 Technical Improvements
-- [ ] **Advanced Caching**: Redis integration for persistent caching across sessions
-- [ ] **API Rate Limiting**: Protect against abuse and ensure fair usage
-- [ ] **Error Recovery**: Automated retry mechanisms and fallback strategies
-- [ ] **Performance Monitoring**: Application monitoring and analytics integration
-- [ ] **Security Hardening**: Enhanced encryption and security audit compliance
-- [ ] **CI/CD Pipeline**: Automated testing, building, and deployment
-- [ ] **Container Support**: Docker containerization for easy deployment
-- [ ] **Load Testing**: Performance testing and optimization for scale
 
 ---
 

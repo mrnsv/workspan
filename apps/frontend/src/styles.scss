@@ -1,6 +1,24 @@
 /* Cyberpunk 2077 Global Styles */
 @use '@angular/material' as mat;
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+// Include Angular Material core styles
+@include mat.core();
+
+// Define tooltip theme to override defaults
+$tooltip-theme: mat.define-light-theme((
+  color: (
+    primary: mat.define-palette(mat.$blue-palette),
+    accent: mat.define-palette(mat.$blue-palette),
+    warn: mat.define-palette(mat.$red-palette),
+  ),
+  typography: mat.define-typography-config(),
+  density: 0,
+));
+
+// Apply tooltip theme
+@include mat.tooltip-theme($tooltip-theme);
 
 // Define cyberpunk color palette
 $cp-cyan: (
@@ -70,8 +88,8 @@ $cyberpunk-theme: mat.define-dark-theme((
   density: 0,
 ));
 
-// Apply the cyberpunk theme
-@include mat.all-component-themes($cyberpunk-theme);
+// Apply the cyberpunk theme - COMMENTED OUT TO ALLOW CUSTOM TOOLTIP THEMING
+// @include mat.all-component-themes($cyberpunk-theme);
 
 * {
   box-sizing: border-box;
@@ -85,26 +103,554 @@ html, body {
 }
 
 body { 
-  font-family: 'Orbitron', monospace;
-  background: linear-gradient(to bottom, #190b0f, #0f0b0d, #071216);
-  color: #79ffe8;
-  line-height: 1.4;
+  font-family: var(--cp-font-family);
+  background: linear-gradient(to bottom, var(--cp-bg-primary), var(--cp-bg-secondary), var(--cp-bg-tertiary));
+  color: var(--cp-text);
+  line-height: var(--cp-line-height-normal);
+  transition: background 0.5s ease, color 0.3s ease;
 }
 
-/* Cyberpunk Color Palette */
+/* Global Text Color Theme Support */
+* {
+  color: inherit;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--cp-text);
+  font-family: var(--cp-font-family);
+  transition: color 0.3s ease;
+}
+
+p, span, div {
+  color: inherit;
+  transition: color 0.3s ease;
+}
+
+/* Override default text colors for better theme integration */
+.mat-typography {
+  color: var(--cp-text) !important;
+}
+
+.mat-typography h1, 
+.mat-typography h2, 
+.mat-typography h3, 
+.mat-typography h4, 
+.mat-typography h5, 
+.mat-typography h6 {
+  color: var(--cp-text) !important;
+}
+
+.mat-typography p,
+.mat-typography span,
+.mat-typography div {
+  color: var(--cp-text) !important;
+}
+
+/* Base Theme Variables - will be overridden by specific themes */
 :root {
-  --cp-primary: #79ffe8;      /* Cyan */
-  --cp-secondary: #ff5c5c;    /* Red */
-  --cp-accent: #48e6ff;       /* Light Blue */
-  --cp-warning: #ffff00;      /* Yellow */
-  --cp-success: #00ff41;      /* Green */
-  --cp-bg-primary: #190b0f;   /* Dark Red */
-  --cp-bg-secondary: #0f0b0d; /* Darker */
-  --cp-bg-tertiary: #071216;  /* Darkest Blue */
+  --cp-primary: #2563eb;
+  --cp-secondary: #64748b;
+  --cp-accent: #dc2626;
+  --cp-warning: #f59e0b;
+  --cp-success: #059669;
+  --cp-error: #dc2626;
+  --cp-bg-primary: #ffffff;
+  --cp-bg-secondary: #f8fafc;
+  --cp-bg-tertiary: #f1f5f9;
+  --cp-border: rgba(15, 23, 42, 0.08);
+  --cp-border-accent: rgba(37, 99, 235, 0.2);
+  --cp-glass: rgba(15, 23, 42, 0.02);
+  --cp-glass-hover: rgba(15, 23, 42, 0.05);
+  --cp-text: #0f172a;
+  --cp-selected-text: #ffffff;
+  --cp-glow-primary: rgba(37, 99, 235, 0.15);
+  --cp-glow-secondary: rgba(100, 116, 139, 0.15);
+  --cp-glow-accent: rgba(220, 38, 38, 0.15);
+  --cp-shadow-primary: rgba(37, 99, 235, 0.1);
+  --cp-shadow-secondary: rgba(100, 116, 139, 0.1);
+  --cp-shadow-accent: rgba(220, 38, 38, 0.1);
+  --cp-overlay-dark: rgba(15, 23, 42, 0.75);
+  --cp-overlay-light: rgba(15, 23, 42, 0.05);
+  --cp-progress-bar-background: rgba(15, 23, 42, 0.15);
+  --cp-progress-bar-fill: #1d4ed8;
+  --cp-progress-bar-fill-secondary: #3b82f6;
+  --cp-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --cp-font-family-secondary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --cp-font-size-xs: 0.75rem;
+  --cp-font-size-sm: 0.875rem;
+  --cp-font-size-base: 1rem;
+  --cp-font-size-lg: 1.125rem;
+  --cp-font-size-xl: 1.25rem;
+  --cp-font-size-2xl: 1.5rem;
+  --cp-font-size-3xl: 1.875rem;
+  --cp-font-size-4xl: 2.25rem;
+  --cp-font-weight-normal: 400;
+  --cp-font-weight-medium: 500;
+  --cp-font-weight-bold: 600;
+  --cp-font-weight-black: 700;
+  --cp-letter-spacing-tight: -0.025em;
+  --cp-letter-spacing-normal: 0;
+  --cp-letter-spacing-wide: 0.025em;
+  --cp-line-height-tight: 1.25;
+  --cp-line-height-normal: 1.5;
+  --cp-line-height-relaxed: 1.75;
+}
+
+/* Light Theme */
+.theme-light {
+  --cp-primary: #2563eb;
+  --cp-secondary: #64748b;
+  --cp-accent: #dc2626;
+  --cp-warning: #f59e0b;
+  --cp-success: #059669;
+  --cp-error: #dc2626;
+  --cp-bg-primary: #ffffff;
+  --cp-bg-secondary: #f8fafc;
+  --cp-bg-tertiary: #f1f5f9;
+  --cp-border: rgba(15, 23, 42, 0.08);
+  --cp-border-accent: rgba(37, 99, 235, 0.2);
+  --cp-glass: rgba(15, 23, 42, 0.02);
+  --cp-glass-hover: rgba(15, 23, 42, 0.05);
+  --cp-text: #0f172a;
+  --cp-selected-text: #ffffff;
+  --cp-glow-primary: rgba(37, 99, 235, 0.15);
+  --cp-glow-secondary: rgba(100, 116, 139, 0.15);
+  --cp-glow-accent: rgba(220, 38, 38, 0.15);
+  --cp-shadow-primary: rgba(37, 99, 235, 0.1);
+  --cp-shadow-secondary: rgba(100, 116, 139, 0.1);
+  --cp-shadow-accent: rgba(220, 38, 38, 0.1);
+  --cp-overlay-dark: rgba(15, 23, 42, 0.75);
+  --cp-overlay-light: rgba(15, 23, 42, 0.05);
+  --cp-progress-bar-background: rgba(15, 23, 42, 0.15);
+  --cp-progress-bar-fill: #1d4ed8;
+  --cp-progress-bar-fill-secondary: #3b82f6;
+  --cp-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --cp-font-family-secondary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --cp-font-size-xs: 0.75rem;
+  --cp-font-size-sm: 0.875rem;
+  --cp-font-size-base: 1rem;
+  --cp-font-size-lg: 1.125rem;
+  --cp-font-size-xl: 1.25rem;
+  --cp-font-size-2xl: 1.5rem;
+  --cp-font-size-3xl: 1.875rem;
+  --cp-font-size-4xl: 2.25rem;
+  --cp-font-weight-normal: 400;
+  --cp-font-weight-medium: 500;
+  --cp-font-weight-bold: 600;
+  --cp-font-weight-black: 700;
+  --cp-letter-spacing-tight: -0.025em;
+  --cp-letter-spacing-normal: 0;
+  --cp-letter-spacing-wide: 0.025em;
+  --cp-line-height-tight: 1.25;
+  --cp-line-height-normal: 1.5;
+  --cp-line-height-relaxed: 1.75;
+  --cp-notification-background: rgba(255, 255, 255, 0.95);
+  --cp-notification-text: #0f172a;
+  --cp-notification-border: rgba(37, 99, 235, 0.2);
+  --cp-notification-shadow: 0 4px 20px rgba(0, 0, 0, 0.1), 0 0 10px rgba(37, 99, 235, 0.1);
+  --cp-notification-success-border: #059669;
+  --cp-notification-success-shadow: 0 4px 20px rgba(0, 0, 0, 0.1), 0 0 10px rgba(5, 150, 105, 0.2);
+  --cp-notification-error-border: #dc2626;
+  --cp-notification-error-shadow: 0 4px 20px rgba(0, 0, 0, 0.1), 0 0 10px rgba(220, 38, 38, 0.2);
+  --cp-notification-warning-border: #f59e0b;
+  --cp-notification-warning-shadow: 0 4px 20px rgba(0, 0, 0, 0.1), 0 0 10px rgba(245, 158, 11, 0.2);
+  --cp-notification-info-border: #2563eb;
+  --cp-notification-info-shadow: 0 4px 20px rgba(0, 0, 0, 0.1), 0 0 10px rgba(37, 99, 235, 0.2);
+  --cp-notification-action-hover: rgba(37, 99, 235, 0.1);
+  --cp-notification-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --cp-notification-font-weight: 500;
+  --cp-notification-font-size: 0.875rem;
+  --cp-notification-letter-spacing: 0.025em;
+  --cp-notification-text-transform: none;
+  --cp-notification-action-font-weight: 600;
+  --cp-notification-action-font-size: 1rem;
+  --cp-component-accent: #2563eb;
+  --cp-component-accent-hover: rgba(37, 99, 235, 0.1);
+  --cp-component-accent-light: rgba(37, 99, 235, 0.05);
+  --cp-component-success: #059669;
+  --cp-component-success-light: rgba(5, 150, 105, 0.05);
+  --cp-component-error: #dc2626;
+  --cp-component-error-light: rgba(220, 38, 38, 0.05);
+  --cp-component-warning: #f59e0b;
+  --cp-component-warning-light: rgba(245, 158, 11, 0.05);
+  --cp-component-info: #2563eb;
+  --cp-component-info-light: rgba(37, 99, 235, 0.05);
+  --cp-component-border: rgba(15, 23, 42, 0.08);
+  --cp-component-shadow: 0 4px 15px rgba(37, 99, 235, 0.1);
+  --cp-component-shadow-hover: 0 4px 15px rgba(37, 99, 235, 0.2);
+  --cp-component-glow: rgba(37, 99, 235, 0.3);
+  --cp-component-glow-hover: rgba(37, 99, 235, 0.5);
+  --cp-tooltip-background: rgba(15, 23, 42, 0.9);
+  --cp-tooltip-text: #ffffff;
+  --cp-tooltip-border: rgba(37, 99, 235, 0.3);
+  --cp-tooltip-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 0 8px rgba(37, 99, 235, 0.2);
+  --cp-component-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --cp-component-font-weight-light: 400;
+  --cp-component-font-weight-medium: 500;
+  --cp-component-font-weight-semibold: 600;
+  --cp-component-font-weight-bold: 700;
+  --cp-component-font-weight-extrabold: 900;
+  --cp-component-font-size-xs: 0.6rem;
+  --cp-component-font-size-sm: 0.7rem;
+  --cp-component-font-size-md: 0.8rem;
+  --cp-component-font-size-lg: 1rem;
+  --cp-component-font-size-xl: 1.2rem;
+  --cp-component-font-size-2xl: 1.5rem;
+  --cp-component-font-size-3xl: 2rem;
+  --cp-component-letter-spacing-tight: 0.3px;
+  --cp-component-letter-spacing-normal: 0.5px;
+  --cp-component-letter-spacing-wide: 1px;
+  --cp-component-letter-spacing-wider: 1.2px;
+  --cp-component-line-height-tight: 1;
+  --cp-component-line-height-normal: 1.2;
+  --cp-component-line-height-relaxed: 1.4;
+  --cp-component-line-height-loose: 1.6;
+  --cp-tooltip-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --cp-tooltip-font-weight: 500;
+  --cp-tooltip-font-size: 0.75rem;
+  --cp-tooltip-letter-spacing: 0.025em;
+  --cp-tooltip-line-height: 1.4;
+}
+
+/* Dark Theme */
+.theme-dark {
+  --cp-primary: #bb86fc;
+  --cp-secondary: #03dac6;
+  --cp-accent: #cf6679;
+  --cp-warning: #ffb74d;
+  --cp-success: #4caf50;
+  --cp-error: #f44336;
+  --cp-bg-primary: #121212;
+  --cp-bg-secondary: #1e1e1e;
+  --cp-bg-tertiary: #2d2d2d;
+  --cp-border: rgba(255, 255, 255, 0.12);
+  --cp-border-accent: rgba(187, 134, 252, 0.5);
+  --cp-glass: rgba(255, 255, 255, 0.05);
+  --cp-glass-hover: rgba(255, 255, 255, 0.1);
+  --cp-text: #ffffff;
+  --cp-selected-text: #000000;
+  --cp-glow-primary: rgba(187, 134, 252, 0.3);
+  --cp-glow-secondary: rgba(3, 218, 198, 0.3);
+  --cp-glow-accent: rgba(207, 102, 121, 0.3);
+  --cp-shadow-primary: rgba(187, 134, 252, 0.2);
+  --cp-shadow-secondary: rgba(3, 218, 198, 0.2);
+  --cp-shadow-accent: rgba(207, 102, 121, 0.2);
+  --cp-overlay-dark: rgba(0, 0, 0, 0.85);
+  --cp-overlay-light: rgba(255, 255, 255, 0.1);
+  --cp-progress-bar-background: rgba(255, 255, 255, 0.1);
+  --cp-progress-bar-fill: #bb86fc;
+  --cp-progress-bar-fill-secondary: #03dac6;
+  --cp-font-family: 'Orbitron', monospace;
+  --cp-font-family-secondary: 'Orbitron', monospace;
+  --cp-font-size-xs: 0.75rem;
+  --cp-font-size-sm: 0.875rem;
+  --cp-font-size-base: 1rem;
+  --cp-font-size-lg: 1.125rem;
+  --cp-font-size-xl: 1.25rem;
+  --cp-font-size-2xl: 1.5rem;
+  --cp-font-size-3xl: 1.875rem;
+  --cp-font-size-4xl: 2.25rem;
+  --cp-font-weight-normal: 400;
+  --cp-font-weight-medium: 500;
+  --cp-font-weight-bold: 700;
+  --cp-font-weight-black: 900;
+  --cp-letter-spacing-tight: -0.025em;
+  --cp-letter-spacing-normal: 0;
+  --cp-letter-spacing-wide: 0.025em;
+  --cp-line-height-tight: 1.25;
+  --cp-line-height-normal: 1.5;
+  --cp-line-height-relaxed: 1.75;
+  --cp-notification-background: rgba(0, 0, 0, 0.85);
+  --cp-notification-text: #bb86fc;
+  --cp-notification-border: rgba(187, 134, 252, 0.5);
+  --cp-notification-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 10px rgba(187, 134, 252, 0.2);
+  --cp-notification-success-border: #4caf50;
+  --cp-notification-success-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 10px rgba(76, 175, 80, 0.3);
+  --cp-notification-error-border: #f44336;
+  --cp-notification-error-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 10px rgba(244, 67, 54, 0.3);
+  --cp-notification-warning-border: #ffb74d;
+  --cp-notification-warning-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 10px rgba(255, 183, 77, 0.3);
+  --cp-notification-info-border: #03dac6;
+  --cp-notification-info-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 10px rgba(3, 218, 198, 0.3);
+  --cp-notification-action-hover: rgba(3, 218, 198, 0.1);
+  --cp-notification-font-family: 'Orbitron', monospace;
+  --cp-notification-font-weight: 600;
+  --cp-notification-font-size: 0.875rem;
+  --cp-notification-letter-spacing: 0.5px;
+  --cp-notification-text-transform: uppercase;
+  --cp-notification-action-font-weight: 700;
+  --cp-notification-action-font-size: 1rem;
+  --cp-component-accent: #03dac6;
+  --cp-component-accent-hover: rgba(3, 218, 198, 0.1);
+  --cp-component-accent-light: rgba(3, 218, 198, 0.05);
+  --cp-component-success: #4caf50;
+  --cp-component-success-light: rgba(76, 175, 80, 0.05);
+  --cp-component-error: #f44336;
+  --cp-component-error-light: rgba(244, 67, 54, 0.05);
+  --cp-component-warning: #ffb74d;
+  --cp-component-warning-light: rgba(255, 183, 77, 0.05);
+  --cp-component-info: #03dac6;
+  --cp-component-info-light: rgba(3, 218, 198, 0.05);
+  --cp-component-border: rgba(255, 255, 255, 0.12);
+  --cp-component-shadow: 0 4px 15px rgba(3, 218, 198, 0.2);
+  --cp-component-shadow-hover: 0 4px 15px rgba(3, 218, 198, 0.3);
+  --cp-component-glow: rgba(3, 218, 198, 0.4);
+  --cp-component-glow-hover: rgba(3, 218, 198, 0.6);
+  --cp-tooltip-background: rgba(0, 0, 0, 0.9);
+  --cp-tooltip-text: #bb86fc;
+  --cp-tooltip-border: rgba(3, 218, 198, 0.3);
+  --cp-tooltip-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 8px rgba(3, 218, 198, 0.2);
+  --cp-component-font-family: 'Orbitron', monospace;
+  --cp-component-font-weight-light: 400;
+  --cp-component-font-weight-medium: 500;
+  --cp-component-font-weight-semibold: 600;
+  --cp-component-font-weight-bold: 700;
+  --cp-component-font-weight-extrabold: 900;
+  --cp-component-font-size-xs: 0.6rem;
+  --cp-component-font-size-sm: 0.7rem;
+  --cp-component-font-size-md: 0.8rem;
+  --cp-component-font-size-lg: 1rem;
+  --cp-component-font-size-xl: 1.2rem;
+  --cp-component-font-size-2xl: 1.5rem;
+  --cp-component-font-size-3xl: 2rem;
+  --cp-component-letter-spacing-tight: 0.3px;
+  --cp-component-letter-spacing-normal: 0.5px;
+  --cp-component-letter-spacing-wide: 1px;
+  --cp-component-letter-spacing-wider: 1.2px;
+  --cp-component-line-height-tight: 1;
+  --cp-component-line-height-normal: 1.2;
+  --cp-component-line-height-relaxed: 1.4;
+  --cp-component-line-height-loose: 1.6;
+  --cp-tooltip-font-family: 'Orbitron', monospace;
+  --cp-tooltip-font-weight: 600;
+  --cp-tooltip-font-size: 0.75rem;
+  --cp-tooltip-letter-spacing: 0.05em;
+  --cp-tooltip-line-height: 1.4;
+}
+
+/* Cyberpunk Theme */
+.theme-cyberpunk {
+  --cp-primary: #79ffe8;
+  --cp-secondary: #ff5c5c;
+  --cp-accent: #48e6ff;
+  --cp-warning: #ffff00;
+  --cp-success: #00ff41;
+  --cp-error: #ff5c5c;
+  --cp-bg-primary: #190b0f;
+  --cp-bg-secondary: #0f0b0d;
+  --cp-bg-tertiary: #071216;
   --cp-border: rgba(255, 0, 0, 0.4);
   --cp-border-accent: rgba(72, 230, 255, 0.5);
   --cp-glass: rgba(128, 0, 0, 0.15);
   --cp-glass-hover: rgba(128, 0, 0, 0.3);
+  --cp-text: #79ffe8;
+  --cp-selected-text: #000000;
+  --cp-glow-primary: rgba(121, 255, 232, 0.3);
+  --cp-glow-secondary: rgba(255, 92, 92, 0.3);
+  --cp-glow-accent: rgba(72, 230, 255, 0.3);
+  --cp-shadow-primary: rgba(121, 255, 232, 0.2);
+  --cp-shadow-secondary: rgba(255, 92, 92, 0.2);
+  --cp-shadow-accent: rgba(72, 230, 255, 0.2);
+  --cp-overlay-dark: rgba(0, 0, 0, 0.75);
+  --cp-overlay-light: rgba(128, 0, 0, 0.1);
+  --cp-progress-bar-background: rgba(255, 92, 92, 0.2);
+  --cp-progress-bar-fill: #ff5c5c;
+  --cp-progress-bar-fill-secondary: #48e6ff;
+  --cp-font-family: 'Orbitron', monospace;
+  --cp-font-family-secondary: 'Orbitron', monospace;
+  --cp-font-size-xs: 0.75rem;
+  --cp-font-size-sm: 0.875rem;
+  --cp-font-size-base: 1rem;
+  --cp-font-size-lg: 1.125rem;
+  --cp-font-size-xl: 1.25rem;
+  --cp-font-size-2xl: 1.5rem;
+  --cp-font-size-3xl: 1.875rem;
+  --cp-font-size-4xl: 2.25rem;
+  --cp-font-weight-normal: 400;
+  --cp-font-weight-medium: 500;
+  --cp-font-weight-bold: 700;
+  --cp-font-weight-black: 900;
+  --cp-letter-spacing-tight: -0.025em;
+  --cp-letter-spacing-normal: 0;
+  --cp-letter-spacing-wide: 0.025em;
+  --cp-line-height-tight: 1.25;
+  --cp-line-height-normal: 1.5;
+  --cp-line-height-relaxed: 1.75;
+  --cp-notification-background: rgba(0, 0, 0, 0.85);
+  --cp-notification-text: #79ffe8;
+  --cp-notification-border: rgba(72, 230, 255, 0.5);
+  --cp-notification-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 10px rgba(121, 255, 232, 0.2);
+  --cp-notification-success-border: #00ff41;
+  --cp-notification-success-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 10px rgba(0, 255, 65, 0.3);
+  --cp-notification-error-border: #ff5c5c;
+  --cp-notification-error-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 10px rgba(255, 92, 92, 0.3);
+  --cp-notification-warning-border: #ffff00;
+  --cp-notification-warning-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 10px rgba(255, 255, 0, 0.3);
+  --cp-notification-info-border: #48e6ff;
+  --cp-notification-info-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 10px rgba(72, 230, 255, 0.3);
+  --cp-notification-action-hover: rgba(72, 230, 255, 0.1);
+  --cp-notification-font-family: 'Orbitron', monospace;
+  --cp-notification-font-weight: 600;
+  --cp-notification-font-size: 0.875rem;
+  --cp-notification-letter-spacing: 0.5px;
+  --cp-notification-text-transform: uppercase;
+  --cp-notification-action-font-weight: 700;
+  --cp-notification-action-font-size: 1rem;
+  --cp-component-accent: #48e6ff;
+  --cp-component-accent-hover: rgba(72, 230, 255, 0.1);
+  --cp-component-accent-light: rgba(72, 230, 255, 0.05);
+  --cp-component-success: #00ff41;
+  --cp-component-success-light: rgba(0, 255, 65, 0.05);
+  --cp-component-error: #ff5c5c;
+  --cp-component-error-light: rgba(255, 92, 92, 0.05);
+  --cp-component-warning: #ffff00;
+  --cp-component-warning-light: rgba(255, 255, 0, 0.05);
+  --cp-component-info: #48e6ff;
+  --cp-component-info-light: rgba(72, 230, 255, 0.05);
+  --cp-component-border: rgba(255, 0, 0, 0.4);
+  --cp-component-shadow: 0 4px 15px rgba(72, 230, 255, 0.2);
+  --cp-component-shadow-hover: 0 4px 15px rgba(72, 230, 255, 0.4);
+  --cp-component-glow: rgba(72, 230, 255, 0.4);
+  --cp-component-glow-hover: rgba(72, 230, 255, 0.8);
+  --cp-tooltip-background: rgba(0, 0, 0, 0.9);
+  --cp-tooltip-text: #79ffe8;
+  --cp-tooltip-border: rgba(72, 230, 255, 0.3);
+  --cp-tooltip-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 8px rgba(72, 230, 255, 0.2);
+  --cp-component-font-family: 'Orbitron', monospace;
+  --cp-component-font-weight-light: 400;
+  --cp-component-font-weight-medium: 500;
+  --cp-component-font-weight-semibold: 600;
+  --cp-component-font-weight-bold: 700;
+  --cp-component-font-weight-extrabold: 900;
+  --cp-component-font-size-xs: 0.6rem;
+  --cp-component-font-size-sm: 0.7rem;
+  --cp-component-font-size-md: 0.8rem;
+  --cp-component-font-size-lg: 1rem;
+  --cp-component-font-size-xl: 1.2rem;
+  --cp-component-font-size-2xl: 1.5rem;
+  --cp-component-font-size-3xl: 2rem;
+  --cp-component-letter-spacing-tight: 0.3px;
+  --cp-component-letter-spacing-normal: 0.5px;
+  --cp-component-letter-spacing-wide: 1px;
+  --cp-component-letter-spacing-wider: 1.2px;
+  --cp-component-line-height-tight: 1;
+  --cp-component-line-height-normal: 1.2;
+  --cp-component-line-height-relaxed: 1.4;
+  --cp-component-line-height-loose: 1.6;
+  --cp-tooltip-font-family: 'Orbitron', monospace;
+  --cp-tooltip-font-weight: 600;
+  --cp-tooltip-font-size: 0.75rem;
+  --cp-tooltip-letter-spacing: 0.05em;
+  --cp-tooltip-line-height: 1.4;
+}
+
+/* Light Theme Progress Bar Overrides */
+.theme-light .mat-progress-bar,
+.theme-light .mat-mdc-progress-bar {
+  background: var(--cp-progress-bar-background) !important;
+}
+
+.theme-light .mat-progress-bar-fill::after,
+.theme-light .mat-mdc-progress-bar .mdc-linear-progress__primary-bar .mdc-linear-progress__bar-inner {
+  background: linear-gradient(90deg, var(--cp-progress-bar-fill), var(--cp-progress-bar-fill-secondary)) !important;
+}
+
+.theme-light .mat-mdc-progress-bar .mdc-linear-progress__buffer {
+  background: var(--cp-progress-bar-background) !important;
+}
+
+/* Additional Light Theme Specificity */
+.theme-light .mdc-linear-progress__primary-bar .mdc-linear-progress__bar-inner {
+  background: linear-gradient(90deg, var(--cp-progress-bar-fill), var(--cp-progress-bar-fill-secondary)) !important;
+}
+
+.theme-light .mat-mdc-progress-bar .mdc-linear-progress__bar .mdc-linear-progress__bar-inner {
+  background: linear-gradient(90deg, var(--cp-progress-bar-fill), var(--cp-progress-bar-fill-secondary)) !important;
+}
+
+.theme-light .progress-bar-compact .mdc-linear-progress__primary-bar .mdc-linear-progress__bar-inner {
+  background: linear-gradient(90deg, var(--cp-progress-bar-fill), var(--cp-progress-bar-fill-secondary)) !important;
+}
+
+/* Maximum specificity override for Material Design progress bars */
+.theme-light .mat-mdc-progress-bar.mdc-linear-progress .mdc-linear-progress__bar.mdc-linear-progress__primary-bar .mdc-linear-progress__bar-inner {
+  background: linear-gradient(90deg, var(--cp-progress-bar-fill), var(--cp-progress-bar-fill-secondary)) !important;
+}
+
+/* Override any inline styles */
+.theme-light .mdc-linear-progress__bar-inner[style*="background"] {
+  background: linear-gradient(90deg, var(--cp-progress-bar-fill), var(--cp-progress-bar-fill-secondary)) !important;
+}
+
+/* Target the specific element structure mentioned */
+.theme-light .mdc-linear-progress__bar.mdc-linear-progress__primary-bar .mdc-linear-progress__bar-inner {
+  background: linear-gradient(90deg, var(--cp-progress-bar-fill), var(--cp-progress-bar-fill-secondary)) !important;
+}
+
+/* Override Material Design's default progress bar colors */
+.theme-light .mat-primary .mdc-linear-progress__primary-bar .mdc-linear-progress__bar-inner {
+  background: linear-gradient(90deg, var(--cp-progress-bar-fill), var(--cp-progress-bar-fill-secondary)) !important;
+}
+
+/* Post-Material Design overrides - highest specificity */
+.theme-light .mat-mdc-progress-bar.mat-primary .mdc-linear-progress .mdc-linear-progress__bar.mdc-linear-progress__primary-bar .mdc-linear-progress__bar-inner {
+  background: linear-gradient(90deg, var(--cp-progress-bar-fill), var(--cp-progress-bar-fill-secondary)) !important;
+}
+
+/* Force override for any Material Design progress bar */
+.theme-light [class*="mdc-linear-progress"] [class*="bar-inner"] {
+  background: linear-gradient(90deg, var(--cp-progress-bar-fill), var(--cp-progress-bar-fill-secondary)) !important;
+}
+
+/* Override Material Design CSS Variables */
+.theme-light .mat-mdc-progress-bar {
+  --mdc-linear-progress-active-indicator-color: var(--cp-progress-bar-fill);
+  --mdc-theme-primary: var(--cp-progress-bar-fill);
+}
+
+.theme-light .mat-mdc-progress-bar .mdc-linear-progress__bar-inner {
+  border-color: var(--cp-progress-bar-fill) !important;
+  background: linear-gradient(90deg, var(--cp-progress-bar-fill), var(--cp-progress-bar-fill-secondary)) !important;
+}
+
+/* Global Material Design CSS Variable Overrides for Light Theme */
+.theme-light {
+  --mdc-linear-progress-active-indicator-color: var(--cp-progress-bar-fill);
+  --mdc-theme-primary: var(--cp-progress-bar-fill);
+}
+
+/* Root level Material Design variable overrides */
+.theme-light :root {
+  --mdc-linear-progress-active-indicator-color: var(--cp-progress-bar-fill);
+  --mdc-theme-primary: var(--cp-progress-bar-fill);
+}
+
+/* Override any Angular Material theme colors */
+.theme-light .mat-primary {
+  --mdc-theme-primary: var(--cp-progress-bar-fill);
+}
+
+/* Override Angular Material theme for Light theme specifically */
+.theme-light .mat-mdc-progress-bar.mat-primary {
+  --mdc-theme-primary: var(--cp-progress-bar-fill);
+  --mdc-linear-progress-active-indicator-color: var(--cp-progress-bar-fill);
+}
+
+.theme-light .mat-mdc-progress-bar.mat-primary .mdc-linear-progress__bar-inner {
+  border-color: var(--cp-progress-bar-fill) !important;
+  background: linear-gradient(90deg, var(--cp-progress-bar-fill), var(--cp-progress-bar-fill-secondary)) !important;
+}
+
+/* Ultimate override for Angular Material theme - highest specificity */
+.theme-light .mat-mdc-progress-bar.mat-primary.mdc-linear-progress .mdc-linear-progress__bar.mdc-linear-progress__primary-bar .mdc-linear-progress__bar-inner {
+  border-color: var(--cp-progress-bar-fill) !important;
+  background: linear-gradient(90deg, var(--cp-progress-bar-fill), var(--cp-progress-bar-fill-secondary)) !important;
+}
+
+/* Override the Angular Material theme CSS variables at the component level */
+.theme-light .mat-mdc-progress-bar.mat-primary.mdc-linear-progress {
+  --mdc-theme-primary: var(--cp-progress-bar-fill) !important;
+  --mdc-linear-progress-active-indicator-color: var(--cp-progress-bar-fill) !important;
 }
 
 /* Scrollbar Styling */
@@ -125,20 +671,20 @@ body {
   background: var(--cp-accent);
 }
 
-/* Angular Material Overrides - Cyberpunk Theme */
+/* Angular Material Overrides - Theme Support */
 .mat-toolbar {
   background: linear-gradient(90deg, var(--cp-bg-primary), var(--cp-bg-secondary)) !important;
-  color: var(--cp-primary) !important;
+  color: var(--cp-text) !important;
   border-bottom: 1px solid var(--cp-border) !important;
-  font-family: 'Orbitron', monospace !important;
-  font-weight: 700 !important;
+  font-family: var(--cp-font-family) !important;
+  font-weight: var(--cp-font-weight-bold) !important;
   text-transform: uppercase !important;
-  letter-spacing: 1px !important;
+  letter-spacing: var(--cp-letter-spacing-wide) !important;
 }
 
 .mat-card {
   background: var(--cp-glass) !important;
-  color: var(--cp-primary) !important;
+  color: var(--cp-text) !important;
   border: 1px solid var(--cp-border) !important;
   border-radius: 6px !important;
   backdrop-filter: blur(4px) !important;
@@ -147,29 +693,29 @@ body {
 
 .mat-card:hover {
   transform: translateY(-2px) !important;
-  box-shadow: 0 8px 25px rgba(255, 92, 92, 0.3) !important;
+  box-shadow: 0 8px 25px var(--cp-shadow-secondary) !important;
   border-color: var(--cp-secondary) !important;
 }
 
 .mat-card-title {
   color: var(--cp-accent) !important;
-  font-family: 'Orbitron', monospace !important;
-  font-weight: 700 !important;
+  font-family: var(--cp-font-family) !important;
+  font-weight: var(--cp-font-weight-bold) !important;
   text-transform: uppercase !important;
-  letter-spacing: 1px !important;
+  letter-spacing: var(--cp-letter-spacing-wide) !important;
 }
 
 .mat-form-field {
-  font-family: 'Orbitron', monospace !important;
+  font-family: var(--cp-font-family) !important;
   
   .mat-form-field-label {
     color: var(--cp-accent) !important;
-    font-weight: 600 !important;
+    font-weight: var(--cp-font-weight-medium) !important;
   }
   
   .mat-input-element {
     color: var(--cp-primary) !important;
-    font-family: 'Orbitron', monospace !important;
+    font-family: var(--cp-font-family) !important;
   }
   
   .mat-form-field-underline {
@@ -186,11 +732,11 @@ body {
 }
 
 .mat-button, .mat-raised-button, .mat-icon-button, .mat-stroked-button {
-  color: var(--cp-primary) !important;
-  font-family: 'Orbitron', monospace !important;
-  font-weight: 600 !important;
+  color: var(--cp-text) !important;
+  font-family: var(--cp-font-family) !important;
+  font-weight: var(--cp-font-weight-medium) !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.5px !important;
+  letter-spacing: var(--cp-letter-spacing-normal) !important;
   border-radius: 4px !important;
   transition: all 0.3s ease !important;
 }
@@ -202,7 +748,7 @@ body {
 
 .mat-raised-button:hover {
   background: var(--cp-glass-hover) !important;
-  box-shadow: 0 0 15px rgba(72, 230, 255, 0.4) !important;
+  box-shadow: 0 0 15px var(--cp-glow-accent) !important;
   transform: translateY(-1px) !important;
 }
 
@@ -212,12 +758,12 @@ body {
 
 .mat-stroked-button:hover {
   background: var(--cp-glass) !important;
-  box-shadow: 0 0 10px rgba(72, 230, 255, 0.3) !important;
+  box-shadow: 0 0 10px var(--cp-glow-accent) !important;
 }
 
 .mat-expansion-panel {
   background: var(--cp-glass) !important;
-  color: var(--cp-primary) !important;
+  color: var(--cp-text) !important;
   border: 1px solid var(--cp-border) !important;
   border-radius: 6px !important;
   margin-bottom: 8px !important;
@@ -226,10 +772,10 @@ body {
 
 .mat-expansion-panel-header {
   color: var(--cp-accent) !important;
-  font-family: 'Orbitron', monospace !important;
-  font-weight: 600 !important;
+  font-family: var(--cp-font-family) !important;
+  font-weight: var(--cp-font-weight-medium) !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.5px !important;
+  letter-spacing: var(--cp-letter-spacing-normal) !important;
 }
 
 .mat-expansion-panel-header:hover {
@@ -237,31 +783,53 @@ body {
 }
 
 .mat-expansion-panel-body {
-  font-family: 'Orbitron', monospace !important;
+  font-family: var(--cp-font-family) !important;
 }
 
 .mat-progress-bar {
-  background: rgba(255, 92, 92, 0.2) !important;
+  background: var(--cp-progress-bar-background) !important;
 }
 
 .mat-progress-bar-fill::after {
-  background: linear-gradient(90deg, var(--cp-secondary), var(--cp-accent)) !important;
+  background: linear-gradient(90deg, var(--cp-progress-bar-fill), var(--cp-progress-bar-fill-secondary)) !important;
+}
+
+/* Additional specificity for Material Design progress bars */
+.mat-mdc-progress-bar {
+  background: var(--cp-progress-bar-background) !important;
+}
+
+.mat-mdc-progress-bar .mdc-linear-progress__buffer {
+  background: var(--cp-progress-bar-background) !important;
+}
+
+.mat-mdc-progress-bar .mdc-linear-progress__primary-bar .mdc-linear-progress__bar-inner {
+  background: linear-gradient(90deg, var(--cp-progress-bar-fill), var(--cp-progress-bar-fill-secondary)) !important;
+}
+
+/* More specific rules for progress bar inner elements */
+.mdc-linear-progress__primary-bar .mdc-linear-progress__bar-inner {
+  background: linear-gradient(90deg, var(--cp-progress-bar-fill), var(--cp-progress-bar-fill-secondary)) !important;
+}
+
+.mat-mdc-progress-bar .mdc-linear-progress__bar .mdc-linear-progress__bar-inner {
+  background: linear-gradient(90deg, var(--cp-progress-bar-fill), var(--cp-progress-bar-fill-secondary)) !important;
 }
 
 /* Override for login form progress overlay - remove red color */
 .progress-overlay.mat-progress-bar {
-  background: rgba(72, 230, 255, 0.2) !important;
+  background: var(--cp-progress-bar-background) !important;
   
   .mdc-linear-progress__buffer {
-    background: rgba(72, 230, 255, 0.2) !important;
+    background: var(--cp-progress-bar-background) !important;
   }
   
   .mdc-linear-progress__buffer-bar {
-    background: rgba(72, 230, 255, 0.2) !important;
+    background: var(--cp-progress-bar-background) !important;
   }
   
   .mdc-linear-progress__primary-bar .mdc-linear-progress__bar-inner {
-    background: linear-gradient(90deg, var(--cp-accent), var(--cp-primary)) !important;
+    background: linear-gradient(90deg, var(--cp-progress-bar-fill), var(--cp-progress-bar-fill-secondary)) !important;
   }
   
   .mdc-linear-progress__secondary-bar {
@@ -275,7 +843,7 @@ body {
 }
 
 .mat-progress-bar.progress-overlay .mat-progress-bar-fill::after {
-  background: linear-gradient(90deg, var(--cp-accent), var(--cp-primary)) !important;
+  background: linear-gradient(90deg, var(--cp-progress-bar-fill), var(--cp-progress-bar-fill-secondary)) !important;
 }
 
 .mat-progress-spinner circle, .mat-spinner circle {
@@ -284,7 +852,7 @@ body {
 
 .mat-snack-bar-container {
   background: var(--cp-glass) !important;
-  color: var(--cp-primary) !important;
+  color: var(--cp-text) !important;
   border: 1px solid var(--cp-border-accent) !important;
   font-family: 'Orbitron', monospace !important;
 }
@@ -297,7 +865,7 @@ body {
 
 .mat-calendar {
   background: transparent !important;
-  color: var(--cp-primary) !important;
+  color: var(--cp-text) !important;
   font-family: 'Orbitron', monospace !important;
 }
 
@@ -306,7 +874,7 @@ body {
 }
 
 .mat-calendar-body-cell-content {
-  color: var(--cp-primary) !important;
+  color: var(--cp-text) !important;
   border-radius: 4px !important;
 }
 
@@ -321,12 +889,12 @@ body {
 
 /* Custom Cyberpunk Classes */
 .cp-glow {
-  box-shadow: 0 0 20px rgba(121, 255, 232, 0.3);
+  box-shadow: 0 0 20px var(--cp-glow-primary);
   transition: box-shadow 0.3s ease;
 }
 
 .cp-glow:hover {
-  box-shadow: 0 0 30px rgba(121, 255, 232, 0.5);
+  box-shadow: 0 0 30px var(--cp-glow-primary);
 }
 
 .cp-text-primary { color: var(--cp-primary) !important; }
@@ -343,7 +911,7 @@ body {
 
 .cp-border-glow {
   border: 1px solid var(--cp-border-accent) !important;
-  box-shadow: 0 0 10px rgba(72, 230, 255, 0.2) !important;
+  box-shadow: 0 0 10px var(--cp-glow-accent) !important;
 }
 
 /* Cyberpunk Header Styles */
@@ -433,15 +1001,15 @@ body {
 
 /* Cyberpunk Time Display */
 .cp-time {
-  background: rgba(128, 0, 0, 0.6);
+  background: var(--cp-overlay-light);
   border: 1px solid var(--cp-secondary);
   padding: 0.5rem 1.25rem;
   border-radius: 4px;
-  font-weight: bold;
-  color: #ffe5e5;
-  font-family: 'Orbitron', monospace;
+  font-weight: var(--cp-font-weight-bold);
+  color: var(--cp-text);
+  font-family: var(--cp-font-family);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: var(--cp-letter-spacing-wide);
 }
 
 /* Cyberpunk Menu Items */
@@ -457,18 +1025,18 @@ body {
   cursor: pointer;
   transition: all 0.3s ease;
   margin-bottom: 0.5rem;
-  font-family: 'Orbitron', monospace;
+  font-family: var(--cp-font-family);
 }
 
 .cp-menu-item:hover {
   background: var(--cp-glass-hover);
-  box-shadow: 0 0 15px rgba(72, 230, 255, 0.3);
+  box-shadow: 0 0 15px var(--cp-glow-accent);
   border-color: var(--cp-accent);
 }
 
 .cp-menu-item.active {
-  background: rgba(128, 0, 0, 0.6);
-  box-shadow: 0 0 10px rgba(255, 92, 92, 0.5);
+  background: var(--cp-overlay-light);
+  box-shadow: 0 0 10px var(--cp-glow-secondary);
   border-color: var(--cp-secondary);
 }
 
@@ -535,11 +1103,48 @@ body {
   position: fixed;
   bottom: 1rem;
   left: 1rem;
-  font-size: 0.7rem;
-  color: rgba(255, 92, 92, 0.6);
-  font-family: 'Orbitron', monospace;
+  font-size: var(--cp-font-size-sm);
+  color: var(--cp-secondary);
+  font-family: var(--cp-font-family);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: var(--cp-letter-spacing-wide);
+}
+
+/* Material Design Form Fields - Theme Support */
+.mat-mdc-text-field-wrapper.mdc-text-field--filled {
+  background-color: var(--cp-glass) !important;
+  border-bottom: 1px solid var(--cp-border) !important;
+}
+
+.mat-mdc-text-field-wrapper.mdc-text-field--filled:hover {
+  background-color: var(--cp-glass-hover) !important;
+  border-bottom-color: var(--cp-accent) !important;
+}
+
+.mat-mdc-text-field-wrapper.mdc-text-field--focused {
+  border-bottom-color: var(--cp-accent) !important;
+  background-color: var(--cp-glass-hover) !important;
+}
+
+.mat-mdc-form-field-focus-overlay {
+  background-color: var(--cp-glass) !important;
+}
+
+.mdc-line-ripple {
+  background-color: var(--cp-accent) !important;
+}
+
+.mat-mdc-floating-label {
+  color: var(--cp-text) !important;
+}
+
+.mat-mdc-floating-label.mdc-floating-label--float-above {
+  color: var(--cp-accent) !important;
+}
+
+.mat-mdc-input-element {
+  color: var(--cp-text) !important;
+  caret-color: var(--cp-accent) !important;
 }
 
 /* Angular Material Date Picker Overlay - Cyberpunk Theme */
@@ -649,4 +1254,221 @@ body {
       color: var(--cp-accent) !important;
     }
   }
+}
+
+/* Tooltip Styling - Override Angular Material Defaults */
+.mat-tooltip {
+  background: var(--cp-tooltip-background) !important;
+  color: var(--cp-tooltip-text) !important;
+  font-family: var(--cp-tooltip-font-family) !important;
+  font-weight: var(--cp-tooltip-font-weight) !important;
+  font-size: var(--cp-tooltip-font-size) !important;
+  letter-spacing: var(--cp-tooltip-letter-spacing) !important;
+  line-height: var(--cp-tooltip-line-height) !important;
+  border: 1px solid var(--cp-tooltip-border) !important;
+  box-shadow: var(--cp-tooltip-shadow) !important;
+  border-radius: 6px !important;
+  padding: 8px 12px !important;
+  max-width: 200px !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+/* Override Angular Material CSS Custom Properties */
+.mat-tooltip {
+  --mdc-theme-surface: var(--cp-tooltip-background) !important;
+  --mdc-theme-on-surface: var(--cp-tooltip-text) !important;
+}
+
+/* Light Theme Specific Tooltip Styling */
+.theme-light .mat-tooltip {
+  background: rgba(15, 23, 42, 0.95) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(37, 99, 235, 0.4) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 0 8px rgba(37, 99, 235, 0.3) !important;
+  --mdc-theme-surface: rgba(15, 23, 42, 0.95) !important;
+  --mdc-theme-on-surface: #ffffff !important;
+}
+
+/* Additional Light Theme Tooltip Overrides */
+.theme-light .mat-tooltip,
+.theme-light .cdk-overlay-container .mat-tooltip,
+.theme-light body .mat-tooltip {
+  background-color: rgba(15, 23, 42, 0.95) !important;
+  color: #ffffff !important;
+  background: rgba(15, 23, 42, 0.95) !important;
+  border: 1px solid rgba(37, 99, 235, 0.4) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 0 8px rgba(37, 99, 235, 0.3) !important;
+}
+
+/* Dark Theme Specific Tooltip Styling */
+.theme-dark .mat-tooltip {
+  background: rgba(0, 0, 0, 0.9) !important;
+  color: #bb86fc !important;
+  border: 1px solid rgba(3, 218, 198, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 8px rgba(3, 218, 198, 0.2) !important;
+  --mdc-theme-surface: rgba(0, 0, 0, 0.9) !important;
+  --mdc-theme-on-surface: #bb86fc !important;
+}
+
+/* Cyberpunk Theme Specific Tooltip Styling */
+.theme-cyberpunk .mat-tooltip {
+  background: rgba(0, 0, 0, 0.9) !important;
+  color: #79ffe8 !important;
+  border: 1px solid rgba(72, 230, 255, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 8px rgba(72, 230, 255, 0.2) !important;
+  --mdc-theme-surface: rgba(0, 0, 0, 0.9) !important;
+  --mdc-theme-on-surface: #79ffe8 !important;
+}
+
+/* Additional Specificity Overrides for Angular Material Theme */
+body .mat-tooltip,
+html body .mat-tooltip,
+.cdk-overlay-container .mat-tooltip {
+  background: var(--cp-tooltip-background) !important;
+  color: var(--cp-tooltip-text) !important;
+  font-family: var(--cp-tooltip-font-family) !important;
+  font-weight: var(--cp-tooltip-font-weight) !important;
+  font-size: var(--cp-tooltip-font-size) !important;
+  letter-spacing: var(--cp-tooltip-letter-spacing) !important;
+  line-height: var(--cp-tooltip-line-height) !important;
+  border: 1px solid var(--cp-tooltip-border) !important;
+  box-shadow: var(--cp-tooltip-shadow) !important;
+  border-radius: 6px !important;
+  padding: 8px 12px !important;
+  max-width: 200px !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+/* Override Material Design Components CSS Variables */
+body .mat-tooltip,
+html body .mat-tooltip,
+.cdk-overlay-container .mat-tooltip {
+  --mdc-theme-surface: var(--cp-tooltip-background) !important;
+  --mdc-theme-on-surface: var(--cp-tooltip-text) !important;
+  --mdc-theme-primary: var(--cp-tooltip-border) !important;
+}
+
+/* Force Light Theme Tooltip Colors */
+.theme-light .mat-tooltip,
+.theme-light .cdk-overlay-container .mat-tooltip,
+.theme-light body .mat-tooltip,
+.theme-light html body .mat-tooltip {
+  --mdc-theme-surface: rgba(15, 23, 42, 0.95) !important;
+  --mdc-theme-on-surface: #ffffff !important;
+  --mdc-theme-primary: rgba(37, 99, 235, 0.4) !important;
+  background-color: rgba(15, 23, 42, 0.95) !important;
+  background: rgba(15, 23, 42, 0.95) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(37, 99, 235, 0.4) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 0 8px rgba(37, 99, 235, 0.3) !important;
+}
+
+/* Ultra-specific Light Theme Tooltip Override */
+.theme-light .cdk-overlay-container .cdk-overlay-pane .mat-tooltip,
+.theme-light .cdk-overlay-container .mat-tooltip,
+.theme-light .mat-tooltip {
+  background: rgba(15, 23, 42, 0.95) !important;
+  background-color: rgba(15, 23, 42, 0.95) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(37, 99, 235, 0.4) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 0 8px rgba(37, 99, 235, 0.3) !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-weight: 500 !important;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.025em !important;
+  line-height: 1.4 !important;
+}
+
+/* Global Tooltip Override - Apply Light Theme by Default */
+.cdk-overlay-container .mat-tooltip,
+.cdk-overlay-container .cdk-overlay-pane .mat-tooltip,
+.mat-tooltip {
+  background: rgba(15, 23, 42, 0.95) !important;
+  background-color: rgba(15, 23, 42, 0.95) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(37, 99, 235, 0.4) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 0 8px rgba(37, 99, 235, 0.3) !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-weight: 500 !important;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.025em !important;
+  line-height: 1.4 !important;
+  border-radius: 6px !important;
+  padding: 8px 12px !important;
+  max-width: 200px !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+/* Ultra-aggressive tooltip override */
+body .cdk-overlay-container .mat-tooltip,
+html body .cdk-overlay-container .mat-tooltip,
+.cdk-overlay-container .cdk-overlay-pane .mat-tooltip,
+.cdk-overlay-container .mat-tooltip,
+.mat-tooltip {
+  background: rgba(15, 23, 42, 0.95) !important;
+  background-color: rgba(15, 23, 42, 0.95) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(37, 99, 235, 0.4) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 0 8px rgba(37, 99, 235, 0.3) !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-weight: 500 !important;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.025em !important;
+  line-height: 1.4 !important;
+  border-radius: 6px !important;
+  padding: 8px 12px !important;
+  max-width: 200px !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+/* Override any Angular Material default tooltip styles */
+.mat-tooltip,
+.cdk-overlay-container .mat-tooltip,
+.cdk-overlay-container .cdk-overlay-pane .mat-tooltip {
+  background: rgba(15, 23, 42, 0.95) !important;
+  background-color: rgba(15, 23, 42, 0.95) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(37, 99, 235, 0.4) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 0 8px rgba(37, 99, 235, 0.3) !important;
+}
+
+/* Maximum specificity override - should override everything */
+html body .cdk-overlay-container .cdk-overlay-pane .mat-tooltip,
+html body .cdk-overlay-container .mat-tooltip,
+html body .mat-tooltip,
+body .cdk-overlay-container .cdk-overlay-pane .mat-tooltip,
+body .cdk-overlay-container .mat-tooltip,
+body .mat-tooltip {
+  background: rgba(15, 23, 42, 0.95) !important;
+  background-color: rgba(15, 23, 42, 0.95) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(37, 99, 235, 0.4) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 0 8px rgba(37, 99, 235, 0.3) !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-weight: 500 !important;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.025em !important;
+  line-height: 1.4 !important;
+  border-radius: 6px !important;
+  padding: 8px 12px !important;
+  max-width: 200px !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+/* Override Angular Material CSS custom properties */
+:root {
+  --mdc-theme-surface: rgba(15, 23, 42, 0.95) !important;
+  --mdc-theme-on-surface: #ffffff !important;
+  --mdc-theme-primary: rgba(37, 99, 235, 0.4) !important;
+}
+
+/* Force tooltip colors with CSS custom properties */
+.mat-tooltip {
+  --mdc-theme-surface: rgba(15, 23, 42, 0.95) !important;
+  --mdc-theme-on-surface: #ffffff !important;
+  --mdc-theme-primary: rgba(37, 99, 235, 0.4) !important;
+  background: var(--mdc-theme-surface) !important;
+  background-color: var(--mdc-theme-surface) !important;
+  color: var(--mdc-theme-on-surface) !important;
+  border: 1px solid var(--mdc-theme-primary) !important;
 }
