@@ -74,10 +74,7 @@
   padding: 0 !important;
 }
 
-.visibility-toggle:hover {
-  background: var(--cp-glass) !important;
-  color: var(--cp-primary) !important;
-}
+/* Removed hover animation for visibility-toggle */
 
 /* Professional Actions Section */
 .actions-section {
@@ -110,10 +107,30 @@
 }
 
 .primary-action:hover:not(:disabled) {
-  background: var(--cp-accent) !important;
-  border-color: var(--cp-accent) !important;
+  background: var(--cp-primary) !important;
+  border-color: var(--cp-primary) !important;
   transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  box-shadow: 0 4px 12px var(--cp-border-accent) !important;
+}
+
+/* Theme-specific authenticate button hover effects */
+.theme-light .primary-action:hover:not(:disabled) {
+  background: #2563eb !important;
+  border-color: #2563eb !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3) !important;
+}
+
+.theme-dark .primary-action:hover:not(:disabled) {
+  background: #bb86fc !important;
+  border-color: #bb86fc !important;
+  box-shadow: 0 4px 12px rgba(187, 134, 252, 0.3) !important;
+}
+
+.theme-cyberpunk .primary-action:hover:not(:disabled) {
+  background: #79ffe8 !important;
+  border-color: #79ffe8 !important;
+  box-shadow: 0 4px 12px rgba(121, 255, 232, 0.4) !important;
+  text-shadow: 0 0 8px rgba(121, 255, 232, 0.6) !important;
 }
 
 .primary-action:disabled {
@@ -130,6 +147,20 @@
 .action-text {
   font-size: var(--cp-component-font-size-base) !important;
   font-weight: var(--cp-component-font-weight-semibold) !important;
+  color: var(--cp-bg-primary) !important;
+}
+
+/* Theme-specific action text colors */
+.theme-light .action-text {
+  color: #ffffff !important;
+}
+
+.theme-dark .action-text {
+  color: #000000 !important;
+}
+
+.theme-cyberpunk .action-text {
+  color: #000000 !important;
 }
 
 .auth-spinner {

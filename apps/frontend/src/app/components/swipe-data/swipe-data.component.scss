@@ -21,11 +21,7 @@
   transition: all 0.3s ease;
   overflow: visible !important; /* Prevent hover cutoff */
 
-  &:hover {
-    border-color: var(--cp-accent) !important;
-    background: var(--cp-glass) !important; /* Subtle accent background */
-    box-shadow: 0 1px 4px var(--cp-border-accent) !important;
-  }
+/* Removed hover animation for time-period-switcher */
 }
 
 .switcher-header {
@@ -93,13 +89,13 @@
     
     &:hover {
       background: var(--cp-glass-hover) !important; /* Match calendar hover */
-      border-color: var(--cp-accent) !important;
+      border-color: var(--cp-primary) !important;
       transform: scale(1.02) !important; /* Subtle scale like calendar */
       box-shadow: 0 1px 4px var(--cp-border-accent) !important;
-      color: var(--cp-accent) !important;
+      color: var(--cp-primary) !important;
       
       mat-icon {
-        color: var(--cp-accent) !important;
+        color: var(--cp-primary) !important;
       }
     }
     
@@ -221,8 +217,8 @@
   text-align: left !important;
   
   &:hover {
-    border-color: var(--cp-accent) !important;
-    background: var(--cp-glass) !important;
+    border-color: var(--cp-primary) !important;
+    background: var(--cp-glass-hover) !important;
     box-shadow: 0 4px 15px var(--cp-border-accent) !important;
     transform: translateY(-0.5px);
   }
@@ -426,10 +422,7 @@
   transition: all 0.3s ease;
 }
 
-.session-item-compact:hover {
-  border-color: var(--cp-accent);
-  background: var(--cp-glass-hover);
-}
+/* Removed hover animation for session-item-compact */
 
 .session-item-compact.active {
   border-color: var(--cp-success);
@@ -523,10 +516,7 @@
   font-size: var(--cp-component-font-size-sm);
 }
 
-.raw-item-compact:hover {
-  border-color: var(--cp-accent);
-  background: var(--cp-glass-hover);
-}
+/* Removed hover animation for raw-item-compact */
 
 .raw-item-compact.in-entry {
   border-left: 3px solid var(--cp-success);
@@ -648,11 +638,7 @@
   min-height: 36px !important;
 }
 
-.retry-btn-compact:hover {
-  background: var(--cp-glass-hover) !important;
-  box-shadow: var(--cp-component-glow-hover) !important;
-  transform: translateY(-1px) !important;
-}
+/* Removed hover animation for retry-btn-compact */
 
 /* Scrollbar Styling */
 .session-list-compact::-webkit-scrollbar,
@@ -678,6 +664,49 @@
 .raw-list-compact::-webkit-scrollbar-thumb:hover,
 .data-content-compact::-webkit-scrollbar-thumb:hover {
   background: var(--cp-accent);
+}
+
+/* Theme-specific hover effect overrides */
+.theme-light .period-toggle:hover {
+  border-color: #2563eb !important;
+  color: #2563eb !important;
+  
+  mat-icon {
+    color: #2563eb !important;
+  }
+}
+
+.theme-dark .period-toggle:hover {
+  border-color: #bb86fc !important;
+  color: #bb86fc !important;
+  
+  mat-icon {
+    color: #bb86fc !important;
+  }
+}
+
+.theme-cyberpunk .period-toggle:hover {
+  border-color: #79ffe8 !important;
+  color: #79ffe8 !important;
+  
+  mat-icon {
+    color: #79ffe8 !important;
+  }
+}
+
+.theme-light .data-header-button:hover {
+  border-color: #2563eb !important;
+  background: rgba(15, 23, 42, 0.05) !important;
+}
+
+.theme-dark .data-header-button:hover {
+  border-color: #bb86fc !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.theme-cyberpunk .data-header-button:hover {
+  border-color: #79ffe8 !important;
+  background: rgba(128, 0, 0, 0.3) !important;
 }
 
 /* Responsive Design */

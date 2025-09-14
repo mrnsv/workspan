@@ -106,10 +106,6 @@ export class AppComponent implements OnInit, OnDestroy {
     return initials;
   }
 
-  getEmployeeRankLabel(): string {
-    return 'OPER'; // Operator - fits cyberpunk theme
-  }
-
   private initializeCachedValues(): void {
     // Generate values once to prevent expression changed errors
     const used = Math.floor(Math.random() * 100) + 300;

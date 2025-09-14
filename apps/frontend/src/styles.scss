@@ -667,9 +667,7 @@ p, span, div {
   border-radius: 4px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--cp-accent);
-}
+/* Removed hover animation for scrollbar thumb */
 
 /* Angular Material Overrides - Theme Support */
 .mat-toolbar {
@@ -691,11 +689,7 @@ p, span, div {
   transition: all 0.3s ease !important;
 }
 
-.mat-card:hover {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 8px 25px var(--cp-shadow-secondary) !important;
-  border-color: var(--cp-secondary) !important;
-}
+/* Removed hover animation for mat-card */
 
 .mat-card-title {
   color: var(--cp-accent) !important;
@@ -746,20 +740,13 @@ p, span, div {
   border: 1px solid var(--cp-border-accent) !important;
 }
 
-.mat-raised-button:hover {
-  background: var(--cp-glass-hover) !important;
-  box-shadow: 0 0 15px var(--cp-glow-accent) !important;
-  transform: translateY(-1px) !important;
-}
+/* Removed hover animation for mat-raised-button */
 
 .mat-stroked-button {
   border: 1px solid var(--cp-border-accent) !important;
 }
 
-.mat-stroked-button:hover {
-  background: var(--cp-glass) !important;
-  box-shadow: 0 0 10px var(--cp-glow-accent) !important;
-}
+/* Removed hover animation for mat-stroked-button */
 
 .mat-expansion-panel {
   background: var(--cp-glass) !important;
@@ -778,9 +765,7 @@ p, span, div {
   letter-spacing: var(--cp-letter-spacing-normal) !important;
 }
 
-.mat-expansion-panel-header:hover {
-  background: var(--cp-glass-hover) !important;
-}
+/* Removed hover animation for mat-expansion-panel-header */
 
 .mat-expansion-panel-body {
   font-family: var(--cp-font-family) !important;
@@ -893,9 +878,7 @@ p, span, div {
   transition: box-shadow 0.3s ease;
 }
 
-.cp-glow:hover {
-  box-shadow: 0 0 30px var(--cp-glow-primary);
-}
+/* Removed hover animation for cp-glow */
 
 .cp-text-primary { color: var(--cp-primary) !important; }
 .cp-text-secondary { color: var(--cp-secondary) !important; }
@@ -989,15 +972,7 @@ p, span, div {
   transition: left 0.5s ease;
 }
 
-.cp-card:hover::before {
-  left: 100%;
-}
-
-.cp-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 30px rgba(255, 92, 92, 0.4);
-  border-color: var(--cp-accent);
-}
+/* Removed hover animation for cp-card */
 
 /* Cyberpunk Time Display */
 .cp-time {
@@ -1028,11 +1003,7 @@ p, span, div {
   font-family: var(--cp-font-family);
 }
 
-.cp-menu-item:hover {
-  background: var(--cp-glass-hover);
-  box-shadow: 0 0 15px var(--cp-glow-accent);
-  border-color: var(--cp-accent);
-}
+/* Removed hover animation for cp-menu-item */
 
 .cp-menu-item.active {
   background: var(--cp-overlay-light);
@@ -1176,8 +1147,8 @@ p, span, div {
   color: var(--cp-primary) !important;
   
   &:hover {
-    color: var(--cp-accent) !important;
-    background: rgba(72, 230, 255, 0.1) !important;
+    color: var(--cp-primary) !important;
+    background: var(--cp-glass-hover) !important;
   }
 }
 
@@ -1188,7 +1159,7 @@ p, span, div {
   letter-spacing: 1px !important;
   
   &:hover {
-    background: rgba(72, 230, 255, 0.1) !important;
+    background: var(--cp-glass-hover) !important;
   }
 }
 
@@ -1205,8 +1176,8 @@ p, span, div {
   font-weight: 600 !important;
   
   &:hover {
-    background: rgba(72, 230, 255, 0.1) !important;
-    color: var(--cp-accent) !important;
+    background: var(--cp-glass-hover) !important;
+    color: var(--cp-primary) !important;
   }
   
   &.mat-calendar-body-active {
@@ -1250,10 +1221,133 @@ p, span, div {
     letter-spacing: 1px !important;
     
     &:hover {
-      background: rgba(72, 230, 255, 0.1) !important;
-      color: var(--cp-accent) !important;
+      background: var(--cp-glass-hover) !important;
+      color: var(--cp-primary) !important;
     }
   }
+}
+
+/* Theme-specific hover effect overrides to prevent conflicts */
+.theme-light {
+  /* Calendar hover effects */
+  .mat-calendar-next-button:hover,
+  .mat-calendar-previous-button:hover {
+    color: #2563eb !important;
+    background: rgba(15, 23, 42, 0.05) !important;
+  }
+  
+  .mat-calendar-period-button:hover {
+    background: rgba(15, 23, 42, 0.05) !important;
+  }
+  
+  .mat-calendar-body-cell:hover {
+    background: rgba(15, 23, 42, 0.05) !important;
+    color: #2563eb !important;
+  }
+  
+  .mat-datepicker-actions button:hover {
+    background: rgba(15, 23, 42, 0.05) !important;
+    color: #2563eb !important;
+  }
+}
+
+.theme-dark {
+  /* Calendar hover effects */
+  .mat-calendar-next-button:hover,
+  .mat-calendar-previous-button:hover {
+    color: #bb86fc !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  .mat-calendar-period-button:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  .mat-calendar-body-cell:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #bb86fc !important;
+  }
+  
+  .mat-datepicker-actions button:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #bb86fc !important;
+  }
+}
+
+.theme-cyberpunk {
+  /* Calendar hover effects */
+  .mat-calendar-next-button:hover,
+  .mat-calendar-previous-button:hover {
+    color: #79ffe8 !important;
+    background: rgba(128, 0, 0, 0.3) !important;
+  }
+  
+  .mat-calendar-period-button:hover {
+    background: rgba(128, 0, 0, 0.3) !important;
+  }
+  
+  .mat-calendar-body-cell:hover {
+    background: rgba(128, 0, 0, 0.3) !important;
+    color: #79ffe8 !important;
+  }
+  
+  .mat-datepicker-actions button:hover {
+    background: rgba(128, 0, 0, 0.3) !important;
+    color: #79ffe8 !important;
+  }
+}
+
+/* Angular Material Button Touch Target Theme Styling */
+.mat-mdc-button-touch-target {
+  transition: all 0.3s ease !important;
+}
+
+/* Theme-specific touch target hover effects */
+.theme-light .mat-mdc-button-touch-target:hover {
+  background: rgba(37, 99, 235, 0.1) !important;
+  border-radius: 4px !important;
+}
+
+.theme-dark .mat-mdc-button-touch-target:hover {
+  background: rgba(187, 134, 252, 0.1) !important;
+  border-radius: 4px !important;
+}
+
+.theme-cyberpunk .mat-mdc-button-touch-target:hover {
+  background: rgba(121, 255, 232, 0.2) !important;
+  border-radius: 4px !important;
+  box-shadow: 0 0 8px rgba(121, 255, 232, 0.3) !important;
+}
+
+/* Additional Material Design button hover effects */
+.theme-light .mat-mdc-button:hover .mat-mdc-button-touch-target {
+  background: rgba(37, 99, 235, 0.05) !important;
+}
+
+.theme-dark .mat-mdc-button:hover .mat-mdc-button-touch-target {
+  background: rgba(187, 134, 252, 0.05) !important;
+}
+
+.theme-cyberpunk .mat-mdc-button:hover .mat-mdc-button-touch-target {
+  background: rgba(121, 255, 232, 0.1) !important;
+  box-shadow: 0 0 4px rgba(121, 255, 232, 0.2) !important;
+}
+
+/* Icon button specific touch target styling */
+.theme-light .mat-mdc-icon-button:hover .mat-mdc-button-touch-target {
+  background: rgba(37, 99, 235, 0.08) !important;
+  border-radius: 50% !important;
+}
+
+.theme-dark .mat-mdc-icon-button:hover .mat-mdc-button-touch-target {
+  background: rgba(187, 134, 252, 0.08) !important;
+  border-radius: 50% !important;
+}
+
+.theme-cyberpunk .mat-mdc-icon-button:hover .mat-mdc-button-touch-target {
+  background: rgba(121, 255, 232, 0.15) !important;
+  border-radius: 50% !important;
+  box-shadow: 0 0 6px rgba(121, 255, 232, 0.4) !important;
 }
 
 /* Tooltip Styling - Override Angular Material Defaults */

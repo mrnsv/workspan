@@ -36,12 +36,7 @@
   justify-content: center !important; /* Center horizontally */
   transition: all 0.3s ease !important;
   
-  &:hover {
-    color: var(--cp-accent) !important;
-    border-color: var(--cp-accent) !important;
-    background: var(--cp-glass-hover) !important;
-    transform: scale(1.05);
-  }
+/* Removed hover animation for nav-btn */
   
   mat-icon {
     font-size: var(--cp-component-font-size-lg); /* Increased for better visibility */
@@ -113,7 +108,7 @@
   
   &:hover {
     background: var(--cp-glass-hover);
-    border-color: var(--cp-accent);
+    border-color: var(--cp-primary);
     transform: scale(1.02); /* Reduced from 1.03 */
     box-shadow: 0 1px 4px var(--cp-border-accent);
   }
@@ -142,7 +137,7 @@
     transform: scale(1.05);
     
     .day-number {
-      color: var(--cp-accent);
+      color: var(--cp-primary);
     }
   }
 }
@@ -157,11 +152,11 @@
 
 .calendar-day.today {
   background: var(--cp-glass-hover) !important;
-  border: 2px solid var(--cp-accent) !important;
+  border: 2px solid var(--cp-primary) !important;
   box-shadow: 0 0 15px var(--cp-border-accent);
   
   .day-number {
-    color: var(--cp-accent);
+    color: var(--cp-primary);
     font-weight: var(--cp-component-font-weight-bold);
     text-shadow: 0 0 5px var(--cp-border-accent);
   }
@@ -227,7 +222,7 @@
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: var(--cp-accent);
+  background: var(--cp-primary);
   box-shadow: 0 0 4px var(--cp-border-accent);
 }
 
@@ -289,9 +284,10 @@
     background: var(--cp-glass-hover) !important;
     box-shadow: 0 0 8px var(--cp-border-accent) !important;
     transform: scale(1.05);
+    border-color: var(--cp-primary) !important; /* Use primary color for border on hover */
     
     mat-icon {
-      color: var(--cp-accent) !important; /* Blue on hover like stat-icon */
+      color: var(--cp-primary) !important; /* Use primary color for icon on hover */
     }
   }
   
@@ -321,6 +317,111 @@
 
 .calendar-day.today {
   animation: cyberpunk-glow 2s ease-in-out infinite;
+}
+
+/* Theme-specific indicator dot styling overrides */
+.theme-light .indicator-dot {
+  background: #2563eb !important;
+  box-shadow: 0 0 4px rgba(37, 99, 235, 0.3) !important;
+}
+
+.theme-dark .indicator-dot {
+  background: #bb86fc !important;
+  box-shadow: 0 0 4px rgba(187, 134, 252, 0.3) !important;
+}
+
+.theme-cyberpunk .indicator-dot {
+  background: #79ffe8 !important;
+  box-shadow: 0 0 4px rgba(121, 255, 232, 0.5) !important;
+}
+
+/* Theme-specific today date styling overrides */
+.theme-light .calendar-day.today {
+  border-color: #2563eb !important;
+  
+  .day-number {
+    color: #2563eb !important;
+    text-shadow: 0 0 5px rgba(37, 99, 235, 0.3) !important;
+  }
+}
+
+.theme-dark .calendar-day.today {
+  border-color: #bb86fc !important;
+  
+  .day-number {
+    color: #bb86fc !important;
+    text-shadow: 0 0 5px rgba(187, 134, 252, 0.3) !important;
+  }
+}
+
+.theme-cyberpunk .calendar-day.today {
+  border-color: #79ffe8 !important;
+  box-shadow: 0 0 15px rgba(121, 255, 232, 0.5) !important;
+  
+  .day-number {
+    color: #79ffe8 !important;
+    text-shadow: 0 0 5px rgba(121, 255, 232, 0.5) !important;
+  }
+}
+
+/* Theme-specific calendar day hover overrides */
+.theme-light .calendar-day:hover {
+  border-color: #2563eb !important;
+}
+
+.theme-light .calendar-day.other-month:hover .day-number {
+  color: #2563eb !important;
+}
+
+.theme-dark .calendar-day:hover {
+  border-color: #bb86fc !important;
+}
+
+.theme-dark .calendar-day.other-month:hover .day-number {
+  color: #bb86fc !important;
+}
+
+.theme-cyberpunk .calendar-day:hover {
+  border-color: #79ffe8 !important;
+  box-shadow: 0 1px 4px rgba(121, 255, 232, 0.5) !important;
+}
+
+.theme-cyberpunk .calendar-day.other-month:hover .day-number {
+  color: #79ffe8 !important;
+}
+
+/* Theme-specific today button touch target overrides */
+.theme-light ::ng-deep .today-btn-footer .mat-mdc-button-touch-target:hover {
+  background: rgba(37, 99, 235, 0.1) !important;
+  border-radius: 50% !important;
+}
+
+.theme-dark ::ng-deep .today-btn-footer .mat-mdc-button-touch-target:hover {
+  background: rgba(187, 134, 252, 0.1) !important;
+  border-radius: 50% !important;
+}
+
+.theme-cyberpunk ::ng-deep .today-btn-footer .mat-mdc-button-touch-target:hover {
+  background: rgba(121, 255, 232, 0.2) !important;
+  border-radius: 50% !important;
+  box-shadow: 0 0 8px rgba(121, 255, 232, 0.4) !important;
+}
+
+/* Theme-specific navigation button touch target overrides */
+.theme-light ::ng-deep .nav-btn .mat-mdc-button-touch-target:hover {
+  background: rgba(37, 99, 235, 0.1) !important;
+  border-radius: 50% !important;
+}
+
+.theme-dark ::ng-deep .nav-btn .mat-mdc-button-touch-target:hover {
+  background: rgba(187, 134, 252, 0.1) !important;
+  border-radius: 50% !important;
+}
+
+.theme-cyberpunk ::ng-deep .nav-btn .mat-mdc-button-touch-target:hover {
+  background: rgba(121, 255, 232, 0.2) !important;
+  border-radius: 50% !important;
+  box-shadow: 0 0 8px rgba(121, 255, 232, 0.4) !important;
 }
 
 /* Responsive Design */
@@ -389,11 +490,7 @@
     border-radius: 2px !important;
   }
   
-  &:hover {
-    color: var(--cp-accent) !important;
-    border-color: var(--cp-accent) !important;
-    background: var(--cp-glass-hover) !important;
-  }
+/* Removed hover animation for Angular Material nav-btn */
   
   mat-icon {
     color: inherit !important;
@@ -425,20 +522,76 @@
     border-radius: 2px !important;
   }
   
+  &:hover {
+    color: var(--cp-primary) !important; /* Use primary color for text on hover */
+    border-color: var(--cp-primary) !important; /* Use primary color for border on hover */
+    background: var(--cp-glass-hover) !important;
+    box-shadow: 0 0 8px var(--cp-border-accent) !important;
+    
+    mat-icon {
+      color: var(--cp-primary) !important; /* Use primary color for icon on hover */
+    }
+  }
+  
   mat-icon {
     color: var(--cp-secondary) !important; /* Red to match stat item theme */
     transition: all 0.3s ease; /* Smooth color transition */
   }
   
-  &:hover {
-    color: var(--cp-accent) !important;
-    border-color: var(--cp-accent) !important;
-    background: var(--cp-glass-hover) !important;
-    
-    mat-icon {
-      color: var(--cp-accent) !important; /* Blue on hover like stat-icon */
-    }
-  }
-  
   /* Removed duplicate mat-icon styling - handled above */
+}
+
+/* Theme-specific hover effects to prevent overrides */
+.theme-light .today-btn-footer:hover {
+  border-color: #2563eb !important; /* Light theme primary blue */
+  
+  mat-icon {
+    color: #2563eb !important; /* Light theme primary blue */
+  }
+}
+
+.theme-dark .today-btn-footer:hover {
+  border-color: #bb86fc !important; /* Dark theme primary purple */
+  
+  mat-icon {
+    color: #bb86fc !important; /* Dark theme primary purple */
+  }
+}
+
+.theme-cyberpunk .today-btn-footer:hover {
+  border-color: #79ffe8 !important; /* Cyberpunk theme primary cyan */
+  box-shadow: 0 0 8px rgba(121, 255, 232, 0.5) !important; /* Cyberpunk glow */
+  
+  mat-icon {
+    color: #79ffe8 !important; /* Cyberpunk theme primary cyan */
+  }
+}
+
+/* Angular Material theme-specific overrides */
+.theme-light ::ng-deep .today-btn-footer.mat-mdc-icon-button:hover {
+  color: #2563eb !important;
+  border-color: #2563eb !important;
+  
+  mat-icon {
+    color: #2563eb !important;
+  }
+}
+
+.theme-dark ::ng-deep .today-btn-footer.mat-mdc-icon-button:hover {
+  color: #bb86fc !important;
+  border-color: #bb86fc !important;
+  
+  mat-icon {
+    color: #bb86fc !important;
+  }
+}
+
+.theme-cyberpunk ::ng-deep .today-btn-footer.mat-mdc-icon-button:hover {
+  color: #79ffe8 !important;
+  border-color: #79ffe8 !important;
+  box-shadow: 0 0 8px rgba(121, 255, 232, 0.5) !important;
+  
+  mat-icon {
+    color: #79ffe8 !important;
+  }
 }

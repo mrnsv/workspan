@@ -4,7 +4,7 @@
     (click)="toggleDropdown()"
     [attr.aria-expanded]="isDropdownOpen"
     aria-label="Change theme">
-    <mat-icon class="theme-icon">palette</mat-icon>
+    <mat-icon class="theme-icon" [style.color]="currentTheme?.colors?.primary">palette</mat-icon>
     <span class="theme-name">{{ currentTheme?.displayName || 'Theme' }}</span>
     <mat-icon class="dropdown-arrow" [class.open]="isDropdownOpen">keyboard_arrow_down</mat-icon>
   </button>

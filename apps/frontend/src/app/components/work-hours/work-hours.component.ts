@@ -131,10 +131,24 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
   getStatusIcon(): string {
     if (!this.workHoursStats) return 'schedule';
     
+    // If time achieved (complete or excess), show trending_up
     if (this.workHoursStats.isComplete) {
-      return this.workHoursStats.excessHours > 0 ? 'trending_up' : 'check_circle';
+      return 'trending_up';
     }
     
+    // If time not achieved, check working status
+    if (this.workHoursData) {
+      // If currently working (ON), show schedule
+      if (this.workHoursData.sessions.isCurrentlyWorking) {
+        return 'schedule';
+      }
+      // If not working (OFF), show warning
+      else {
+        return 'warning';
+      }
+    }
+    
+    // Fallback to schedule if no work data available
     return 'schedule';
   }
 
@@ -217,10 +231,24 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
   getStatusIndicatorClass(): string {
     if (!this.workHoursStats) return 'neutral';
     
+    // If time achieved (complete or excess), show success (green)
     if (this.workHoursStats.isComplete) {
-      return this.workHoursStats.excessHours > 0 ? 'excess' : 'complete';
+      return 'excess'; // Use excess class for green color
     }
     
+    // If time not achieved, check working status
+    if (this.workHoursData) {
+      // If currently working (ON), show warning (yellow)
+      if (this.workHoursData.sessions.isCurrentlyWorking) {
+        return 'warning';
+      }
+      // If not working (OFF), show deficit (red)
+      else {
+        return 'deficit';
+      }
+    }
+    
+    // Fallback to warning if no work data available
     return 'warning';
   }
 

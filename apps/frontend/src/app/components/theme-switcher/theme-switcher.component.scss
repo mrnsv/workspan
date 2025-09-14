@@ -12,28 +12,24 @@
 .theme-toggle-btn {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  gap: 0.25rem; /* Reduced gap for compact design */
+  padding: 0.25rem 0.5rem; /* Reduced padding for compact design */
   background: var(--cp-glass);
   border: 1px solid var(--cp-border);
   border-radius: 6px;
   color: var(--cp-primary);
   font-family: var(--cp-component-font-family);
   font-weight: var(--cp-component-font-weight-semibold);
-  font-size: var(--cp-component-font-size-sm);
+  font-size: var(--cp-component-font-size-xs); /* Reduced font size */
   text-transform: uppercase;
   letter-spacing: var(--cp-component-letter-spacing-wide);
   cursor: pointer;
   transition: all 0.3s ease;
   backdrop-filter: blur(4px);
-  min-width: 140px;
+  min-width: 100px; /* Reduced width for compact design */
+  height: 32px; /* Fixed height to match header elements */
   
-  &:hover {
-    background: var(--cp-glass-hover);
-    border-color: var(--cp-border-accent);
-    box-shadow: var(--cp-component-glow-hover);
-    transform: translateY(-1px);
-  }
+/* Removed hover animation for theme-toggle-btn */
   
   &:active {
     transform: translateY(0);
@@ -41,10 +37,10 @@
 }
 
 .theme-icon {
-  font-size: var(--cp-component-font-size-xl) !important;
-  width: 1.2rem !important;
-  height: 1.2rem !important;
-  color: var(--cp-accent);
+  font-size: var(--cp-component-font-size-md) !important; /* Reduced icon size */
+  width: 1rem !important; /* Reduced width */
+  height: 1rem !important; /* Reduced height */
+  color: var(--cp-primary); /* Changed to use primary color instead of accent */
 }
 
 .theme-name {
@@ -53,9 +49,9 @@
 }
 
 .dropdown-arrow {
-  font-size: var(--cp-component-font-size-md) !important;
-  width: 1rem !important;
-  height: 1rem !important;
+  font-size: var(--cp-component-font-size-sm) !important; /* Reduced font size */
+  width: 0.875rem !important; /* Reduced width */
+  height: 0.875rem !important; /* Reduced height */
   transition: transform 0.3s ease;
   color: var(--cp-secondary);
   
@@ -150,10 +146,7 @@
     border-bottom: none;
   }
   
-  &:hover {
-    background: var(--cp-glass);
-    transform: translateX(4px);
-  }
+/* Removed hover animation for theme-option */
   
   &.active {
     background: var(--cp-glass-hover);

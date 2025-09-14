@@ -6,10 +6,7 @@
   overflow: hidden;
   transition: all 0.3s ease;
   
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 25px var(--cp-shadow-primary);
-  }
+/* Removed hover animation for stats-card */
   
   // Type-specific styling
   &.success {
@@ -19,9 +16,7 @@
       color: var(--cp-success);
     }
     
-    &:hover {
-      box-shadow: 0 8px 25px var(--cp-shadow-success);
-    }
+/* Removed hover animation for success stats-card */
   }
   
   &.warning {
@@ -31,9 +26,7 @@
       color: var(--cp-warning);
     }
     
-    &:hover {
-      box-shadow: 0 8px 25px var(--cp-shadow-warning);
-    }
+/* Removed hover animation for warning stats-card */
   }
   
   &.error {
@@ -43,9 +36,7 @@
       color: var(--cp-error);
     }
     
-    &:hover {
-      box-shadow: 0 8px 25px var(--cp-shadow-error);
-    }
+/* Removed hover animation for error stats-card */
   }
   
   &.info {
@@ -55,9 +46,7 @@
       color: var(--cp-accent);
     }
     
-    &:hover {
-      box-shadow: 0 8px 25px var(--cp-shadow-accent);
-    }
+/* Removed hover animation for info stats-card */
   }
   
   &.neutral {
@@ -67,9 +56,7 @@
       color: var(--cp-primary);
     }
     
-    &:hover {
-      box-shadow: 0 8px 25px var(--cp-shadow-primary);
-    }
+/* Removed hover animation for neutral stats-card */
   }
 }
 

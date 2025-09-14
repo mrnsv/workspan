@@ -27,10 +27,10 @@
   box-sizing: border-box !important;
 }
 
-/* Professional Header - Optimized for better visibility and consistency */
+/* Compact Header - Minimized screen real estate wastage */
 .cp-header-compact {
-  height: 70px; /* Increased height for better visibility */
-  padding: 0.75rem 1.5rem; /* Increased padding for better spacing */
+  height: 50px; /* Reduced height to minimize screen wastage */
+  padding: 0.5rem 1rem; /* Reduced padding for compact design */
   border-bottom: 1px solid var(--cp-border);
   background: linear-gradient(90deg, var(--cp-bg-primary), var(--cp-bg-secondary));
   backdrop-filter: blur(10px);
@@ -60,12 +60,12 @@
   display: flex;
   align-items: center;
   height: 100%; /* Ensure all sections use full header height */
-  min-height: 50px; /* Minimum height for consistency */
+  min-height: 50px; /* Consistent height matching header */
 }
 
 .header-left {
   flex: 1.5; /* More space for employee info and title */
-  gap: 1.5rem; /* Increased gap between elements */
+  gap: 1rem; /* Reduced gap for compact design */
 }
 
 .header-center {
@@ -82,14 +82,14 @@
 .header-right {
   justify-content: flex-end;
   flex: 1.5; /* More space for stats and theme switcher */
-  gap: 1rem;
+  gap: 0.75rem; /* Reduced gap for compact design */
 }
 
-/* Professional Levels - Increased size and better spacing */
+/* Compact Levels - Reduced spacing for efficiency */
 .cp-levels-compact {
   display: flex;
-  gap: 1.5rem; /* Increased gap for better separation */
-  font-size: var(--cp-component-font-size-base); /* Increased font size */
+  gap: 0.75rem; /* Reduced gap for compact design */
+  font-size: var(--cp-component-font-size-sm); /* Reduced font size */
   font-weight: var(--cp-component-font-weight-semibold);
   align-items: center;
   height: 100%; /* Use full header height */
@@ -100,43 +100,39 @@
   font-weight: var(--cp-component-font-weight-bold);
   text-transform: uppercase;
   letter-spacing: var(--cp-component-letter-spacing-wide);
-  font-size: var(--cp-component-font-size-base); /* Increased font size */
-  padding: 0.5rem 0.75rem; /* Added padding for better appearance */
+  font-size: var(--cp-component-font-size-sm); /* Reduced font size */
+  padding: 0.25rem 0.5rem; /* Reduced padding for compact design */
   border: 1px solid var(--cp-border);
   border-radius: 4px;
   background: var(--cp-glass);
   backdrop-filter: blur(4px);
   transition: all 0.3s ease;
-  min-height: 40px; /* Consistent height */
+  min-height: 32px; /* Reduced height for compact design */
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.cp-level:hover {
-  border-color: var(--cp-accent);
-  background: var(--cp-component-accent-light);
-  transform: translateY(-1px);
-}
+/* Removed hover animation for cp-level */
 
 .cp-label {
-  margin-left: 0.5rem; /* Increased margin */
+  margin-left: 0.25rem; /* Reduced margin for compact design */
   color: var(--cp-secondary);
   font-weight: var(--cp-component-font-weight-normal);
-  font-size: var(--cp-component-font-size-sm); /* Increased font size */
+  font-size: var(--cp-component-font-size-xs); /* Reduced font size */
 }
 
-/* Professional Title - Simple text styling */
+/* Compact Title - Reduced size for efficiency */
 .cp-title-compact {
-  font-size: var(--cp-component-font-size-xl); /* Increased font size */
+  font-size: var(--cp-component-font-size-lg); /* Reduced font size */
   font-weight: var(--cp-component-font-weight-extra-bold);
   text-transform: uppercase;
   letter-spacing: var(--cp-component-letter-spacing-wide);
   color: var(--cp-primary);
   text-shadow: 0 0 8px var(--cp-glow-primary);
-  margin-left: 1.5rem; /* Increased margin */
-  padding: 0.5rem 0; /* Minimal vertical padding only */
-  min-height: 40px; /* Consistent height */
+  margin-left: 1rem; /* Reduced margin for compact design */
+  padding: 0.25rem 0; /* Reduced vertical padding */
+  min-height: 32px; /* Reduced height for compact design */
   display: flex;
   align-items: center;
   justify-content: flex-start; /* Left align text */
@@ -144,11 +140,11 @@
 
 /* Removed old date input styles - now using cyberpunk calendar component */
 
-/* Professional Stats - Increased size and better styling */
+/* Compact Stats - Reduced size for efficiency */
 .cp-stats-compact {
   display: flex;
-  gap: 1rem;
-  font-size: var(--cp-component-font-size-base); /* Increased font size */
+  gap: 0.75rem; /* Reduced gap for compact design */
+  font-size: var(--cp-component-font-size-sm); /* Reduced font size */
   color: var(--cp-secondary);
   font-weight: var(--cp-component-font-weight-semibold);
   align-items: center;
@@ -158,19 +154,19 @@
 .header-right {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem; /* Reduced gap for compact design */
 }
 
 .stat-item {
-  padding: 0.5rem 0.75rem; /* Increased padding */
+  padding: 0.25rem 0.5rem; /* Reduced padding for compact design */
   border: 1px solid var(--cp-border);
-  border-radius: 4px; /* Increased border radius */
+  border-radius: 4px;
   background: var(--cp-glass);
   backdrop-filter: blur(4px);
   transition: all 0.3s ease;
-  font-size: var(--cp-component-font-size-sm); /* Increased font size */
-  min-width: 5.5rem; /* Increased width */
-  min-height: 40px; /* Consistent height */
+  font-size: var(--cp-component-font-size-xs); /* Reduced font size */
+  min-width: 4.5rem; /* Reduced width */
+  min-height: 32px; /* Reduced height for compact design */
   text-align: center;
   display: flex;
   align-items: center;
@@ -178,30 +174,25 @@
   box-sizing: border-box;
 }
 
-.stat-item:hover {
-  border-color: var(--cp-accent);
-  background: var(--cp-component-accent-light);
-  color: var(--cp-accent);
-  transform: translateY(-1px);
-}
+/* Removed hover animation for stat-item */
 
 .stat-icon {
-  font-size: var(--cp-component-font-size-lg) !important; /* Increased icon size */
-  width: 1.25rem !important; /* Increased width */
-  height: 1.25rem !important; /* Increased height */
-  margin-right: 0.5rem; /* Increased margin */
+  font-size: var(--cp-component-font-size-md) !important; /* Reduced icon size */
+  width: 1rem !important; /* Reduced width */
+  height: 1rem !important; /* Reduced height */
+  margin-right: 0.25rem; /* Reduced margin */
   vertical-align: middle;
   color: var(--cp-secondary);
   transition: all 0.3s ease;
 }
 
 .time-stat {
-  width: 12rem !important; /* Fixed width - increased for better visibility */
-  height: 50px !important; /* Fixed height - increased to match header height */
-  min-width: 12rem !important; /* Prevent shrinking */
-  max-width: 12rem !important; /* Prevent growing */
-  min-height: 50px !important; /* Prevent shrinking */
-  max-height: 50px !important; /* Prevent growing */
+  width: 8rem !important; /* Reduced width for compact design */
+  height: 32px !important; /* Reduced height to match header */
+  min-width: 8rem !important; /* Prevent shrinking */
+  max-width: 8rem !important; /* Prevent growing */
+  min-height: 32px !important; /* Prevent shrinking */
+  max-height: 32px !important; /* Prevent growing */
   text-align: center !important;
   display: flex !important;
   align-items: center !important;
@@ -209,14 +200,12 @@
   white-space: nowrap !important;
   overflow: hidden !important;
   box-sizing: border-box !important;
-  font-size: var(--cp-component-font-size-base) !important; /* Increased font size */
-  font-weight: var(--cp-component-font-weight-semibold) !important; /* Added font weight */
-  padding: 0.75rem 1rem !important; /* Increased padding */
+  font-size: var(--cp-component-font-size-sm) !important; /* Reduced font size */
+  font-weight: var(--cp-component-font-weight-semibold) !important;
+  padding: 0.25rem 0.5rem !important; /* Reduced padding */
 }
 
-.time-stat:hover .stat-icon {
-  color: var(--cp-accent) !important;
-}
+/* Removed hover animation for time-stat */
 
 /* Main Three-Column Grid Layout */
 .main-grid-three {
@@ -258,10 +247,7 @@
   padding: 0.5rem; /* Decreased padding from default */
 }
 
-.auth-compact:hover {
-  border-color: var(--cp-accent);
-  box-shadow: var(--cp-component-error-shadow);
-}
+/* Removed hover animation for auth-compact */
 
 /* Calendar Container Card */
 .calendar-container-compact {
@@ -274,10 +260,7 @@
   overflow: hidden;
 }
 
-.calendar-container-compact:hover {
-  border-color: var(--cp-accent);
-  box-shadow: var(--cp-component-glow-hover);
-}
+/* Removed hover animation for calendar-container-compact */
 
 .calendar-header-compact {
   display: flex;
@@ -302,10 +285,7 @@
   text-align: center;
   transition: all 0.3s ease;
   
-  &:hover {
-    text-shadow: var(--cp-component-glow-hover);
-    transform: translateY(-1px);
-  }
+/* Removed hover animation for target-date-heading */
   
   &:active {
     transform: translateY(0);
@@ -328,8 +308,8 @@
     padding: 0 0.5rem;
     
     &:hover {
-      border-color: var(--cp-accent);
-      background: var(--cp-component-accent-light);
+      border-color: var(--cp-primary);
+      background: var(--cp-glass-hover);
     }
     
     &.mdc-text-field--focused {
@@ -451,6 +431,35 @@
 
 .auth-status-compact.syncing .status-text-small {
   color: var(--cp-accent);
+}
+
+/* Theme-specific hover effect overrides */
+.theme-light .date-input-field ::ng-deep .mat-mdc-text-field-wrapper:hover {
+  border-color: #2563eb !important;
+  background: rgba(15, 23, 42, 0.05) !important;
+}
+
+.theme-dark .date-input-field ::ng-deep .mat-mdc-text-field-wrapper:hover {
+  border-color: #bb86fc !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.theme-cyberpunk .date-input-field ::ng-deep .mat-mdc-text-field-wrapper:hover {
+  border-color: #79ffe8 !important;
+  background: rgba(128, 0, 0, 0.3) !important;
+}
+
+/* Snackbar action button hover overrides */
+.theme-light ::ng-deep .mat-mdc-snack-bar-action:hover {
+  background: rgba(15, 23, 42, 0.1) !important;
+}
+
+.theme-dark ::ng-deep .mat-mdc-snack-bar-action:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.theme-cyberpunk ::ng-deep .mat-mdc-snack-bar-action:hover {
+  background: rgba(128, 0, 0, 0.3) !important;
 }
 
 /* Compact Footer */
@@ -717,8 +726,8 @@
   .cp-header-compact {
     flex-direction: column;
     height: auto;
-    padding: 0.5rem;
-    gap: 0.5rem;
+    padding: 0.25rem; /* Reduced padding for mobile */
+    gap: 0.25rem; /* Reduced gap for mobile */
   }
   
   .header-left,
@@ -761,8 +770,8 @@
   }
   
   .cp-header-compact {
-    padding: 0.25rem;
-    gap: 0.25rem;
+    padding: 0.125rem; /* Further reduced padding for phones */
+    gap: 0.125rem; /* Further reduced gap for phones */
   }
   
   .cp-levels-compact,
@@ -787,7 +796,7 @@
   &.theme-snackbar {
     background: var(--cp-notification-background) !important;
     color: var(--cp-notification-text) !important;
-    border: 1px solid var(--cp-notification-border) !important;
+    border: none !important;
     border-radius: 4px !important;
     box-shadow: var(--cp-notification-shadow) !important;
     backdrop-filter: blur(10px) !important;
