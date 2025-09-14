@@ -3,7 +3,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { spawn } from "child_process";
-import { calculateDailyWorkHours } from "./lib/hours.util.js";
+import { calculateDailyWorkHours, calculateRequiredHoursAchievementTime } from "./lib/hours.util.js";
 
 // Browser session data interface
 interface BrowserSessionData {
@@ -490,11 +490,43 @@ app.post("/api/hours/worklogs", async (req, res) => {
       };
     }
 
+    // Calculate achievement time for required hours
+    let achievementTime = null;
+    if (targetPeriod === 'day' && targetStartDate === new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })) {
+      // For DAY period and current date
+      const achievementResult = calculateRequiredHoursAchievementTime(
+        actualHours,
+        REQUIRED_HOURS,
+        sessions.isCurrentlyWorking,
+        sessions.swipePairs.length > 0 ? sessions.swipePairs[sessions.swipePairs.length - 1]?.inSwipe : undefined
+      );
+      achievementTime = achievementResult.willAchieveAt;
+    } else if (targetPeriod === 'week' && targetEndDate === new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })) {
+      // For WEEK period and current date is end date
+      const achievementResult = calculateRequiredHoursAchievementTime(
+        actualHours,
+        REQUIRED_HOURS,
+        sessions.isCurrentlyWorking,
+        sessions.swipePairs.length > 0 ? sessions.swipePairs[sessions.swipePairs.length - 1]?.inSwipe : undefined
+      );
+      achievementTime = achievementResult.willAchieveAt;
+    } else if (targetPeriod === 'month' && targetEndDate === new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })) {
+      // For MONTH period and current date is end date
+      const achievementResult = calculateRequiredHoursAchievementTime(
+        actualHours,
+        REQUIRED_HOURS,
+        sessions.isCurrentlyWorking,
+        sessions.swipePairs.length > 0 ? sessions.swipePairs[sessions.swipePairs.length - 1]?.inSwipe : undefined
+      );
+      achievementTime = achievementResult.willAchieveAt;
+    }
+
     // Enhanced Calculation Logic for WEEK and MONTH modes
     let enhancedCalculation = {
       currentDateInRange: false,
       yesterdayDateInRange: false,
       isBefore1030AM: false,
+      achievementTime: achievementTime,
       additionalSources: {
         currentActualHours: 0,
         yesterdayActualHours: 0
@@ -531,6 +563,7 @@ app.post("/api/hours/worklogs", async (req, res) => {
         currentDateInRange: currentDateInRange,
         yesterdayDateInRange: yesterdayDateInRange,
         isBefore1030AM: isBefore1030AM,
+        achievementTime: achievementTime,
         additionalSources: {
           currentActualHours: 0,
           yesterdayActualHours: 0

@@ -36,7 +36,7 @@
   flex-shrink: 0 !important; /* Match panel title */
   
   .switcher-icon {
-    color: var(--cp-accent) !important; /* Match panel icon */
+    color: var(--cp-primary) !important; /* Match panel icon */
     font-size: var(--cp-component-font-size-lg) !important; /* Match panel icon size */
     width: var(--cp-component-font-size-lg) !important; /* Match panel icon */
     height: var(--cp-component-font-size-lg) !important; /* Match panel icon */
@@ -44,7 +44,7 @@
   }
   
   .switcher-title {
-    color: var(--cp-accent) !important; /* Match panel title */
+    color: var(--cp-primary) !important; /* Match panel title */
     font-size: var(--cp-component-font-size-md) !important; /* Match panel title size */
     font-weight: var(--cp-component-font-weight-bold) !important; /* Match panel title weight */
     letter-spacing: var(--cp-component-letter-spacing-wide) !important; /* Match panel title spacing */
@@ -54,6 +54,31 @@
     overflow: hidden !important; /* Match panel title */
     flex-shrink: 0 !important; /* Match panel title */
   }
+}
+
+/* Theme-specific switcher header colors */
+.theme-light .switcher-icon {
+  color: #2563eb !important;
+}
+
+.theme-light .switcher-title {
+  color: #2563eb !important;
+}
+
+.theme-dark .switcher-icon {
+  color: #bb86fc !important;
+}
+
+.theme-dark .switcher-title {
+  color: #bb86fc !important;
+}
+
+.theme-cyberpunk .switcher-icon {
+  color: #79ffe8 !important;
+}
+
+.theme-cyberpunk .switcher-title {
+  color: #79ffe8 !important;
 }
 
 .period-toggle-group {
@@ -245,14 +270,14 @@
 }
 
 .header-icon-compact {
-  color: var(--cp-accent);
+  color: var(--cp-primary);
   font-size: var(--cp-component-font-size-xl);
   width: var(--cp-component-font-size-xl);
   height: var(--cp-component-font-size-xl);
 }
 
 .header-title-compact {
-  color: var(--cp-accent);
+  color: var(--cp-primary);
   font-weight: var(--cp-component-font-weight-bold);
   font-size: var(--cp-component-font-size-md);
   text-transform: uppercase;
@@ -273,9 +298,58 @@
 }
 
 .data-header-button:hover .refresh-icon-inline {
-  color: var(--cp-accent);
+  color: var(--cp-primary);
   opacity: 1;
   transform: rotate(180deg);
+}
+
+/* Theme-specific header button content colors */
+.theme-light .header-icon-compact {
+  color: #2563eb !important;
+}
+
+.theme-light .header-title-compact {
+  color: #2563eb !important;
+}
+
+.theme-light .refresh-icon-inline {
+  color: #2563eb !important;
+}
+
+.theme-light .data-header-button:hover .refresh-icon-inline {
+  color: #2563eb !important;
+}
+
+.theme-dark .header-icon-compact {
+  color: #bb86fc !important;
+}
+
+.theme-dark .header-title-compact {
+  color: #bb86fc !important;
+}
+
+.theme-dark .refresh-icon-inline {
+  color: #bb86fc !important;
+}
+
+.theme-dark .data-header-button:hover .refresh-icon-inline {
+  color: #bb86fc !important;
+}
+
+.theme-cyberpunk .header-icon-compact {
+  color: #79ffe8 !important;
+}
+
+.theme-cyberpunk .header-title-compact {
+  color: #79ffe8 !important;
+}
+
+.theme-cyberpunk .refresh-icon-inline {
+  color: #79ffe8 !important;
+}
+
+.theme-cyberpunk .data-header-button:hover .refresh-icon-inline {
+  color: #79ffe8 !important;
 }
 
 
@@ -298,7 +372,7 @@
   }
   
   .mat-expansion-panel:hover {
-    border-color: var(--cp-accent) !important;
+    border-color: var(--cp-primary) !important;
     box-shadow: 0 4px 15px var(--cp-border-accent) !important;
   }
   
@@ -326,7 +400,7 @@
     display: flex !important;
     align-items: center !important;
     gap: 0.6rem;
-    color: var(--cp-accent) !important;
+    color: var(--cp-primary) !important;
     font-weight: var(--cp-component-font-weight-bold) !important;
     text-transform: uppercase !important;
     letter-spacing: var(--cp-component-letter-spacing-wide) !important;
@@ -338,7 +412,7 @@
   }
   
   .panel-icon-compact {
-    color: var(--cp-accent) !important;
+    color: var(--cp-primary) !important;
     font-size: var(--cp-component-font-size-md) !important;
     width: 1rem !important;
     height: 1rem !important;
@@ -402,6 +476,81 @@
   .mat-expansion-panel-body {
     padding: 0 !important;
   }
+}
+
+/* Theme-specific panel title colors */
+.theme-light .panel-title-compact {
+  color: #2563eb !important;
+}
+
+.theme-light .panel-icon-compact {
+  color: #2563eb !important;
+}
+
+.theme-dark .panel-title-compact {
+  color: #bb86fc !important;
+}
+
+.theme-dark .panel-icon-compact {
+  color: #bb86fc !important;
+}
+
+.theme-cyberpunk .panel-title-compact {
+  color: #79ffe8 !important;
+}
+
+.theme-cyberpunk .panel-icon-compact {
+  color: #79ffe8 !important;
+}
+
+/* Theme-specific expansion panel hover colors */
+.theme-light .mat-expansion-panel:hover {
+  border-color: #2563eb !important;
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2) !important;
+}
+
+.theme-dark .mat-expansion-panel:hover {
+  border-color: #bb86fc !important;
+  box-shadow: 0 4px 15px rgba(187, 134, 252, 0.2) !important;
+}
+
+.theme-cyberpunk .mat-expansion-panel:hover {
+  border-color: #79ffe8 !important;
+  box-shadow: 0 4px 15px rgba(121, 255, 232, 0.3) !important;
+}
+
+/* Expansion indicator styling with higher specificity */
+::ng-deep .mat-expansion-indicator {
+  color: var(--cp-primary) !important;
+}
+
+::ng-deep .mat-expansion-indicator::after {
+  color: var(--cp-primary) !important;
+}
+
+/* Theme-specific expansion indicator colors with higher specificity */
+::ng-deep .theme-light .mat-expansion-indicator {
+  color: #2563eb !important;
+}
+
+::ng-deep .theme-light .mat-expansion-indicator::after {
+  color: #2563eb !important;
+}
+
+::ng-deep .theme-dark .mat-expansion-indicator {
+  color: #bb86fc !important;
+}
+
+::ng-deep .theme-dark .mat-expansion-indicator::after {
+  color: #bb86fc !important;
+}
+
+::ng-deep .theme-cyberpunk .mat-expansion-indicator {
+  color: #79ffe8 !important;
+}
+
+::ng-deep .theme-cyberpunk .mat-expansion-indicator::after {
+  color: #79ffe8 !important;
 }
 
 /* Session List Compact */

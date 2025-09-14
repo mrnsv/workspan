@@ -45,7 +45,7 @@
   }
   
   .professional-icon {
-    color: var(--cp-accent) !important;
+    color: var(--cp-primary) !important;
     font-size: var(--cp-component-font-size-lg) !important;
     width: 1.25rem !important;
     height: 1.25rem !important;
@@ -59,6 +59,34 @@
     color: var(--cp-primary) !important;
     text-shadow: 0 0 6px var(--cp-primary);
   }
+}
+
+/* Theme-specific professional icon colors */
+.theme-light .professional-icon {
+  color: #2563eb !important;
+}
+
+.theme-light .professional-input.mat-focused .professional-icon {
+  color: #2563eb !important;
+  text-shadow: 0 0 6px #2563eb !important;
+}
+
+.theme-dark .professional-icon {
+  color: #bb86fc !important;
+}
+
+.theme-dark .professional-input.mat-focused .professional-icon {
+  color: #bb86fc !important;
+  text-shadow: 0 0 6px #bb86fc !important;
+}
+
+.theme-cyberpunk .professional-icon {
+  color: #79ffe8 !important;
+}
+
+.theme-cyberpunk .professional-input.mat-focused .professional-icon {
+  color: #79ffe8 !important;
+  text-shadow: 0 0 6px #79ffe8 !important;
 }
 
 .visibility-toggle {

@@ -177,6 +177,34 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
     return this.workHoursService.formatHours(hours);
   }
 
+  formatAchievementTime(achievementTime: string | null): string {
+    if (!achievementTime) {
+      return 'N/A';
+    }
+    
+    try {
+      // Parse the achievement time and format it for display
+      const date = new Date(achievementTime);
+      const timeString = date.toLocaleTimeString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+      
+      const dateString = date.toLocaleDateString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        day: '2-digit',
+        month: '2-digit'
+      });
+      
+      return `${timeString} (${dateString})`;
+    } catch (error) {
+      console.error('Error formatting achievement time:', error);
+      return 'Invalid';
+    }
+  }
+
   private parseHoursFromText(hoursText: string): number {
     // Parse format like "24h 30m" or "8h 0m" to decimal hours
     const match = hoursText.match(/(\d+)h\s*(\d+)m/);

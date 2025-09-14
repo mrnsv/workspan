@@ -329,6 +329,65 @@ export function getWeekDateRange(date: string): { start: string; end: string } {
   };
 }
 
+export function calculateRequiredHoursAchievementTime(
+  currentHours: number,
+  requiredHours: number,
+  isCurrentlyWorking: boolean,
+  lastPunchIn?: string,
+  now: DayjsInstance = dayjs().tz(TZ)
+): { willAchieveAt: string | null; hoursRemaining: number; isAchievable: boolean } {
+  // If already achieved, return null
+  if (currentHours >= requiredHours) {
+    return {
+      willAchieveAt: null,
+      hoursRemaining: 0,
+      isAchievable: true
+    };
+  }
+
+  const hoursRemaining = requiredHours - currentHours;
+  
+  // If not currently working, cannot calculate achievement time
+  if (!isCurrentlyWorking) {
+    return {
+      willAchieveAt: null,
+      hoursRemaining,
+      isAchievable: false
+    };
+  }
+
+  // If currently working but no last punch in time, cannot calculate
+  if (!lastPunchIn) {
+    return {
+      willAchieveAt: null,
+      hoursRemaining,
+      isAchievable: false
+    };
+  }
+
+  try {
+    // Calculate when the required hours will be achieved
+    const lastPunchInTime = dayjs.utc(lastPunchIn).tz(TZ);
+    const achievementTime = lastPunchInTime.add(hoursRemaining, 'hour');
+    
+    // Format the achievement time in IST
+    const achievementTimeIST = achievementTime.format('YYYY-MM-DD HH:mm:ss');
+    
+    return {
+      willAchieveAt: achievementTimeIST,
+      hoursRemaining,
+      isAchievable: true
+    };
+  } catch (error) {
+    console.error('Error calculating achievement time:', error);
+    return {
+      willAchieveAt: null,
+      hoursRemaining,
+      isAchievable: false
+    };
+  }
+}
+
 export function getMonthDateRange(date: string): { start: string; end: string } {
   const d = dayjs(date);
   const start = d.startOf('month');

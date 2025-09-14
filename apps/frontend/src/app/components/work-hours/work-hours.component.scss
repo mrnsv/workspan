@@ -43,19 +43,53 @@
   gap: 0.75rem;
   padding: 1.5rem;
   background: var(--cp-glass);
-  border: 1px solid var(--cp-accent);
+  border: 1px solid var(--cp-primary);
   border-radius: 6px;
-  box-shadow: 0 0 20px var(--cp-glow-accent);
+  box-shadow: 0 0 20px var(--cp-border-accent);
 }
 
 .loading-title {
-  color: var(--cp-accent);
+  color: var(--cp-primary);
   font-family: var(--cp-component-font-family) !important;
   font-weight: var(--cp-component-font-weight-bold);
   font-size: var(--cp-component-font-size-md);
   text-transform: uppercase;
   letter-spacing: var(--cp-component-letter-spacing-wider);
-  text-shadow: 0 0 8px var(--cp-accent);
+  text-shadow: 0 0 8px var(--cp-primary);
+}
+
+/* Theme-specific loading overlay colors */
+.theme-light .loading-content {
+  background: rgba(37, 99, 235, 0.1) !important;
+  border-color: #2563eb !important;
+  box-shadow: 0 0 20px rgba(37, 99, 235, 0.2) !important;
+}
+
+.theme-light .loading-title {
+  color: #2563eb !important;
+  text-shadow: 0 0 8px #2563eb !important;
+}
+
+.theme-dark .loading-content {
+  background: rgba(187, 134, 252, 0.1) !important;
+  border-color: #bb86fc !important;
+  box-shadow: 0 0 20px rgba(187, 134, 252, 0.2) !important;
+}
+
+.theme-dark .loading-title {
+  color: #bb86fc !important;
+  text-shadow: 0 0 8px #bb86fc !important;
+}
+
+.theme-cyberpunk .loading-content {
+  background: rgba(121, 255, 232, 0.1) !important;
+  border-color: #79ffe8 !important;
+  box-shadow: 0 0 20px rgba(121, 255, 232, 0.3) !important;
+}
+
+.theme-cyberpunk .loading-title {
+  color: #79ffe8 !important;
+  text-shadow: 0 0 8px #79ffe8 !important;
 }
 
 @keyframes fadeInOverlay {
@@ -257,11 +291,29 @@
   background: var(--cp-component-error-light);
 }
 
+.stat-card-compact.info {
+  border-color: var(--cp-info);
+  background: var(--cp-info-light);
+}
+
 .stat-icon-compact {
-  color: var(--cp-accent);
+  color: var(--cp-primary);
   font-size: var(--cp-component-font-size-xl);
   width: var(--cp-component-font-size-xl);
   height: var(--cp-component-font-size-xl);
+}
+
+/* Theme-specific stat icon colors */
+.theme-light .stat-icon-compact {
+  color: #2563eb !important;
+}
+
+.theme-dark .stat-icon-compact {
+  color: #bb86fc !important;
+}
+
+.theme-cyberpunk .stat-icon-compact {
+  color: #79ffe8 !important;
 }
 
 .stat-data-compact {

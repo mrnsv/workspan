@@ -771,6 +771,40 @@ p, span, div {
   font-family: var(--cp-font-family) !important;
 }
 
+/* Expansion indicator styling with maximum specificity */
+.mat-expansion-indicator {
+  color: var(--cp-primary) !important;
+}
+
+.mat-expansion-indicator::after {
+  color: var(--cp-primary) !important;
+}
+
+/* Theme-specific expansion indicator colors */
+.theme-light .mat-expansion-indicator {
+  color: #2563eb !important;
+}
+
+.theme-light .mat-expansion-indicator::after {
+  color: #2563eb !important;
+}
+
+.theme-dark .mat-expansion-indicator {
+  color: #bb86fc !important;
+}
+
+.theme-dark .mat-expansion-indicator::after {
+  color: #bb86fc !important;
+}
+
+.theme-cyberpunk .mat-expansion-indicator {
+  color: #79ffe8 !important;
+}
+
+.theme-cyberpunk .mat-expansion-indicator::after {
+  color: #79ffe8 !important;
+}
+
 .mat-progress-bar {
   background: var(--cp-progress-bar-background) !important;
 }

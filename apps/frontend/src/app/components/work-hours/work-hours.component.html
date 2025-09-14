@@ -64,6 +64,15 @@
           <span class="stat-value-compact">{{ workHoursData.sessions.isCurrentlyWorking ? 'ON' : 'OFF' }}</span>
         </div>
       </div>
+
+      <!-- Achievement Time -->
+      <div class="stat-card-compact info" *ngIf="workHoursData?.enhancedCalculation?.achievementTime">
+        <mat-icon class="stat-icon-compact">schedule</mat-icon>
+        <div class="stat-data-compact">
+          <span class="stat-label-compact">ACH</span>
+          <span class="stat-value-compact">{{ formatAchievementTime(workHoursData.enhancedCalculation.achievementTime) }}</span>
+        </div>
+      </div>
     </div>
 
     <!-- Error State -->
