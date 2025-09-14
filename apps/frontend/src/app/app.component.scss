@@ -810,7 +810,7 @@
     max-width: 80vw !important; /* Prevent overflow on small screens */
     min-width: auto !important; /* Remove fixed minimum */
     white-space: nowrap !important; /* Prevent text wrapping */
-    padding: 12px 16px !important; /* Comfortable padding around content */
+    padding: 0px 0px !important; /* Reduced padding for compact size */
     display: flex !important;
     align-items: center !important; /* Vertical center alignment for container */
     justify-content: center !important; /* Horizontal center alignment for container */
@@ -832,14 +832,14 @@
       font-size: var(--cp-notification-font-size) !important;
       white-space: nowrap !important;
       overflow: visible !important;
-      padding: 0 !important; /* Remove default padding */
+      padding: 4px 8px !important; /* Reduced padding for smaller size */
       margin: 0 !important; /* Remove default margin */
       width: 100% !important; /* Full width for centering */
       display: flex !important;
       align-items: center !important; /* Vertical center alignment */
       justify-content: center !important; /* Horizontal center alignment */
       line-height: var(--cp-component-line-height-tight) !important; /* Consistent line height */
-      min-height: 20px !important; /* Minimum height for proper alignment */
+      min-height: 24px !important; /* Reduced minimum height for compact size */
     }
     
     /* Handle nested snackbar structure */
@@ -855,6 +855,8 @@
         justify-content: center !important; /* Center the label content */
         flex: 1 !important;
         text-align: center !important; /* Center text within label */
+        padding: 4px 8px !important; /* Match the reduced outer label padding */
+        min-height: 24px !important; /* Match the reduced outer label height */
       }
       
       .mdc-snackbar__actions {
