@@ -29,7 +29,7 @@
 
     <!-- Stats Grid Compact -->
     <div class="stats-grid-compact" *ngIf="workHoursStats">
-      <!-- Actual Required Hours -->
+      <!-- 1. Required Hours (REQ) -->
       <div class="stat-card-compact">
         <mat-icon class="stat-icon-compact">schedule</mat-icon>
         <div class="stat-data-compact">
@@ -38,7 +38,7 @@
         </div>
       </div>
 
-      <!-- Shortfall Hours -->
+      <!-- 2. Shortfall Hours (DEF) -->
       <div class="stat-card-compact warning" *ngIf="workHoursStats.shortfallHours > 0">
         <mat-icon class="stat-icon-compact">warning</mat-icon>
         <div class="stat-data-compact">
@@ -47,16 +47,16 @@
         </div>
       </div>
 
-      <!-- Excess Hours -->
-      <div class="stat-card-compact success" *ngIf="workHoursStats.excessHours > 0">
-        <mat-icon class="stat-icon-compact">trending_up</mat-icon>
+      <!-- 3. Achievement Time (ACH) -->
+      <div class="stat-card-compact info" *ngIf="workHoursData?.enhancedCalculation?.achievementTime">
+        <mat-icon class="stat-icon-compact">schedule</mat-icon>
         <div class="stat-data-compact">
-          <span class="stat-label-compact">SUR</span>
-          <span class="stat-value-compact">{{ formatHours(workHoursStats.excessHours) }}</span>
+          <span class="stat-label-compact">ACH</span>
+          <span class="stat-value-compact">{{ formatAchievementTime(workHoursData.enhancedCalculation.achievementTime) }}</span>
         </div>
       </div>
 
-      <!-- Working Status -->
+      <!-- 4. Working Status (STS) -->
       <div class="stat-card-compact" *ngIf="workHoursData" [ngClass]="workHoursData.sessions.isCurrentlyWorking ? 'active' : 'inactive'">
         <mat-icon class="stat-icon-compact">{{ workHoursData.sessions.isCurrentlyWorking ? 'work' : 'home' }}</mat-icon>
         <div class="stat-data-compact">
@@ -65,12 +65,12 @@
         </div>
       </div>
 
-      <!-- Achievement Time -->
-      <div class="stat-card-compact info" *ngIf="workHoursData?.enhancedCalculation?.achievementTime">
-        <mat-icon class="stat-icon-compact">schedule</mat-icon>
+      <!-- Excess Hours (SUR) - Keep for backward compatibility but moved to end -->
+      <div class="stat-card-compact success" *ngIf="workHoursStats.excessHours > 0">
+        <mat-icon class="stat-icon-compact">trending_up</mat-icon>
         <div class="stat-data-compact">
-          <span class="stat-label-compact">ACH</span>
-          <span class="stat-value-compact">{{ formatAchievementTime(workHoursData.enhancedCalculation.achievementTime) }}</span>
+          <span class="stat-label-compact">SUR</span>
+          <span class="stat-value-compact">{{ formatHours(workHoursStats.excessHours) }}</span>
         </div>
       </div>
     </div>
