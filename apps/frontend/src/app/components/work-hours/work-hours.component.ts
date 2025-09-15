@@ -192,13 +192,7 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
         hour12: true
       });
       
-      const dateString = date.toLocaleDateString('en-IN', {
-        timeZone: 'Asia/Kolkata',
-        day: '2-digit',
-        month: '2-digit'
-      });
-      
-      return `${timeString} (${dateString})`;
+      return timeString; // Return only the time without date
     } catch (error) {
       console.error('Error formatting achievement time:', error);
       return 'Invalid';

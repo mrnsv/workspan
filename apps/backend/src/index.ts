@@ -408,6 +408,7 @@ app.post("/api/hours/worklogs", async (req, res) => {
     let allSwipes: any[] = [];
     let sessions: any = {};
     let formattedTime: string;
+    let achievementTime: string | null = null;
     
     // Set required hours based on period
     if (targetPeriod === 'day') {
@@ -457,6 +458,17 @@ app.post("/api/hours/worklogs", async (req, res) => {
           };
         })
       };
+      
+      // Calculate achievement time for DAY period and current date
+      if (targetStartDate === new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })) {
+        const achievementResult = calculateRequiredHoursAchievementTime(
+          actualHours,
+          REQUIRED_HOURS,
+          workHours.isCurrentlyWorking,
+          workHours.lastPunchIn
+        );
+        achievementTime = achievementResult.willAchieveAt;
+      }
     } else {
         // Weekly or Monthly logic - use provided startDate and endDate
         try {
@@ -490,36 +502,6 @@ app.post("/api/hours/worklogs", async (req, res) => {
       };
     }
 
-    // Calculate achievement time for required hours
-    let achievementTime = null;
-    if (targetPeriod === 'day' && targetStartDate === new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })) {
-      // For DAY period and current date
-      const achievementResult = calculateRequiredHoursAchievementTime(
-        actualHours,
-        REQUIRED_HOURS,
-        sessions.isCurrentlyWorking,
-        sessions.swipePairs.length > 0 ? sessions.swipePairs[sessions.swipePairs.length - 1]?.inSwipe : undefined
-      );
-      achievementTime = achievementResult.willAchieveAt;
-    } else if (targetPeriod === 'week' && targetEndDate === new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })) {
-      // For WEEK period and current date is end date
-      const achievementResult = calculateRequiredHoursAchievementTime(
-        actualHours,
-        REQUIRED_HOURS,
-        sessions.isCurrentlyWorking,
-        sessions.swipePairs.length > 0 ? sessions.swipePairs[sessions.swipePairs.length - 1]?.inSwipe : undefined
-      );
-      achievementTime = achievementResult.willAchieveAt;
-    } else if (targetPeriod === 'month' && targetEndDate === new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })) {
-      // For MONTH period and current date is end date
-      const achievementResult = calculateRequiredHoursAchievementTime(
-        actualHours,
-        REQUIRED_HOURS,
-        sessions.isCurrentlyWorking,
-        sessions.swipePairs.length > 0 ? sessions.swipePairs[sessions.swipePairs.length - 1]?.inSwipe : undefined
-      );
-      achievementTime = achievementResult.willAchieveAt;
-    }
 
     // Enhanced Calculation Logic for WEEK and MONTH modes
     let enhancedCalculation = {
