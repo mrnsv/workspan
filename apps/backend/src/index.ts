@@ -552,11 +552,37 @@ app.post("/api/hours/worklogs", async (req, res) => {
         }
       };
       
-      // For WEEK and MONTH periods, we don't make additional SWIPES_URL calls
-      // The total hours are already fetched from TOTAL_HOURS_URL API
-      // Set additional sources to 0 since we're not fetching individual day swipes
-      enhancedCalculation.additionalSources.currentActualHours = 0;
-      enhancedCalculation.additionalSources.yesterdayActualHours = 0;
+      // For WEEK and MONTH periods, fetch current day's actual hours if current date is in range
+      if (currentDateInRange) {
+        try {
+          console.log(`🔍 Fetching current day's swipes for enhanced calculation`);
+          const currentDaySwipes = await fetchSwipesWithSession(sessionData, currentDateIST);
+          const currentDayWorkHours = calculateDailyWorkHours(currentDaySwipes, currentDateIST);
+          enhancedCalculation.additionalSources.currentActualHours = currentDayWorkHours.totalActualHours;
+          console.log(`✅ Current day actual hours: ${currentDayWorkHours.totalActualHours}`);
+        } catch (error) {
+          console.error(`❌ Error fetching current day's swipes:`, error);
+          enhancedCalculation.additionalSources.currentActualHours = 0;
+        }
+      } else {
+        enhancedCalculation.additionalSources.currentActualHours = 0;
+      }
+      
+      // Fetch yesterday's actual hours if yesterday is in range AND it's before 10:30 AM
+      if (yesterdayDateInRange && isBefore1030AM) {
+        try {
+          console.log(`🔍 Fetching yesterday's swipes for enhanced calculation`);
+          const yesterdaySwipes = await fetchSwipesWithSession(sessionData, yesterdayDateIST);
+          const yesterdayWorkHours = calculateDailyWorkHours(yesterdaySwipes, yesterdayDateIST);
+          enhancedCalculation.additionalSources.yesterdayActualHours = yesterdayWorkHours.totalActualHours;
+          console.log(`✅ Yesterday actual hours: ${yesterdayWorkHours.totalActualHours}`);
+        } catch (error) {
+          console.error(`❌ Error fetching yesterday's swipes:`, error);
+          enhancedCalculation.additionalSources.yesterdayActualHours = 0;
+        }
+      } else {
+        enhancedCalculation.additionalSources.yesterdayActualHours = 0;
+      }
     }
 
     // Fetch attendance status info from insights API

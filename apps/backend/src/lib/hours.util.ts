@@ -356,60 +356,15 @@ export function calculateRequiredHoursAchievementTime(
     };
   }
 
-  // If currently working but no last punch in time, cannot calculate
-  if (!lastPunchIn) {
-    console.warn('Cannot calculate achievement time: lastPunchIn is missing');
-    return {
-      willAchieveAt: null,
-      hoursRemaining,
-      isAchievable: false
-    };
-  }
-
   try {
-    // Parse the last punch in time - handle different formats
-    let lastPunchInTime: DayjsInstance;
-    
-    // Check if it's already a valid dayjs instance or ISO string
-    if (typeof lastPunchIn === 'string') {
-      // Try parsing as UTC first, then as local time
-      lastPunchInTime = dayjs.utc(lastPunchIn).tz(TZ);
-      
-      // Validate the parsed time
-      if (!lastPunchInTime.isValid()) {
-        console.error('Invalid lastPunchIn time format:', lastPunchIn);
-        return {
-          willAchieveAt: null,
-          hoursRemaining,
-          isAchievable: false
-        };
-      }
-    } else {
-      console.error('lastPunchIn must be a string:', typeof lastPunchIn);
-      return {
-        willAchieveAt: null,
-        hoursRemaining,
-        isAchievable: false
-      };
-    }
-    
-    // Calculate when the required hours will be achieved
-    const achievementTime = lastPunchInTime.add(hoursRemaining, 'hour');
-    
-    // Validate achievement time is in the future
-    if (achievementTime.isBefore(now)) {
-      console.warn('Achievement time is in the past, user may have already achieved required hours');
-      return {
-        willAchieveAt: null,
-        hoursRemaining: 0,
-        isAchievable: true
-      };
-    }
+    // NEW LOGIC: Calculate achievement time as Current Time + DEF (Deficit Hours)
+    // This gives a real-time estimate of when the user will complete their required hours
+    const achievementTime = now.add(hoursRemaining, 'hour');
     
     // Format the achievement time in IST
     const achievementTimeIST = achievementTime.format('YYYY-MM-DD HH:mm:ss');
     
-    console.log(`Achievement time calculated: ${achievementTimeIST} (${hoursRemaining} hours remaining)`);
+    console.log(`Achievement time calculated: ${achievementTimeIST} (${hoursRemaining} hours remaining from current time ${now.format('HH:mm:ss')})`);
     
     return {
       willAchieveAt: achievementTimeIST,
