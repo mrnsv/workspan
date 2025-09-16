@@ -47,30 +47,30 @@
         </div>
       </div>
 
-      <!-- 3. Achievement Time (ACH) -->
-      <div class="stat-card-compact info" *ngIf="workHoursData?.enhancedCalculation?.achievementTime">
-        <mat-icon class="stat-icon-compact">schedule</mat-icon>
-        <div class="stat-data-compact">
-          <span class="stat-label-compact">ACH</span>
-          <span class="stat-value-compact">{{ formatAchievementTime(workHoursData.enhancedCalculation.achievementTime) }}</span>
-        </div>
-      </div>
-
-      <!-- 4. Working Status (STS) -->
-      <div class="stat-card-compact" *ngIf="workHoursData" [ngClass]="workHoursData.sessions.isCurrentlyWorking ? 'active' : 'inactive'">
-        <mat-icon class="stat-icon-compact">{{ workHoursData.sessions.isCurrentlyWorking ? 'work' : 'home' }}</mat-icon>
-        <div class="stat-data-compact">
-          <span class="stat-label-compact">STS</span>
-          <span class="stat-value-compact">{{ workHoursData.sessions.isCurrentlyWorking ? 'ON' : 'OFF' }}</span>
-        </div>
-      </div>
-
-      <!-- Excess Hours (SUR) - Keep for backward compatibility but moved to end -->
+      <!-- 3. Excess Hours (SUR) -->
       <div class="stat-card-compact success" *ngIf="workHoursStats.excessHours > 0">
         <mat-icon class="stat-icon-compact">trending_up</mat-icon>
         <div class="stat-data-compact">
           <span class="stat-label-compact">SUR</span>
           <span class="stat-value-compact">{{ formatHours(workHoursStats.excessHours) }}</span>
+        </div>
+      </div>
+
+      <!-- 4. When To Exit (WTE) -->
+      <div class="stat-card-compact info" *ngIf="workHoursData?.enhancedCalculation?.achievementTime">
+        <mat-icon class="stat-icon-compact">schedule</mat-icon>
+        <div class="stat-data-compact">
+          <span class="stat-label-compact">WTE</span>
+          <span class="stat-value-compact">{{ formatAchievementTime(workHoursData.enhancedCalculation.achievementTime) }}</span>
+        </div>
+      </div>
+
+      <!-- 5. Working Status (STS) -->
+      <div class="stat-card-compact" *ngIf="workHoursData" [ngClass]="workHoursData.sessions.isCurrentlyWorking ? 'active' : 'inactive'">
+        <mat-icon class="stat-icon-compact">{{ workHoursData.sessions.isCurrentlyWorking ? 'work' : 'home' }}</mat-icon>
+        <div class="stat-data-compact">
+          <span class="stat-label-compact">STS</span>
+          <span class="stat-value-compact">{{ workHoursData.sessions.isCurrentlyWorking ? 'ON' : 'OFF' }}</span>
         </div>
       </div>
     </div>

@@ -49,6 +49,16 @@
   }
 }
 
+.nav-btn:disabled {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+  color: var(--cp-secondary) !important;
+  
+  mat-icon {
+    color: var(--cp-secondary) !important;
+  }
+}
+
 .month-year {
   flex: 1;
   text-align: center;
@@ -147,6 +157,27 @@
   
   .day-number {
     color: var(--cp-warning);
+  }
+}
+
+.calendar-day.future {
+  opacity: 0.3 !important;
+  cursor: not-allowed !important;
+  background: var(--cp-glass) !important;
+  
+  .day-number {
+    color: var(--cp-secondary) !important;
+  }
+  
+  &:hover {
+    background: var(--cp-glass) !important;
+    transform: none !important;
+    box-shadow: none !important;
+    border-color: var(--cp-border) !important;
+    
+    .day-number {
+      color: var(--cp-secondary) !important;
+    }
   }
 }
 
@@ -593,5 +624,49 @@
   
   mat-icon {
     color: #79ffe8 !important;
+  }
+}
+
+/* Theme-specific future date styling */
+.theme-light .calendar-day.future {
+  .day-number {
+    color: #9ca3af !important;
+  }
+}
+
+.theme-dark .calendar-day.future {
+  .day-number {
+    color: #6b7280 !important;
+  }
+}
+
+.theme-cyberpunk .calendar-day.future {
+  .day-number {
+    color: #374151 !important;
+  }
+}
+
+/* Theme-specific disabled navigation button styling */
+.theme-light .nav-btn:disabled {
+  color: #9ca3af !important;
+  
+  mat-icon {
+    color: #9ca3af !important;
+  }
+}
+
+.theme-dark .nav-btn:disabled {
+  color: #6b7280 !important;
+  
+  mat-icon {
+    color: #6b7280 !important;
+  }
+}
+
+.theme-cyberpunk .nav-btn:disabled {
+  color: #374151 !important;
+  
+  mat-icon {
+    color: #374151 !important;
   }
 }

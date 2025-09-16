@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter } from '@angular/core';
+import { Component, Output, EventEmitter, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService, LoginCredentials } from '../../services/auth.service';
@@ -8,12 +8,15 @@ import { AuthService, LoginCredentials } from '../../services/auth.service';
   templateUrl: './login-form.component.html',
   styleUrls: ['./login-form.component.scss']
 })
-export class LoginFormComponent {
+export class LoginFormComponent implements OnInit {
   @Output() cookieRefreshed = new EventEmitter<void>();
   
   loginForm: FormGroup;
   hidePassword = true;
   isRefreshing = false;
+  hasSavedCredentials = false;
+
+  private readonly CREDENTIALS_STORAGE_KEY = 'workspan_saved_credentials';
 
   constructor(
     private fb: FormBuilder,
@@ -26,6 +29,10 @@ export class LoginFormComponent {
     });
   }
 
+  ngOnInit() {
+    this.loadSavedCredentials();
+  }
+
   onRefreshCookie() {
     if (this.loginForm.valid) {
       this.isRefreshing = true;
@@ -35,6 +42,9 @@ export class LoginFormComponent {
         next: (response) => {
           this.isRefreshing = false;
           if (response.success) {
+            // Save credentials for auto-fill on successful login
+            this.saveCredentials(credentials);
+            
             let successMessage = '✅ Authentication successful!';
             if (response.sessionData) {
               successMessage += ` Welcome, ${response.sessionData.employeeName} (${response.sessionData.employeeNumber})`;
@@ -107,4 +117,36 @@ export class LoginFormComponent {
     
     this.snackBar.open(message, 'Dismiss', config);
   }
+
+  // Credential Management Methods
+  private loadSavedCredentials(): void {
+    try {
+      const savedCredentials = localStorage.getItem(this.CREDENTIALS_STORAGE_KEY);
+      if (savedCredentials) {
+        const credentials: LoginCredentials = JSON.parse(savedCredentials);
+        this.loginForm.patchValue({
+          loginId: credentials.loginId,
+          password: credentials.password
+        });
+        this.hasSavedCredentials = true;
+        console.log('✅ Auto-filled saved credentials');
+      }
+    } catch (error) {
+      console.warn('⚠️ Failed to load saved credentials:', error);
+      // Clear corrupted data
+      localStorage.removeItem(this.CREDENTIALS_STORAGE_KEY);
+      this.hasSavedCredentials = false;
+    }
+  }
+
+  private saveCredentials(credentials: LoginCredentials): void {
+    try {
+      localStorage.setItem(this.CREDENTIALS_STORAGE_KEY, JSON.stringify(credentials));
+      this.hasSavedCredentials = true;
+      console.log('✅ Credentials saved for auto-fill');
+    } catch (error) {
+      console.warn('⚠️ Failed to save credentials:', error);
+    }
+  }
+
 }
