@@ -186,7 +186,20 @@ export class SwipeDataComponent implements OnInit, OnChanges {
 
   get swipeData(): any | null {
     // Return sessions data from unified response
-    return this.unifiedData?.sessions || null;
+    const sessions = this.unifiedData?.sessions || null;
+    
+    // Debug: Log outDuration data
+    if (sessions?.swipePairs) {
+      console.log('🔍 SwipePairs Debug:', sessions.swipePairs.map((pair: any, index: number) => ({
+        index,
+        inSwipe: pair.inSwipe,
+        outSwipe: pair.outSwipe,
+        outDuration: pair.outDuration,
+        hasOutDuration: !!pair.outDuration
+      })));
+    }
+    
+    return sessions;
   }
 
   get rawSwipes(): SwipeData[] | null {

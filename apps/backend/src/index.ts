@@ -454,7 +454,8 @@ app.post("/api/hours/worklogs", async (req, res) => {
             inSwipe: new Date(pair.inSwipe.endsWith('Z') ? pair.inSwipe : pair.inSwipe + 'Z').toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
             outSwipe: new Date(pair.outSwipe.endsWith('Z') ? pair.outSwipe : pair.outSwipe + 'Z').toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
             actualHours: pair.actualHours,
-            duration: `${hours}h ${minutes}m`
+            duration: `${hours}h ${minutes}m`,
+            outDuration: pair.outDuration
           };
         })
       };

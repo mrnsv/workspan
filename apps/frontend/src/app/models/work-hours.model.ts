@@ -9,6 +9,7 @@ export interface SwipePair {
   outSwipe: string;
   actualHours: number;
   duration: string;
+  outDuration?: string; // Duration of time out of office (between sessions)
 }
 
 

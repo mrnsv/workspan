@@ -22,6 +22,7 @@ export interface SwipePair {
   inSwipe: string;
   outSwipe: string;
   actualHours: number;
+  outDuration?: string; // Duration of time out of office (between sessions)
 }
 
 export function createSwipePairs(
@@ -44,6 +45,8 @@ export function createSwipePairs(
   const swipePairs: SwipePair[] = [];
   let totalExactSeconds = 0;
   let lastIn: DayjsInstance | null = null;
+  let lastOut: DayjsInstance | null = null; // Track last OUT time for calculating out duration
+  let pendingOutDuration: string | undefined = undefined; // Store out duration for next session
 
   // Check if first swipe is OUT (missing initial IN)
   if (ordered.length > 0 && ordered[0].inOutIndicator === 0) {
@@ -71,9 +74,11 @@ export function createSwipePairs(
       swipePairs.push({
         inSwipe: estimatedStartTime.utc().format(),
         outSwipe: firstOut.utc().format(),
-        actualHours: parseFloat(sessionHours.toFixed(2))
+        actualHours: parseFloat(sessionHours.toFixed(2)),
+        outDuration: undefined // No out duration for the first session
       });
       totalExactSeconds += exactSeconds;
+      lastOut = firstOut; // Update last OUT time
     }
   }
 
@@ -81,6 +86,15 @@ export function createSwipePairs(
     const time = dayjs.utc(swipe.punchDateTime).tz(TZ);
 
     if (swipe.inOutIndicator === 1) { // IN
+      // Calculate out duration (time between last OUT and current IN)
+      if (lastOut && time.isAfter(lastOut)) {
+        const outDurationMs = time.valueOf() - lastOut.valueOf();
+        const outDurationSeconds = Math.floor(outDurationMs / 1000);
+        const outDurationMinutes = Math.round(outDurationSeconds / 60);
+        const outHours = Math.floor(outDurationMinutes / 60);
+        const outMinutes = outDurationMinutes % 60;
+        pendingOutDuration = `${outHours}h ${outMinutes}m`;
+      }
       lastIn = time;
     } else if (swipe.inOutIndicator === 0) { // OUT
       if (lastIn && time.isAfter(lastIn)) {
@@ -92,10 +106,13 @@ export function createSwipePairs(
         swipePairs.push({
           inSwipe: lastIn.utc().format(),
           outSwipe: time.utc().format(),
-          actualHours: parseFloat(sessionHours.toFixed(2))
+          actualHours: parseFloat(sessionHours.toFixed(2)),
+          outDuration: pendingOutDuration
         });
         totalExactSeconds += exactSeconds;
+        lastOut = time; // Update last OUT time
         lastIn = null;
+        // Don't reset pendingOutDuration here - it will be used for the next session
       }
       // If lastIn is null, this OUT swipe was already handled above
     }
@@ -124,7 +141,8 @@ export function createSwipePairs(
     swipePairs.push({
       inSwipe: lastIn.utc().format(),
       outSwipe: estimatedOutTime.utc().format(),
-      actualHours: parseFloat(sessionHours.toFixed(2))
+      actualHours: parseFloat(sessionHours.toFixed(2)),
+      outDuration: pendingOutDuration
     });
     totalExactSeconds += exactSeconds;
   }
