@@ -315,6 +315,26 @@ function convertMinutesToHoursMinutes(minutes: number): string {
   return `${hours}h ${mins}m`;
 }
 
+// Helper function to calculate weekdays (Monday-Friday) in a date range
+function calculateWeekdaysInRange(startDate: string, endDate: string): number {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  let weekdays = 0;
+  
+  // Iterate through each day in the range
+  const current = new Date(start);
+  while (current <= end) {
+    const dayOfWeek = current.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+    // Count Monday (1) through Friday (5)
+    if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+      weekdays++;
+    }
+    current.setDate(current.getDate() + 1);
+  }
+  
+  return weekdays;
+}
+
 // LOGIN endpoint - extracts session data using get-token.ts and returns it for browser storage
 app.post("/api/login", async (req, res) => {
   try {
@@ -414,9 +434,15 @@ app.post("/api/hours/worklogs", async (req, res) => {
     if (targetPeriod === 'day') {
       REQUIRED_HOURS = 8;
     } else if (targetPeriod === 'week') {
-      REQUIRED_HOURS = 40;
+      // Calculate weekdays in the week range and multiply by 8 hours
+      const weekdays = calculateWeekdaysInRange(targetStartDate, targetEndDate);
+      REQUIRED_HOURS = 8 * weekdays;
+      console.log(`📅 Week period: ${weekdays} weekdays × 8 hours = ${REQUIRED_HOURS} required hours`);
     } else { // month
-      REQUIRED_HOURS = 160;
+      // Calculate weekdays in the month range and multiply by 8 hours
+      const weekdays = calculateWeekdaysInRange(targetStartDate, targetEndDate);
+      REQUIRED_HOURS = 8 * weekdays;
+      console.log(`📅 Month period: ${weekdays} weekdays × 8 hours = ${REQUIRED_HOURS} required hours`);
     }
     
     if (targetPeriod === 'day') {
