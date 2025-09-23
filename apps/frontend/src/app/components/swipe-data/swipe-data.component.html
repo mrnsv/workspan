@@ -59,25 +59,35 @@
         </mat-expansion-panel-header>
         
         <div class="session-list-compact" *ngIf="swipeData?.swipePairs && swipeData.swipePairs.length > 0">
-          <div class="session-item-compact" 
-               *ngFor="let session of swipeData.swipePairs; let i = index"
-               [ngClass]="getSessionClass(session)">
-            <div class="session-header-compact">
-              <span class="session-num-compact">{{ i + 1 | number:'2.0-0' }}</span>
-              <span class="session-duration-compact">{{ session.duration }}</span>
-            </div>
-            <div class="session-times-compact">
-              <div class="time-entry-compact in">
-                <mat-icon class="time-icon-compact">login</mat-icon>
-                <span class="time-text-compact">{{ formatSessionTime(session.inSwipe) }}</span>
-              </div>
-              <div class="time-separator-compact">→</div>
-              <div class="time-entry-compact out">
-                <mat-icon class="time-icon-compact">logout</mat-icon>
-                <span class="time-text-compact">{{ formatSessionTime(session.outSwipe) }}</span>
+          <ng-container *ngFor="let session of swipeData.swipePairs; let i = index">
+            <!-- Out Duration Between Sessions - Show before current session if it has outDuration -->
+            <div class="out-duration-between-compact" *ngIf="session.outDuration && i > 0">
+              <div class="out-duration-minimal-compact">
+                <mat-icon class="out-duration-icon-compact">schedule</mat-icon>
+                <span class="out-duration-text-compact">{{ session.outDuration }}</span>
               </div>
             </div>
-          </div>
+            
+            <!-- Session Card -->
+            <div class="session-item-compact" 
+                 [ngClass]="getSessionClass(session)">
+              <div class="session-header-compact">
+                <span class="session-num-compact">{{ i + 1 | number:'2.0-0' }}</span>
+                <span class="session-duration-compact">{{ session.duration }}</span>
+              </div>
+              <div class="session-times-compact">
+                <div class="time-entry-compact in">
+                  <mat-icon class="time-icon-compact">login</mat-icon>
+                  <span class="time-text-compact">{{ formatSessionTime(session.inSwipe) }}</span>
+                </div>
+                <div class="time-separator-compact">→</div>
+                <div class="time-entry-compact out">
+                  <mat-icon class="time-icon-compact">logout</mat-icon>
+                  <span class="time-text-compact">{{ formatSessionTime(session.outSwipe) }}</span>
+                </div>
+              </div>
+            </div>
+          </ng-container>
         </div>
         
         <div class="no-data-compact" *ngIf="!swipeData?.swipePairs || swipeData.swipePairs.length === 0">
@@ -120,15 +130,39 @@
     </mat-accordion>
 
     <!-- Error State -->
-    <div class="cp-card error-compact" *ngIf="!swipeData">
-      <div class="error-content-compact">
+    <div class="cp-card error-compact" *ngIf="(error$ | async)">
+      <div class="error-header-compact">
         <mat-icon class="error-icon-compact">error_outline</mat-icon>
-        <span class="error-text-compact">DATA ERROR</span>
+        <span class="error-title-compact">SYSTEM ERROR</span>
+      </div>
+      <div class="error-message-compact">
+        {{ error$ | async }}
+      </div>
+      <div class="error-actions-compact">
         <button mat-raised-button class="retry-btn-compact" (click)="onRefresh()">
           <mat-icon>refresh</mat-icon>
           RETRY
         </button>
+        <button mat-button class="dismiss-btn-compact" (click)="clearErrors()">
+          <mat-icon>close</mat-icon>
+          DISMISS
+        </button>
       </div>
+    </div>
+
+    <!-- No Data State (when no error but no data) -->
+    <div class="cp-card no-data-compact" *ngIf="!swipeData && !(error$ | async)">
+      <div class="no-data-header-compact">
+        <mat-icon class="no-data-icon-compact">swap_vertical_circle</mat-icon>
+        <span class="no-data-title-compact">NO DATA</span>
+      </div>
+      <div class="no-data-message-compact">
+        No swipe data available for the selected {{ selectedTimePeriod }}.
+      </div>
+      <button mat-raised-button class="retry-btn-compact" (click)="onRefresh()">
+        <mat-icon>refresh</mat-icon>
+        LOAD DATA
+      </button>
     </div>
 
   </div>

@@ -11,7 +11,10 @@
       <span class="month-text">{{ getMonthYear() }}</span>
     </div>
     
-    <button mat-icon-button class="nav-btn" (click)="nextMonth()" matTooltip="Next Month">
+    <button mat-icon-button class="nav-btn" 
+            [disabled]="isNextMonthDisabled()" 
+            (click)="nextMonth()" 
+            [matTooltip]="isNextMonthDisabled() ? 'Cannot navigate to future months' : 'Next Month'">
       <mat-icon>chevron_right</mat-icon>
     </button>
   </div>
@@ -30,7 +33,7 @@
       *ngFor="let day of calendarDays" 
       [class]="getDayClass(day)"
       (click)="selectDate(day)"
-      [matTooltip]="day.date.format('dddd, MMMM Do YYYY')"
+      [matTooltip]="day.isFuture ? 'Future dates cannot be selected' : day.date.format('dddd, MMMM Do YYYY')"
     >
       <span class="day-number">{{ day.date.date() }}</span>
       <div class="day-indicator" *ngIf="day.isToday || day.isSelected">

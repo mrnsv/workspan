@@ -19,6 +19,7 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
   workHoursStats: WorkHoursStats | null = null;
   loading$: Observable<boolean>;
   loadingMessage$: Observable<string>;
+  error$: Observable<string | null>;
   
   private subscriptions = new Subscription();
   
@@ -47,12 +48,19 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
         return 'DATA SYNC';
       })
     );
+
+    // Combine error streams from both services
+    this.error$ = combineLatest([
+      this.workHoursService.error$,
+      this.authService.error$
+    ]).pipe(
+      map(([workHoursError, authError]) => workHoursError || authError)
+    );
   }
 
   ngOnInit() {
     // Subscribe to work hours stats
     const statsSubscription = this.workHoursService.workHours$.subscribe(stats => {
-      console.log('📈 WorkHours stats updated:', stats);
       this.workHoursStats = stats;
       
       // Trigger change detection to ensure UI updates
@@ -64,24 +72,16 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    // Only reload if selectedDate changes, not selectionMode
-    // The swipe-data component will handle the selectionMode changes
-    if (changes['selectedDate'] && !changes['selectedDate'].firstChange) {
-      console.log(`🔄 Reloading work hours due to date change: ${changes['selectedDate']?.currentValue}`);
+    // Reload data when either selectedDate or selectionMode changes
+    if ((changes['selectedDate'] && !changes['selectedDate'].firstChange) ||
+        (changes['selectionMode'] && !changes['selectionMode'].firstChange)) {
       this.loadWorkHours();
-    }
-    
-    // If only selectionMode changed, don't make a new API call
-    // The swipe-data component will handle this and update the shared service
-    if (changes['selectionMode'] && !changes['selectionMode'].firstChange && !changes['selectedDate']) {
-      console.log(`🔄 Selection mode changed to: ${changes['selectionMode']?.currentValue}, but not making API call (handled by swipe-data component)`);
     }
   }
 
   private loadWorkHours() {
     const dateString = this.workHoursService.formatDate(this.selectedDate);
     
-    console.log(`🗓️ Loading work hours for selectedDate: ${this.selectedDate}, formatted: ${dateString}, selectionMode: ${this.selectionMode}`);
     
     // Only clear cache if this is a refresh action, not on normal date changes
     // this.workHoursService.clearDateCache(dateString);
@@ -89,7 +89,6 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
     // Use the work logs API that provides all data in one call
     const apiSubscription = this.workHoursService.getWorkLogs(dateString, this.selectionMode).subscribe({
       next: (data) => {
-        console.log('🔄 Unified API response received:', data);
         this.workHoursData = data;
         
         // Manually update stats to ensure they're always current (even from cache)
@@ -105,7 +104,6 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
           isComplete: data.stats.isComplete,
           completionPercentage: data.stats.completionPercentage
         };
-        console.log('🎯 Component manually updating stats:', stats);
         this.workHoursStats = stats;
         
         // Trigger change detection to ensure UI updates
@@ -133,10 +131,24 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
   getStatusIcon(): string {
     if (!this.workHoursStats) return 'schedule';
     
+    // If time achieved (complete or excess), show trending_up
     if (this.workHoursStats.isComplete) {
-      return this.workHoursStats.excessHours > 0 ? 'trending_up' : 'check_circle';
+      return 'trending_up';
     }
     
+    // If time not achieved, check working status
+    if (this.workHoursData) {
+      // If currently working (ON), show schedule
+      if (this.workHoursData.sessions.isCurrentlyWorking) {
+        return 'schedule';
+      }
+      // If not working (OFF), show warning
+      else {
+        return 'warning';
+      }
+    }
+    
+    // Fallback to schedule if no work data available
     return 'schedule';
   }
 
@@ -165,6 +177,28 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
     return this.workHoursService.formatHours(hours);
   }
 
+  formatAchievementTime(achievementTime: string | null): string {
+    if (!achievementTime) {
+      return 'N/A';
+    }
+    
+    try {
+      // Parse the achievement time and format it for display
+      const date = new Date(achievementTime);
+      const timeString = date.toLocaleTimeString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+      
+      return timeString; // Return only the time without date
+    } catch (error) {
+      console.error('Error formatting achievement time:', error);
+      return 'Invalid';
+    }
+  }
+
   private parseHoursFromText(hoursText: string): number {
     // Parse format like "24h 30m" or "8h 0m" to decimal hours
     const match = hoursText.match(/(\d+)h\s*(\d+)m/);
@@ -177,10 +211,19 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   onRefresh() {
+    // Clear errors before retry
+    this.workHoursService.clearError();
+    this.authService.clearError();
+    
     // Clear cache only on explicit refresh
     const dateString = this.workHoursService.formatDate(this.selectedDate);
     this.workHoursService.clearDateCache(dateString);
     this.loadWorkHours();
+  }
+
+  clearErrors(): void {
+    this.workHoursService.clearError();
+    this.authService.clearError();
   }
 
   // Cyberpunk UI Methods
@@ -210,10 +253,24 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
   getStatusIndicatorClass(): string {
     if (!this.workHoursStats) return 'neutral';
     
+    // If time achieved (complete or excess), show success (green)
     if (this.workHoursStats.isComplete) {
-      return this.workHoursStats.excessHours > 0 ? 'excess' : 'complete';
+      return 'excess'; // Use excess class for green color
     }
     
+    // If time not achieved, check working status
+    if (this.workHoursData) {
+      // If currently working (ON), show warning (yellow)
+      if (this.workHoursData.sessions.isCurrentlyWorking) {
+        return 'warning';
+      }
+      // If not working (OFF), show deficit (red)
+      else {
+        return 'deficit';
+      }
+    }
+    
+    // Fallback to warning if no work data available
     return 'warning';
   }
 
@@ -237,21 +294,7 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
 
   private getRandomDataSyncMessage(): string {
     const messages = [
-      'DATA SYNC',
-      'NEURAL INTERFACE SYNC',
-      'QUANTUM DATA STREAM',
-      'MATRIX SYNCHRONIZATION',
-      'CYBER GRID UPDATE',
-      'NEURAL NET CALIBRATION',
-      'DATA STREAM ANALYSIS',
-      'SYSTEM DIAGNOSTICS',
-      'MEMORY BANK ACCESS',
-      'DIGITAL CORTEX SYNC',
-      'BIODATA PROCESSING',
-      'NEURAL PATHWAY SCAN',
-      'CYBER CONSCIOUSNESS',
-      'DATA MATRIX LOADING',
-      'VIRTUAL REALITY SYNC'
+      'DATA SYNC'
     ];
     
     const randomIndex = Math.floor(Math.random() * messages.length);

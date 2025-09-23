@@ -34,6 +34,7 @@ import { WorkHoursService } from './services/work-hours.service';
 import { AuthService } from './services/auth.service';
 import { DATE_FORMAT_PROVIDER, CUSTOM_DATE_ADAPTER_PROVIDER } from './config/date-format';
 import { CalendarComponent } from './components/calendar/calendar.component';
+import { ThemeSwitcherComponent } from './components/theme-switcher/theme-switcher.component';
 
 @NgModule({
   declarations: [
@@ -42,7 +43,8 @@ import { CalendarComponent } from './components/calendar/calendar.component';
     LoginFormComponent,
     SwipeDataComponent,
     StatsCardComponent,
-    CalendarComponent
+    CalendarComponent,
+    ThemeSwitcherComponent
   ],
   imports: [
     BrowserModule,

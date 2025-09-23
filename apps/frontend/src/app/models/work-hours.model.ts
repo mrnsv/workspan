@@ -9,6 +9,7 @@ export interface SwipePair {
   outSwipe: string;
   actualHours: number;
   duration: string;
+  outDuration?: string; // Duration of time out of office (between sessions)
 }
 
 
@@ -72,5 +73,17 @@ export interface UnifiedWorkHoursResponse {
     employeeId: number;
     employeeName: string;
     employeeNumber: string;
+  };
+
+  // Enhanced calculation data
+  enhancedCalculation?: {
+    currentDateInRange: boolean;
+    yesterdayDateInRange: boolean;
+    isBefore1030AM: boolean;
+    achievementTime: string | null;
+    additionalSources: {
+      currentActualHours: number;
+      yesterdayActualHours: number;
+    };
   };
 }

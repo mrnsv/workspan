@@ -3,20 +3,47 @@ import { promises as fs } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { spawn } from "child_process";
-import { fetchSwipes } from "./services/punch.service.js";
-import { calculateDailyWorkHours } from "./lib/hours.util.js";
+import { calculateDailyWorkHours, calculateRequiredHoursAchievementTime } from "./lib/hours.util.js";
+
+// Browser session data interface
+interface BrowserSessionData {
+  employeeId: number;
+  employeeName: string;
+  employeeNumber: string;
+  cookie: string;
+}
 
 // Get current directory in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Import environment configuration
+const { env } = await import('../../env/env.js');
+
 const app = express();
 
-// CORS middleware
+// CORS middleware - Allow local network access
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  const origin = req.headers.origin;
+  
+  // Allow localhost and local network IPs (192.168.x.x, 172.x.x.x, 10.x.x.x)
+  const isLocalNetwork = origin && (
+    origin.includes('localhost') ||
+    origin.includes('127.0.0.1') ||
+    origin.match(/^https?:\/\/(192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|10\.)/) ||
+    origin.match(/^https?:\/\/(172\.(1[6-9]|2[0-9]|3[01])\.)/)
+  );
+  
+  if (isLocalNetwork) {
+    res.header('Access-Control-Allow-Origin', origin);
+  } else {
+    // Fallback to localhost for development
+    res.header('Access-Control-Allow-Origin', 'http://localhost:4200');
+  }
+  
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  res.header('Access-Control-Allow-Credentials', 'true');
   
   if (req.method === 'OPTIONS') {
     res.sendStatus(200);
@@ -25,50 +52,60 @@ app.use((req, res, next) => {
   }
 });
 
-// Log all requests for debugging
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.url}`);
-  next();
-});
-
 app.use(express.json());
 
-// Root route
-app.get("/", (req, res) => {
-  res.json({ message: "Workspan Hours Tracker API" });
-});
-
-
-// Get daily work hours summary
-app.get("/api/hours/daily", async (req, res) => {
-  try {
-    const date = req.query.date as string || new Date().toLocaleDateString('en-CA', {
-      timeZone: 'Asia/Kolkata'
-    });
-    
-    console.log(`Calculating hours for ${date}`);
-    const swipes = await fetchSwipes(date);
-    const workHours = calculateDailyWorkHours(swipes, date);
-    
-    res.json({
-      success: true,
-      ...workHours
-    });
-  } catch (error) {
-    console.error('Error in daily hours endpoint:', error);
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
-});
-
-// Helper function to refresh cookie by running get-token script
-async function refreshCookieForTotalHours(): Promise<string> {
-  console.log('🔄 Refreshing expired cookie for total hours API...');
+// Extract browser session data by running get-token.ts
+async function extractBrowserSessionData(loginId: string, password: string): Promise<BrowserSessionData> {
+  const originalLoginId = process.env.LOGIN_ID;
+  const originalPassword = process.env.PASSWORD;
   
-  return new Promise((promiseResolve, promiseReject) => {
-    // Run the get-token script
+  try {
+    // Temporarily set environment variables for the automation script
+    process.env.LOGIN_ID = loginId;
+    process.env.PASSWORD = password;
+    
+    // Run the get-token automation script
+    await runGetTokenScript();
+    
+    // Read the generated data
+    const cookiesPath = path.resolve(__dirname, '../../env/cookies.json');
+    const cookieFileContent = await fs.readFile(cookiesPath, 'utf8');
+    const cookieData = JSON.parse(cookieFileContent);
+    
+    // Delete the temporary file immediately
+    try {
+      await fs.unlink(cookiesPath);
+      console.log(`🗑️ Removed temporary cookies.json for user: ${cookieData.employeeNumber}`);
+    } catch (unlinkError) {
+      console.warn('⚠️ Could not remove cookies.json:', unlinkError.message);
+    }
+    
+    // Return data for browser storage
+    return {
+      employeeId: cookieData.employeeId,
+      employeeName: cookieData.employeeName,
+      employeeNumber: cookieData.employeeNumber,
+      cookie: cookieData.cookie
+    };
+    
+  } finally {
+    // Restore original environment variables
+    if (originalLoginId) {
+      process.env.LOGIN_ID = originalLoginId;
+    } else {
+      delete process.env.LOGIN_ID;
+    }
+    if (originalPassword) {
+      process.env.PASSWORD = originalPassword;
+    } else {
+      delete process.env.PASSWORD;
+    }
+  }
+}
+
+// Run get-token script
+async function runGetTokenScript(): Promise<void> {
+  return new Promise((resolve, reject) => {
     const projectRoot = path.resolve(__dirname, '../../../');
     const getTokenProcess = spawn('npm', ['run', 'get-token'], {
       stdio: 'inherit',
@@ -78,146 +115,161 @@ async function refreshCookieForTotalHours(): Promise<string> {
 
     getTokenProcess.on('close', async (code) => {
       if (code === 0) {
-        console.log('✅ Cookie refresh completed successfully for total hours API');
-        try {
-          // Read the refreshed cookie from cookies.json
-          const cookiesData = JSON.parse(await fs.readFile(path.resolve(__dirname, '../../env/cookies.json'), 'utf8'));
-          promiseResolve(cookiesData.cookie);
-        } catch (error) {
-          promiseReject(new Error('Failed to read refreshed cookie'));
-        }
+        resolve();
       } else {
-        promiseReject(new Error(`Cookie refresh failed with code ${code}`));
+        reject(new Error(`get-token script failed with code ${code}`));
       }
     });
 
     getTokenProcess.on('error', (error) => {
-      promiseReject(new Error(`Failed to start cookie refresh: ${error.message}`));
+      reject(new Error(`Failed to start get-token script: ${error.message}`));
     });
   });
 }
 
-// Helper function to fetch total hours from GreytHR API
-async function fetchTotalHours(startDate: string, endDate: string): Promise<any> {
-  const { env } = await import('../../env/env.js');
-  let cookiesData = JSON.parse(await fs.readFile(path.resolve(__dirname, '../../env/cookies.json'), 'utf8'));
-  
-  if (!env.TOTAL_HOURS_URL) {
-    throw new Error('TOTAL_HOURS_URL not configured in environment');
-  }
-  
-  const url = env.TOTAL_HOURS_URL.replace('{employeeId}', cookiesData.employeeId.toString());
+// Helper function to fetch total hours from GreytHR API using browser session
+async function fetchTotalHoursWithSession(sessionData: BrowserSessionData, startDate: string, endDate: string): Promise<any> {
+  const url = `https://waydot.greythr.com/latte/v3/attendance/info/table/${sessionData.employeeId}/total`;
   const params = new URLSearchParams({
     startDate,
     endDate
   });
   
-  console.log(`Fetching total hours from: ${url}?${params}`);
+  console.log(`🔍 Making Total Hours API request to: ${url}?${params}`);
+  console.log(`🔍 Employee: ${sessionData.employeeName} (${sessionData.employeeNumber})`);
   
   try {
     const response = await fetch(`${url}?${params}`, {
       headers: {
-        'Cookie': cookiesData.cookie,
+        'Cookie': sessionData.cookie,
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
       }
     });
     
+    console.log(`📊 Total Hours API Response Status: ${response.status} ${response.statusText}`);
+    
     if (!response.ok) {
+      console.error(`❌ Total Hours API Error: ${response.status} ${response.statusText}`);
+      console.error(`❌ URL: ${url}?${params}`);
+      
+      // Try to read the error response
+      try {
+        const errorText = await response.text();
+        console.error(`❌ Error Response: ${errorText.substring(0, 500)}...`);
+      } catch (e) {
+        console.error(`❌ Could not read error response`);
+      }
+      
       throw new Error(`Failed to fetch total hours: ${response.status} ${response.statusText}`);
     }
     
-    return await response.json();
+    const data = await response.json();
+    
+    return data;
     
   } catch (error: any) {
-    // If GreytHR API call fails (any HTTP error or network issue), try to refresh the cookie
-    console.log(`🔐 Total hours API call failed (${error.message}), attempting to refresh cookie...`);
-    
-    try {
-      // Refresh the cookie
-      const newCookie = await refreshCookieForTotalHours();
-      
-      // Retry the request with the new cookie
-      console.log('🔄 Retrying total hours request with refreshed cookie...');
-      const retryResponse = await fetch(`${url}?${params}`, {
-        headers: {
-          'Cookie': newCookie,
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        }
-      });
-      
-      if (!retryResponse.ok) {
-        throw new Error(`Retry failed: ${retryResponse.status} ${retryResponse.statusText}`);
-      }
-      
-      console.log('✅ Total hours request successful after cookie refresh');
-      return await retryResponse.json();
-      
-    } catch (refreshError) {
-      console.error('❌ Cookie refresh failed for total hours API:', refreshError);
-      throw new Error(`Total hours API call failed (${error.message}) and cookie refresh unsuccessful`);
-    }
+    console.error(`❌ Error fetching total hours for ${sessionData.employeeNumber}:`, error);
+    throw new Error(`Total hours API call failed: ${error.message}`);
   }
 }
 
-async function fetchInsights(startDate: string, endDate: string): Promise<any> {
-  const { env } = await import('../../env/env.js');
-  let cookiesData = JSON.parse(await fs.readFile(path.resolve(__dirname, '../../env/cookies.json'), 'utf8'));
-  
-  if (!env.INSIGHTS_URL) {
-    throw new Error('INSIGHTS_URL not configured in environment');
-  }
-  
-  const url = env.INSIGHTS_URL.replace('{employeeId}', cookiesData.employeeId.toString());
+// Helper function to fetch insights using browser session
+async function fetchInsightsWithSession(sessionData: BrowserSessionData, startDate: string, endDate: string): Promise<any> {
+  const url = `https://waydot.greythr.com/latte/v3/attendance/info/${sessionData.employeeId}/insights`;
   const params = new URLSearchParams({
     startDate,
     endDate,
     shiftType: 'regular_shift'
   });
   
-  console.log(`Fetching insights from: ${url}?${params}`);
+  console.log(`🔍 Making Insights API request to: ${url}?${params}`);
   
   try {
     const response = await fetch(`${url}?${params}`, {
       headers: {
-        'Cookie': cookiesData.cookie,
+        'Cookie': sessionData.cookie,
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
       }
     });
+    
+    console.log(`📊 Insights API Response Status: ${response.status} ${response.statusText}`);
     
     if (!response.ok) {
       throw new Error(`Failed to fetch insights: ${response.status} ${response.statusText}`);
     }
     
-    return await response.json();
+    const data = await response.json();
+    
+    return data;
     
   } catch (error: any) {
-    // If GreytHR API call fails (any HTTP error or network issue), try to refresh the cookie
-    console.log(`🔐 Insights API call failed (${error.message}), attempting to refresh cookie...`);
+    console.error(`❌ Error fetching insights for ${sessionData.employeeNumber}:`, error);
+    throw new Error(`Insights API call failed: ${error.message}`);
+  }
+}
+
+// Fetch swipes data using browser session
+async function fetchSwipesWithSession(sessionData: BrowserSessionData, date: string): Promise<any[]> {
+  // Use the correct GreytHR API format based on your cURL example
+  const url = `https://waydot.greythr.com/latte/v3/attendance/info/${sessionData.employeeId}/swipes`;
+  const params = new URLSearchParams({ 
+    startDate: date,
+    endDate: '',
+    systemSwipes: 'true',
+    swipePairs: 'true'
+  });
+  
+  console.log(`🔍 Making API request to: ${url}?${params}`);
+  console.log(`🔍 Employee: ${sessionData.employeeName} (${sessionData.employeeNumber})`);
+  
+  try {
+    const response = await fetch(`${url}?${params}`, {
+      headers: {
+        'Cookie': sessionData.cookie,
+        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+        'Accept-Language': 'en,en-IN;q=0.9',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Referer': 'https://waydot.greythr.com/v3/portal/ess/attendance/attendance-info',
+        'Sec-Fetch-Dest': 'empty',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Site': 'same-origin'
+      }
+    });
     
-    try {
-      // Refresh the cookie
-      const newCookie = await refreshCookieForTotalHours();
+    console.log(`📊 API Response Status: ${response.status} ${response.statusText}`);
+    
+    if (!response.ok) {
+      console.error(`❌ API Error: ${response.status} ${response.statusText}`);
+      console.error(`❌ URL: ${url}?${params}`);
       
-      // Retry the request with the new cookie
-      console.log('🔄 Retrying insights request with refreshed cookie...');
-      const retryResponse = await fetch(`${url}?${params}`, {
-        headers: {
-          'Cookie': newCookie,
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        }
-      });
-      
-      if (!retryResponse.ok) {
-        throw new Error(`Retry failed: ${retryResponse.status} ${retryResponse.statusText}`);
+      // Try to read the error response
+      try {
+        const errorText = await response.text();
+        console.error(`❌ Error Response: ${errorText.substring(0, 200)}...`);
+      } catch (e) {
+        console.error(`❌ Could not read error response`);
       }
       
-      console.log('✅ Insights request successful after cookie refresh');
-      return await retryResponse.json();
-      
-    } catch (refreshError) {
-      console.error('❌ Cookie refresh failed for insights API:', refreshError);
-      throw new Error(`Insights API call failed (${error.message}) and cookie refresh unsuccessful`);
+      throw new Error(`API request failed: ${response.status} ${response.statusText}`);
     }
+    
+    const data = await response.json();
+    console.log(`📊 Swipes Count: ${data.swipe ? data.swipe.length : 'No swipe property'}`);
+    
+    if (data.swipe && data.swipe.length > 0) {
+      console.log(`✅ Found ${data.swipe.length} swipes for ${sessionData.employeeNumber}`);
+      console.log(`📊 First swipe sample: ${JSON.stringify(data.swipe[0]).substring(0, 100)}...`);
+    } else {
+      console.log(`⚠️ No swipes data found for ${sessionData.employeeNumber} on ${date}`);
+      console.log(`📊 Full response sample: ${JSON.stringify(data).substring(0, 300)}...`);
+    }
+    
+    return data.swipe || [];
+    
+  } catch (error) {
+    console.error(`❌ Error fetching swipes for ${sessionData.employeeNumber}:`, error);
+    throw error;
   }
 }
 
@@ -263,175 +315,76 @@ function convertMinutesToHoursMinutes(minutes: number): string {
   return `${hours}h ${mins}m`;
 }
 
-// Enhanced calculation to handle GreytHR delay issues
-async function calculateEnhancedActualHours(startDate: string, endDate: string, period: string, greyThrActualHours: number) {
+// LOGIN endpoint - extracts session data using get-token.ts and returns it for browser storage
+app.post("/api/login", async (req, res) => {
   try {
-    // Get current date and time in IST
-    const nowIST = new Date().toLocaleString('en-CA', { timeZone: 'Asia/Kolkata' });
-    const currentDateIST = nowIST.split(' ')[0].replace(',', ''); // YYYY-MM-DD format, remove any comma
-    const currentTimeIST = new Date().toLocaleString('en-US', { 
-      timeZone: 'Asia/Kolkata', 
-      hour12: false, 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    const { loginId, password } = req.body;
+    
+    if (!loginId || !password) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required credentials: loginId and password'
+      });
+    }
+    
+    console.log('🔐 Extracting session data for user:', loginId);
+    
+    // Extract session data using get-token.ts
+    const sessionData = await extractBrowserSessionData(loginId, password);
+    
+    res.json({
+      success: true,
+      message: 'Authentication successful',
+      sessionData: sessionData
     });
     
-    // Calculate previous day in IST
-    const previousDate = new Date(currentDateIST);
-    previousDate.setDate(previousDate.getDate() - 1);
-    const previousDateIST = previousDate.toISOString().split('T')[0];
-    
-    // Check if it's after 10:30 AM IST (when GreytHR updates previous day data)
-    const isAfter1030AM = currentTimeIST >= '10:30';
-    
-    console.log(`🕐 Enhanced calculation - Current: ${currentDateIST} ${currentTimeIST}, Previous: ${previousDateIST}, After 10:30 AM: ${isAfter1030AM}`);
-    
-    // Analyze date positions within the range
-    const dateAnalysis = analyzeDatePositions(startDate, endDate, currentDateIST, previousDateIST);
-    
-    let enhancedActualHours = greyThrActualHours;
-    let additionalHours = 0;
-    let calculationDetails = {
-      greyThrHours: greyThrActualHours,
-      currentDateInRange: dateAnalysis.currentDateInRange,
-      previousDateInRange: dateAnalysis.previousDateInRange,
-      currentDatePosition: dateAnalysis.currentDatePosition,
-      previousDatePosition: dateAnalysis.previousDatePosition,
-      isAfter1030AM: isAfter1030AM,
-      additionalSources: [] as string[],
-      totalAdditionalHours: 0
-    };
-    
-    // Case 1: Current date is within range - always add current day's live hours
-    if (dateAnalysis.currentDateInRange) {
-      try {
-        const currentDaySwipes = await fetchSwipes(currentDateIST);
-        const currentDayHours = calculateDailyWorkHours(currentDaySwipes, currentDateIST);
-        additionalHours += currentDayHours.totalActualHours;
-        calculationDetails.additionalSources.push(`Current day (${currentDateIST}): ${currentDayHours.totalActualHours.toFixed(2)}h`);
-        console.log(`📊 Added current day hours: ${currentDayHours.totalActualHours.toFixed(2)}h from ${currentDaySwipes.length} swipes`);
-      } catch (error) {
-        console.warn(`⚠️ Could not fetch current day swipes: ${error}`);
-      }
-    }
-    
-    // Case 2: Previous date is within range AND it's before 10:30 AM IST
-    // (GreytHR hasn't updated previous day data yet)
-    if (dateAnalysis.previousDateInRange && !isAfter1030AM) {
-      try {
-        const previousDaySwipes = await fetchSwipes(previousDateIST);
-        const previousDayHours = calculateDailyWorkHours(previousDaySwipes, previousDateIST);
-        additionalHours += previousDayHours.totalActualHours;
-        calculationDetails.additionalSources.push(`Previous day (${previousDateIST}): ${previousDayHours.totalActualHours.toFixed(2)}h - Not yet in GreytHR`);
-        console.log(`📊 Added previous day hours (not in GreytHR yet): ${previousDayHours.totalActualHours.toFixed(2)}h from ${previousDaySwipes.length} swipes`);
-      } catch (error) {
-        console.warn(`⚠️ Could not fetch previous day swipes: ${error}`);
-      }
-    }
-    
-    enhancedActualHours = greyThrActualHours + additionalHours;
-    calculationDetails.totalAdditionalHours = additionalHours;
-    
-    // Determine if we should use enhanced calculation
-    const useEnhancedCalculation = additionalHours > 0;
-    
-    const enhancedFormattedTime = convertMinutesToHoursMinutes(Math.round(enhancedActualHours * 60));
-    
-    console.log(`🎯 Enhanced calculation result: GreytHR: ${greyThrActualHours.toFixed(2)}h + Additional: ${additionalHours.toFixed(2)}h = Enhanced: ${enhancedActualHours.toFixed(2)}h`);
-    
-    return {
-      enhancedActualHours,
-      enhancedFormattedTime,
-      useEnhancedCalculation,
-      calculationDetails
-    };
-    
   } catch (error) {
-    console.error('❌ Error in enhanced calculation:', error);
-    // Fallback to original data
-    return {
-      enhancedActualHours: greyThrActualHours,
-      enhancedFormattedTime: convertMinutesToHoursMinutes(Math.round(greyThrActualHours * 60)),
-      useEnhancedCalculation: false,
-      calculationDetails: {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        greyThrHours: greyThrActualHours
-      }
-    };
+    console.error('❌ Authentication failed:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Authentication failed',
+      message: 'Failed to extract session data'
+    });
   }
-}
+});
 
-// Analyze positions of current and previous dates within the date range
-function analyzeDatePositions(startDate: string, endDate: string, currentDate: string, previousDate: string) {
-  // Use string comparison for date ranges (YYYY-MM-DD format)
-  const currentDateInRange = currentDate >= startDate && currentDate <= endDate;
-  const previousDateInRange = previousDate >= startDate && previousDate <= endDate;
-  
-  console.log(`📅 Date analysis: startDate=${startDate}, endDate=${endDate}, currentDate=${currentDate}, previousDate=${previousDate}`);
-  console.log(`📅 Current in range: ${currentDateInRange}, Previous in range: ${previousDateInRange}`);
-  
-  // Determine position within range
-  let currentDatePosition = 'outside';
-  let previousDatePosition = 'outside';
-  
-  if (currentDateInRange) {
-    if (currentDate === startDate && currentDate === endDate) {
-      currentDatePosition = 'single'; // Single day range
-    } else if (currentDate === startDate) {
-      currentDatePosition = 'start';
-    } else if (currentDate === endDate) {
-      currentDatePosition = 'end';
-    } else {
-      currentDatePosition = 'middle';
-    }
-  }
-  
-  if (previousDateInRange) {
-    if (previousDate === startDate && previousDate === endDate) {
-      previousDatePosition = 'single'; // Single day range
-    } else if (previousDate === startDate) {
-      previousDatePosition = 'start';
-    } else if (previousDate === endDate) {
-      previousDatePosition = 'end';
-    } else {
-      previousDatePosition = 'middle';
-    }
-  }
-  
-  return {
-    currentDateInRange,
-    previousDateInRange,
-    currentDatePosition,
-    previousDatePosition
-  };
-}
-
-// Work logs endpoint (combines sessions + swipes + calculations)
-app.get("/api/hours/worklogs", async (req, res) => {
+// Work logs endpoint (combines sessions + swipes + calculations) - OLD implementation with browser sessions
+app.post("/api/hours/worklogs", async (req, res) => {
   try {
-    // Read employee information from cookies.json
-    const cookiesData = JSON.parse(await fs.readFile(path.resolve(__dirname, '../../env/cookies.json'), 'utf8'));
-    const employeeInfo = {
-      employeeId: cookiesData.employeeId || null,
-      employeeName: cookiesData.employeeName || null,
-      employeeNumber: cookiesData.employeeNumber || null
-    };
+    const { sessionData, startDate, endDate, period } = req.body;
     
-    const period = req.query.period as string || 'day'; // 'day', 'week', 'month'
-    let startDate: string, endDate: string;
+    if (!sessionData) {
+      return res.status(400).json({
+        success: false,
+        error: 'Session data required'
+      });
+    }
     
-    if (period === 'day') {
+    // Validate session data
+    if (!sessionData.employeeId || !sessionData.cookie || !sessionData.employeeNumber) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid session data'
+      });
+    }
+    
+    console.log(`📊 Fetching worklogs for ${sessionData.employeeName} (${sessionData.employeeNumber}) - Period: ${period}`);
+    
+    const targetPeriod = period || 'day';
+    let targetStartDate: string, targetEndDate: string;
+    
+    if (targetPeriod === 'day') {
       // For day period, expect startDate parameter (same as date)
-      startDate = req.query.startDate as string || new Date().toLocaleDateString('en-CA', {
+      targetStartDate = startDate || new Date().toLocaleDateString('en-CA', {
         timeZone: 'Asia/Kolkata'
       });
-      endDate = startDate; // Same as startDate for day period
-    } else if (period === 'week') {
+      targetEndDate = targetStartDate; // Same as startDate for day period
+    } else if (targetPeriod === 'week') {
       // For week period, expect both startDate and endDate parameters
-      startDate = req.query.startDate as string;
-      endDate = req.query.endDate as string;
+      targetStartDate = startDate;
+      targetEndDate = endDate;
       
-      if (!startDate || !endDate) {
+      if (!targetStartDate || !targetEndDate) {
         return res.status(400).json({
           success: false,
           error: 'Week period requires both startDate and endDate parameters'
@@ -439,10 +392,10 @@ app.get("/api/hours/worklogs", async (req, res) => {
       }
     } else { // month
       // For month period, expect both startDate and endDate parameters
-      startDate = req.query.startDate as string;
-      endDate = req.query.endDate as string;
+      targetStartDate = startDate;
+      targetEndDate = endDate;
       
-      if (!startDate || !endDate) {
+      if (!targetStartDate || !targetEndDate) {
         return res.status(400).json({
           success: false,
           error: 'Month period requires both startDate and endDate parameters'
@@ -450,27 +403,26 @@ app.get("/api/hours/worklogs", async (req, res) => {
       }
     }
     
-    console.log(`Fetching work hours for period: ${period}, startDate: ${startDate}, endDate: ${endDate}`);
-    
     let actualHours: number;
     let REQUIRED_HOURS: number;
     let allSwipes: any[] = [];
     let sessions: any = {};
     let formattedTime: string;
+    let achievementTime: string | null = null;
     
     // Set required hours based on period
-    if (period === 'day') {
+    if (targetPeriod === 'day') {
       REQUIRED_HOURS = 8;
-    } else if (period === 'week') {
+    } else if (targetPeriod === 'week') {
       REQUIRED_HOURS = 40;
     } else { // month
       REQUIRED_HOURS = 160;
     }
     
-    if (period === 'day') {
+    if (targetPeriod === 'day') {
       // Existing daily logic
-      const swipes = await fetchSwipes(startDate);
-      const workHours = calculateDailyWorkHours(swipes, startDate);
+      const swipes = await fetchSwipesWithSession(sessionData, targetStartDate);
+      const workHours = calculateDailyWorkHours(swipes, targetStartDate);
       
       // Transform swipes data for frontend
       allSwipes = swipes.map(swipe => ({
@@ -484,44 +436,62 @@ app.get("/api/hours/worklogs", async (req, res) => {
       
       sessions = {
         totalActualHours: actualHours,
-      formattedTime: workHours.formattedTime,
-      isCurrentlyWorking: workHours.isCurrentlyWorking,
-      swipePairs: workHours.swipePairs.map(pair => {
-        // Calculate precise duration from actual timestamps
-        const inTime = new Date(pair.inSwipe);
-        const outTime = new Date(pair.outSwipe);
-        const durationMs = outTime.getTime() - inTime.getTime();
-        const totalSeconds = Math.floor(durationMs / 1000);
-        
-        // Round to nearest minute (if seconds >= 30, round up)
-        const totalMinutes = Math.round(totalSeconds / 60);
-        const hours = Math.floor(totalMinutes / 60);
-        const minutes = totalMinutes % 60;
-        
-        return {
+        formattedTime: workHours.formattedTime,
+        isCurrentlyWorking: workHours.isCurrentlyWorking,
+        swipePairs: workHours.swipePairs.map(pair => {
+          // Calculate precise duration from actual timestamps
+          const inTime = new Date(pair.inSwipe);
+          const outTime = new Date(pair.outSwipe);
+          const durationMs = outTime.getTime() - inTime.getTime();
+          const totalSeconds = Math.floor(durationMs / 1000);
+          
+          // Round to nearest minute (if seconds >= 30, round up)
+          const totalMinutes = Math.round(totalSeconds / 60);
+          const hours = Math.floor(totalMinutes / 60);
+          const minutes = totalMinutes % 60;
+          
+          return {
             inSwipe: new Date(pair.inSwipe.endsWith('Z') ? pair.inSwipe : pair.inSwipe + 'Z').toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
             outSwipe: new Date(pair.outSwipe.endsWith('Z') ? pair.outSwipe : pair.outSwipe + 'Z').toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
-          actualHours: pair.actualHours,
-          duration: `${hours}h ${minutes}m`
-        };
-      })
+            actualHours: pair.actualHours,
+            duration: `${hours}h ${minutes}m`,
+            outDuration: pair.outDuration
+          };
+        })
       };
-    } else {
-      // Weekly or Monthly logic - use provided startDate and endDate
-      try {
-        // Fetch total hours from GreytHR API
-        const totalHoursData = await fetchTotalHours(startDate, endDate);
-        
-        // Convert totalProductionHours from minutes to hours
-        const totalProductionMinutes = totalHoursData.totalProductionHours || 0;
-        actualHours = totalProductionMinutes / 60;
-        formattedTime = convertMinutesToHoursMinutes(totalProductionMinutes);
-      } catch (error) {
-        console.error(`Error fetching ${period} data:`, error);
-        // Fallback to 0 hours for now
-        actualHours = 0;
-        formattedTime = '0h 0m';
+      
+      // Calculate achievement time for DAY period and current date
+      if (targetStartDate === new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })) {
+        const achievementResult = calculateRequiredHoursAchievementTime(
+          actualHours,
+          REQUIRED_HOURS,
+          workHours.isCurrentlyWorking,
+          workHours.lastPunchIn
+        );
+        achievementTime = achievementResult.willAchieveAt;
       }
+    } else {
+        // Weekly or Monthly logic - use provided startDate and endDate
+        try {
+          console.log(`🔍 Attempting to fetch ${targetPeriod} data from TOTAL_HOURS_URL API`);
+          console.log(`📅 Date range: ${targetStartDate} to ${targetEndDate}`);
+          
+          // Fetch total hours from GreytHR API
+          const totalHoursData = await fetchTotalHoursWithSession(sessionData, targetStartDate, targetEndDate);
+          
+          // Convert totalProductionHours from minutes to hours
+          const totalProductionMinutes = totalHoursData.totalProductionHours || 0;
+          actualHours = totalProductionMinutes / 60;
+          formattedTime = convertMinutesToHoursMinutes(totalProductionMinutes);
+          
+          console.log(`✅ ${targetPeriod} calculation: ${totalProductionMinutes} minutes = ${actualHours} hours`);
+        } catch (error) {
+          console.error(`❌ Error fetching ${targetPeriod} data:`, error);
+          console.error(`❌ Error details:`, error.message);
+          // Fallback to 0 hours for now
+          actualHours = 0;
+          formattedTime = '0h 0m';
+        }
       
       // For weekly/monthly view, we don't show individual swipes
       allSwipes = [];
@@ -533,15 +503,88 @@ app.get("/api/hours/worklogs", async (req, res) => {
       };
     }
 
-    // Enhanced Real-time Calculation Logic
-    // Handle GreytHR delay: current day hours not included until next day 10:30 AM IST
-    const enhancedData = await calculateEnhancedActualHours(startDate, endDate, period, actualHours);
-    
-    // Add enhanced data to sessions
-    sessions.enhancedActualHours = enhancedData.enhancedActualHours;
-    sessions.enhancedFormattedTime = enhancedData.enhancedFormattedTime;
-    sessions.useEnhancedCalculation = enhancedData.useEnhancedCalculation;
-    sessions.calculationDetails = enhancedData.calculationDetails;
+
+    // Enhanced Calculation Logic for WEEK and MONTH modes
+    let enhancedCalculation = {
+      currentDateInRange: false,
+      yesterdayDateInRange: false,
+      isBefore1030AM: false,
+      achievementTime: achievementTime,
+      additionalSources: {
+        currentActualHours: 0,
+        yesterdayActualHours: 0
+      }
+    };
+
+    if (targetPeriod !== 'day') {
+      // Get current date and time in IST
+      const nowIST = new Date().toLocaleString('en-CA', { timeZone: 'Asia/Kolkata' });
+      const currentDateIST = nowIST.split(' ')[0].replace(',', ''); // YYYY-MM-DD format
+      const currentTimeIST = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Asia/Kolkata',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      }).format(new Date());
+      
+      // Calculate yesterday's date in IST
+      const yesterdayDate = new Date(currentDateIST);
+      yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+      const yesterdayDateIST = yesterdayDate.toISOString().split('T')[0];
+      
+      // Check if current date is in selected date range
+      const currentDateInRange = currentDateIST >= targetStartDate && currentDateIST <= targetEndDate;
+      
+      // Check if yesterday's date is in selected date range
+      const yesterdayDateInRange = yesterdayDateIST >= targetStartDate && yesterdayDateIST <= targetEndDate;
+      
+      // Check if current time is before 10:30 AM IST
+      const isBefore1030AM = currentTimeIST < '10:30';
+      
+      // Initialize enhanced calculation object
+      enhancedCalculation = {
+        currentDateInRange: currentDateInRange,
+        yesterdayDateInRange: yesterdayDateInRange,
+        isBefore1030AM: isBefore1030AM,
+        achievementTime: achievementTime,
+        additionalSources: {
+          currentActualHours: 0,
+          yesterdayActualHours: 0
+        }
+      };
+      
+      // For WEEK and MONTH periods, fetch current day's actual hours if current date is in range
+      if (currentDateInRange) {
+        try {
+          console.log(`🔍 Fetching current day's swipes for enhanced calculation`);
+          const currentDaySwipes = await fetchSwipesWithSession(sessionData, currentDateIST);
+          const currentDayWorkHours = calculateDailyWorkHours(currentDaySwipes, currentDateIST);
+          enhancedCalculation.additionalSources.currentActualHours = currentDayWorkHours.totalActualHours;
+          console.log(`✅ Current day actual hours: ${currentDayWorkHours.totalActualHours}`);
+        } catch (error) {
+          console.error(`❌ Error fetching current day's swipes:`, error);
+          enhancedCalculation.additionalSources.currentActualHours = 0;
+        }
+      } else {
+        enhancedCalculation.additionalSources.currentActualHours = 0;
+      }
+      
+      // Fetch yesterday's actual hours if yesterday is in range AND it's before 10:30 AM
+      if (yesterdayDateInRange && isBefore1030AM) {
+        try {
+          console.log(`🔍 Fetching yesterday's swipes for enhanced calculation`);
+          const yesterdaySwipes = await fetchSwipesWithSession(sessionData, yesterdayDateIST);
+          const yesterdayWorkHours = calculateDailyWorkHours(yesterdaySwipes, yesterdayDateIST);
+          enhancedCalculation.additionalSources.yesterdayActualHours = yesterdayWorkHours.totalActualHours;
+          console.log(`✅ Yesterday actual hours: ${yesterdayWorkHours.totalActualHours}`);
+        } catch (error) {
+          console.error(`❌ Error fetching yesterday's swipes:`, error);
+          enhancedCalculation.additionalSources.yesterdayActualHours = 0;
+        }
+      } else {
+        enhancedCalculation.additionalSources.yesterdayActualHours = 0;
+      }
+    }
 
     // Fetch attendance status info from insights API
     let attendanceStatusInfo = {
@@ -552,7 +595,7 @@ app.get("/api/hours/worklogs", async (req, res) => {
     };
     
     try {
-      const insightsData = await fetchInsights(startDate, endDate);
+      const insightsData = await fetchInsightsWithSession(sessionData, targetStartDate, targetEndDate);
       if (insightsData && insightsData.monthlyStatusInfo) {
         attendanceStatusInfo = {
           "P": insightsData.monthlyStatusInfo.P || 0.0,
@@ -560,10 +603,8 @@ app.get("/api/hours/worklogs", async (req, res) => {
           "L": insightsData.monthlyStatusInfo.L || 0.0,
           "O": insightsData.monthlyStatusInfo.O || 0.0
         };
-        console.log(`✅ Attendance status info retrieved:`, attendanceStatusInfo);
       }
     } catch (error) {
-      console.warn(`⚠️ Could not fetch attendance status info: ${error}`);
       // Keep default values (all zeros)
     }
 
@@ -572,28 +613,38 @@ app.get("/api/hours/worklogs", async (req, res) => {
     // For other periods: actualRequiredHours = requiredHours - ((8h 0m) × (H + L))
     let deductionDays, deductionHours, actualRequiredHours;
     
-    if (period === 'day') {
+    if (targetPeriod === 'day') {
       deductionDays = (attendanceStatusInfo.H || 0) + (attendanceStatusInfo.L || 0) + (attendanceStatusInfo.O || 0);
       deductionHours = deductionDays * 8; // 8 hours per H/L/O day
       actualRequiredHours = Math.max(0, REQUIRED_HOURS - deductionHours);
-      console.log(`📊 Actual Required Hours calculation (DAY): ${REQUIRED_HOURS}h - (${deductionDays} × 8h) = ${actualRequiredHours}h [H+L+O: ${attendanceStatusInfo.H}+${attendanceStatusInfo.L}+${attendanceStatusInfo.O}]`);
     } else {
       deductionDays = (attendanceStatusInfo.H || 0) + (attendanceStatusInfo.L || 0);
       deductionHours = deductionDays * 8; // 8 hours per H/L day
       actualRequiredHours = Math.max(0, REQUIRED_HOURS - deductionHours);
-      console.log(`📊 Actual Required Hours calculation (${period.toUpperCase()}): ${REQUIRED_HOURS}h - (${deductionDays} × 8h) = ${actualRequiredHours}h [H+L: ${attendanceStatusInfo.H}+${attendanceStatusInfo.L}]`);
     }
 
-    // Original calculations using actualRequiredHours
-    const shortfallHours = Math.max(0, actualRequiredHours - actualHours);
-    const excessHours = Math.max(0, actualHours - actualRequiredHours);
-    const completionPercentage = actualRequiredHours > 0 ? Math.min(100, (actualHours / actualRequiredHours) * 100) : 100;
+    // Calculate enhanced actual hours for WEEK and MONTH modes
+    let enhancedActualHours = actualHours;
+    
+    if (targetPeriod !== 'day') {
+      // Add current date actual hours if current date is in range
+      if (enhancedCalculation.currentDateInRange && enhancedCalculation.additionalSources.currentActualHours) {
+        enhancedActualHours += enhancedCalculation.additionalSources.currentActualHours;
+      }
+      
+      // Add yesterday's actual hours if yesterday is in range AND it's before 10:30 AM
+      if (enhancedCalculation.yesterdayDateInRange && enhancedCalculation.isBefore1030AM && enhancedCalculation.additionalSources.yesterdayActualHours) {
+        enhancedActualHours += enhancedCalculation.additionalSources.yesterdayActualHours;
+      }
+    }
 
-    // Enhanced statistics using enhanced actual hours and actualRequiredHours
-    const enhancedActualHours = sessions.enhancedActualHours || actualHours;
-    const enhancedShortfallHours = Math.max(0, actualRequiredHours - enhancedActualHours);
-    const enhancedExcessHours = Math.max(0, enhancedActualHours - actualRequiredHours);
-    const enhancedCompletionPercentage = actualRequiredHours > 0 ? Math.min(100, (enhancedActualHours / actualRequiredHours) * 100) : 100;
+    // Use enhanced hours for WEEK/MONTH, original hours for DAY
+    const finalActualHours = targetPeriod === 'day' ? actualHours : enhancedActualHours;
+
+    // Original calculations using actualRequiredHours
+    const shortfallHours = Math.max(0, actualRequiredHours - finalActualHours);
+    const excessHours = Math.max(0, finalActualHours - actualRequiredHours);
+    const completionPercentage = actualRequiredHours > 0 ? Math.min(100, (finalActualHours / actualRequiredHours) * 100) : 100;
 
     // Format hours helper function
     const formatHours = (hours: number): string => {
@@ -602,22 +653,17 @@ app.get("/api/hours/worklogs", async (req, res) => {
       return `${wholeHours}h ${minutes}m`;
     };
 
-    // Determine status and mode using actualRequiredHours (original)
-    const isComplete = actualHours >= actualRequiredHours;
-    const isExcess = actualHours > actualRequiredHours;
+    // Determine status and mode using enhanced hours for WEEK/MONTH, original for DAY
+    const isComplete = finalActualHours >= actualRequiredHours;
+    const isExcess = finalActualHours > actualRequiredHours;
     const statusMode = isExcess ? 'excess' : isComplete ? 'complete' : 'incomplete';
-
-    // Enhanced status and mode using actualRequiredHours
-    const enhancedIsComplete = enhancedActualHours >= actualRequiredHours;
-    const enhancedIsExcess = enhancedActualHours > actualRequiredHours;
-    const enhancedStatusMode = enhancedIsExcess ? 'excess' : enhancedIsComplete ? 'complete' : 'incomplete';
 
     // Build unified response
     const unifiedResponse = {
       success: true,
-      startDate: startDate,
-      endDate: endDate,
-      period: period,
+      startDate: targetStartDate,
+      endDate: targetEndDate,
+      period: targetPeriod,
       
       // Raw data
       totalSwipes: allSwipes.length,
@@ -626,9 +672,9 @@ app.get("/api/hours/worklogs", async (req, res) => {
       // Sessions data
       sessions,
       
-      // Calculated statistics (original GreytHR data)
+      // Calculated statistics (enhanced for WEEK/MONTH, original for DAY)
       stats: {
-        actualHours,
+        actualHours: finalActualHours,
         requiredHours: REQUIRED_HOURS,
         shortfallHours,
         excessHours,
@@ -637,25 +683,15 @@ app.get("/api/hours/worklogs", async (req, res) => {
         statusMode
       },
 
-      // Enhanced statistics (real-time calculation)
-      enhancedStats: {
-        actualHours: enhancedActualHours,
-        requiredHours: REQUIRED_HOURS,
-        shortfallHours: enhancedShortfallHours,
-        excessHours: enhancedExcessHours,
-        isComplete: enhancedIsComplete,
-        completionPercentage: enhancedCompletionPercentage,
-        statusMode: enhancedStatusMode,
-        useEnhancedCalculation: sessions.useEnhancedCalculation,
-        calculationDetails: sessions.calculationDetails
-      },
-
       // Attendance status information from insights API
       attendanceStatusInfo,
       
-      // UI display data (original)
+      // Enhanced Calculation (WEEK and MONTH modes only)
+      enhancedCalculation,
+      
+      // UI display data (enhanced for WEEK/MONTH, original for DAY)
       display: {
-        activeHours: formatHours(actualHours),
+        activeHours: formatHours(finalActualHours),
         requiredHours: formatHours(REQUIRED_HOURS),
         actualRequiredHours: formatHours(actualRequiredHours),
         excessTime: isExcess ? formatHours(excessHours) : null,
@@ -669,23 +705,6 @@ app.get("/api/hours/worklogs", async (req, res) => {
         statusClass: statusMode
       },
 
-      // Enhanced UI display data (real-time)
-      enhancedDisplay: {
-        activeHours: formatHours(enhancedActualHours),
-        requiredHours: formatHours(REQUIRED_HOURS),
-        actualRequiredHours: formatHours(actualRequiredHours),
-        excessTime: enhancedIsExcess ? formatHours(enhancedExcessHours) : null,
-        shortfallTime: !enhancedIsComplete ? formatHours(enhancedShortfallHours) : null,
-        progressPercentage: Math.round(enhancedCompletionPercentage),
-        statusMessage: enhancedIsExcess 
-          ? `OVERDRIVE MODE: +${formatHours(enhancedExcessHours)}`
-          : enhancedIsComplete 
-            ? 'COMPLETE'
-            : `${formatHours(enhancedShortfallHours)} REMAINING`,
-        statusClass: enhancedStatusMode,
-        useEnhancedCalculation: sessions.useEnhancedCalculation
-      },
-      
       // Additional metadata
       metadata: {
         currentTime: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
@@ -695,9 +714,9 @@ app.get("/api/hours/worklogs", async (req, res) => {
       
       // Employee information
       employee: {
-        employeeId: employeeInfo.employeeId,
-        employeeName: employeeInfo.employeeName,
-        employeeNumber: employeeInfo.employeeNumber
+        employeeId: sessionData.employeeId,
+        employeeName: sessionData.employeeName,
+        employeeNumber: sessionData.employeeNumber
       }
     };
 
@@ -708,26 +727,24 @@ app.get("/api/hours/worklogs", async (req, res) => {
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
-      period: req.query.period as string || 'day'
+      period: req.body.period || 'day'
     });
   }
 });
 
-// Simple ping endpoint
-app.get("/ping", (req, res) => {
-  res.json({ pong: true, timestamp: new Date().toISOString() });
-});
-
-app.get("/api/ping", (req, res) => {
-  res.json({ pong: true, timestamp: new Date().toISOString() });
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log("Routes available:");
-  console.log("  GET /");
-  console.log("  GET /api/hours/daily?date=YYYY-MM-DD");
-  console.log("  GET /api/hours/worklogs?startDate=YYYY-MM-DD&period=day|week|month");
-  console.log("  GET /ping");
+const PORT = Number(env.PORT) || 3000;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Workspan Backend Server running on port ${PORT}`);
+  console.log(`📍 Backend URL: ${env.BACKEND_URL || `http://localhost:${PORT}`}`);
+  console.log(`🌐 Frontend URL: ${env.FRONTEND_URL || 'http://localhost:4200'}`);
+  
+  console.log("\n📋 Available Routes:");
+  console.log("  POST /api/login - Extract session data using get-token.ts");
+  console.log("  POST /api/hours/worklogs - Get work logs");
+  
+  console.log("\n🔧 Implementation Details:");
+  console.log("  📊 DAY: Single swipes API call");
+  console.log("  📊 WEEK/MONTH: Single total-hours API call + enhanced calculations");
+  console.log("  🔐 Session Management: Browser-based (localStorage)");
+  console.log("  ⚡ Performance: Optimized with single API calls for week/month");
 });

@@ -22,6 +22,7 @@ export interface SwipePair {
   inSwipe: string;
   outSwipe: string;
   actualHours: number;
+  outDuration?: string; // Duration of time out of office (between sessions)
 }
 
 export function createSwipePairs(
@@ -44,6 +45,8 @@ export function createSwipePairs(
   const swipePairs: SwipePair[] = [];
   let totalExactSeconds = 0;
   let lastIn: DayjsInstance | null = null;
+  let lastOut: DayjsInstance | null = null; // Track last OUT time for calculating out duration
+  let pendingOutDuration: string | undefined = undefined; // Store out duration for next session
 
   // Check if first swipe is OUT (missing initial IN)
   if (ordered.length > 0 && ordered[0].inOutIndicator === 0) {
@@ -71,9 +74,11 @@ export function createSwipePairs(
       swipePairs.push({
         inSwipe: estimatedStartTime.utc().format(),
         outSwipe: firstOut.utc().format(),
-        actualHours: parseFloat(sessionHours.toFixed(2))
+        actualHours: parseFloat(sessionHours.toFixed(2)),
+        outDuration: undefined // No out duration for the first session
       });
       totalExactSeconds += exactSeconds;
+      lastOut = firstOut; // Update last OUT time
     }
   }
 
@@ -81,6 +86,15 @@ export function createSwipePairs(
     const time = dayjs.utc(swipe.punchDateTime).tz(TZ);
 
     if (swipe.inOutIndicator === 1) { // IN
+      // Calculate out duration (time between last OUT and current IN)
+      if (lastOut && time.isAfter(lastOut)) {
+        const outDurationMs = time.valueOf() - lastOut.valueOf();
+        const outDurationSeconds = Math.floor(outDurationMs / 1000);
+        const outDurationMinutes = Math.round(outDurationSeconds / 60);
+        const outHours = Math.floor(outDurationMinutes / 60);
+        const outMinutes = outDurationMinutes % 60;
+        pendingOutDuration = `${outHours}h ${outMinutes}m`;
+      }
       lastIn = time;
     } else if (swipe.inOutIndicator === 0) { // OUT
       if (lastIn && time.isAfter(lastIn)) {
@@ -92,10 +106,13 @@ export function createSwipePairs(
         swipePairs.push({
           inSwipe: lastIn.utc().format(),
           outSwipe: time.utc().format(),
-          actualHours: parseFloat(sessionHours.toFixed(2))
+          actualHours: parseFloat(sessionHours.toFixed(2)),
+          outDuration: pendingOutDuration
         });
         totalExactSeconds += exactSeconds;
+        lastOut = time; // Update last OUT time
         lastIn = null;
+        // Don't reset pendingOutDuration here - it will be used for the next session
       }
       // If lastIn is null, this OUT swipe was already handled above
     }
@@ -124,7 +141,8 @@ export function createSwipePairs(
     swipePairs.push({
       inSwipe: lastIn.utc().format(),
       outSwipe: estimatedOutTime.utc().format(),
-      actualHours: parseFloat(sessionHours.toFixed(2))
+      actualHours: parseFloat(sessionHours.toFixed(2)),
+      outDuration: pendingOutDuration
     });
     totalExactSeconds += exactSeconds;
   }
@@ -327,6 +345,59 @@ export function getWeekDateRange(date: string): { start: string; end: string } {
     start: start.format('YYYY-MM-DD'),
     end: end.format('YYYY-MM-DD')
   };
+}
+
+export function calculateRequiredHoursAchievementTime(
+  currentHours: number,
+  requiredHours: number,
+  isCurrentlyWorking: boolean,
+  lastPunchIn?: string,
+  now: DayjsInstance = dayjs().tz(TZ)
+): { willAchieveAt: string | null; hoursRemaining: number; isAchievable: boolean } {
+  // If already achieved, return null
+  if (currentHours >= requiredHours) {
+    return {
+      willAchieveAt: null,
+      hoursRemaining: 0,
+      isAchievable: true
+    };
+  }
+
+  const hoursRemaining = requiredHours - currentHours;
+  
+  // If not currently working, cannot calculate achievement time
+  if (!isCurrentlyWorking) {
+    return {
+      willAchieveAt: null,
+      hoursRemaining,
+      isAchievable: false
+    };
+  }
+
+  try {
+    // NEW LOGIC: Calculate achievement time as Current Time + DEF (Deficit Hours)
+    // This gives a real-time estimate of when the user will complete their required hours
+    const achievementTime = now.add(hoursRemaining, 'hour');
+    
+    // Format the achievement time in IST
+    const achievementTimeIST = achievementTime.format('YYYY-MM-DD HH:mm:ss');
+    
+    console.log(`Achievement time calculated: ${achievementTimeIST} (${hoursRemaining} hours remaining from current time ${now.format('HH:mm:ss')})`);
+    
+    return {
+      willAchieveAt: achievementTimeIST,
+      hoursRemaining,
+      isAchievable: true
+    };
+  } catch (error) {
+    console.error('Error calculating achievement time:', error);
+    console.error('Input parameters:', { currentHours, requiredHours, isCurrentlyWorking, lastPunchIn });
+    return {
+      willAchieveAt: null,
+      hoursRemaining,
+      isAchievable: false
+    };
+  }
 }
 
 export function getMonthDateRange(date: string): { start: string; end: string } {

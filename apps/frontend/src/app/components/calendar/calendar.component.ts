@@ -11,6 +11,7 @@ interface CalendarDay {
   isWeekend: boolean;
   isInSelectedWeek?: boolean;
   isInSelectedMonth?: boolean;
+  isFuture: boolean;
 }
 
 @Component({
@@ -26,6 +27,7 @@ export class CalendarComponent implements OnInit, OnChanges {
   currentMonth: moment.Moment = moment();
   calendarDays: CalendarDay[] = [];
   weekDays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+  today = moment();
   
   ngOnInit() {
     this.generateCalendar();
@@ -65,11 +67,12 @@ export class CalendarComponent implements OnInit, OnChanges {
       const day: CalendarDay = {
         date: current.clone(),
         isCurrentMonth: current.isSame(this.currentMonth, 'month'),
-        isToday: current.isSame(moment(), 'day'),
+        isToday: current.isSame(this.today, 'day'),
         isSelected: this.isDateSelected(current),
         isWeekend: current.day() === 0 || current.day() === 6,
         isInSelectedWeek: this.isInSelectedWeek(current),
-        isInSelectedMonth: this.isInSelectedMonth(current)
+        isInSelectedMonth: this.isInSelectedMonth(current),
+        isFuture: current.isAfter(this.today, 'day')
       };
       
       this.calendarDays.push(day);
@@ -78,6 +81,11 @@ export class CalendarComponent implements OnInit, OnChanges {
   }
 
   selectDate(day: CalendarDay) {
+    // Prevent selection of future dates
+    if (day.isFuture) {
+      return;
+    }
+    
     // If clicking on a date from previous/next month, navigate to that month
     if (!day.isCurrentMonth) {
       this.currentMonth = day.date.clone();
@@ -94,18 +102,34 @@ export class CalendarComponent implements OnInit, OnChanges {
   }
 
   nextMonth() {
-    this.currentMonth = this.currentMonth.clone().add(1, 'month');
+    // Prevent navigation to future months
+    const nextMonth = this.currentMonth.clone().add(1, 'month');
+    if (nextMonth.isAfter(this.today, 'month')) {
+      return;
+    }
+    
+    this.currentMonth = nextMonth;
     this.generateCalendar();
   }
 
   goToToday() {
-    this.currentMonth = moment();
+    this.currentMonth = this.today.clone();
     this.generateCalendar();
-    this.dateSelected.emit(new Date());
+    this.dateSelected.emit(this.today.toDate());
   }
 
   getMonthYear(): string {
     return this.currentMonth.format('MMMM YYYY').toUpperCase();
+  }
+
+  // Helper methods for future date restrictions
+  isNextMonthDisabled(): boolean {
+    const nextMonth = this.currentMonth.clone().add(1, 'month');
+    return nextMonth.isAfter(this.today, 'month');
+  }
+
+  isDateInFuture(date: moment.Moment): boolean {
+    return date.isAfter(this.today, 'day');
   }
 
   private isDateSelected(date: moment.Moment): boolean {
@@ -148,6 +172,7 @@ export class CalendarComponent implements OnInit, OnChanges {
     if (!day.isCurrentMonth) classes.push('other-month');
     if (day.isToday) classes.push('today');
     if (day.isWeekend) classes.push('weekend');
+    if (day.isFuture) classes.push('future');
     
     // Handle different selection modes
     switch (this.selectionMode) {

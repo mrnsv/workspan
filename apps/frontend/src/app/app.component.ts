@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { WorkHoursService } from './services/work-hours.service';
 import { AuthService } from './services/auth.service';
+import { ThemeService } from './services/theme.service';
 import { TimePeriod } from './components/calendar/calendar.component';
 import { Subscription } from 'rxjs';
 
@@ -11,7 +12,7 @@ import { Subscription } from 'rxjs';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit, OnDestroy {
-  title = 'WORKSPAN NEURAL INTERFACE';
+  title = 'WORKSPAN';
   selectedDate = new Date();
   selectionMode: TimePeriod = 'day';
   dateInputValue = '';
@@ -29,6 +30,7 @@ export class AppComponent implements OnInit, OnDestroy {
   constructor(
     private workHoursService: WorkHoursService,
     private authService: AuthService,
+    private themeService: ThemeService,
     private snackBar: MatSnackBar,
     private cdr: ChangeDetectorRef
   ) {
@@ -39,19 +41,17 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnInit() {
     try {
       this.initializeDateInput();
-      this.testConnection();
       this.startTimeUpdater();
       this.subscribeToEmployeeData();
     } catch (error) {
       console.error('Error during component initialization:', error);
-      this.showSnackBar('⚠️ NEURAL INTERFACE INITIALIZATION FAILED', 'error');
+      this.showSnackBar('⚠️ WORKSPAN INITIALIZATION FAILED', 'error');
     }
   }
 
   private subscribeToEmployeeData() {
     this.employeeSubscription = this.workHoursService.employee$.subscribe(employee => {
       this.employeeData = employee;
-      console.log('👤 Employee data updated:', employee);
     });
   }
 
@@ -104,10 +104,6 @@ export class AppComponent implements OnInit, OnDestroy {
       .toUpperCase();
     
     return initials;
-  }
-
-  getEmployeeRankLabel(): string {
-    return 'OPER'; // Operator - fits cyberpunk theme
   }
 
   private initializeCachedValues(): void {
@@ -175,19 +171,6 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
 
-  private testConnection() {
-    this.authService.testConnection().subscribe({
-      next: () => {
-        console.log('✅ Neural link established');
-        this.showSnackBar('🔗 NEURAL LINK ESTABLISHED', 'success');
-      },
-      error: (error) => {
-        console.error('❌ Neural link failed:', error);
-        this.showSnackBar('⚠️ NEURAL LINK COMPROMISED', 'warn');
-      }
-    });
-  }
-
   onDateChanged(date: Date) {
     this.selectedDate = date;
     this.updateDateInputValue(); // Update input field when date changes from calendar
@@ -248,7 +231,6 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   onSelectionModeChanged(mode: TimePeriod) {
-    console.log('🔄 Selection mode changed to:', mode);
     this.selectionMode = mode;
   }
 
@@ -338,7 +320,6 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   onCookieRefreshed() {
-    console.log('🔄 Cookie refreshed - initiating smooth data reload');
     
     // Show immediate feedback
     this.showSnackBar('🔄 AUTHENTICATION MATRIX REFRESHED - RELOADING DATA...', 'info');
@@ -350,27 +331,17 @@ export class AppComponent implements OnInit, OnDestroy {
     const currentDate = this.selectedDate;
     this.selectedDate = new Date(currentDate.getTime()); // Create new date object to trigger change detection
     
-    // Force refresh data for the current date and selection mode
-    // Reduced delay for faster response
+    // The date change will automatically trigger fresh API calls from components
+    // No need for additional forceRefresh() call to avoid duplicate requests
     setTimeout(() => {
-      const dateString = this.workHoursService.formatDate(this.selectedDate);
-      this.workHoursService.forceRefresh(dateString, this.selectionMode).subscribe({
-        next: (data) => {
-          console.log('🔄 Data reloaded after cookie refresh:', data);
-          this.showSnackBar('✅ DATA REFRESHED WITH NEW AUTHENTICATION', 'success');
-        },
-        error: (error) => {
-          console.error('❌ Failed to reload data after cookie refresh:', error);
-          this.showSnackBar('⚠️ DATA REFRESH FAILED - TRY MANUAL REFRESH', 'warn');
-        }
-      });
-    }, 100); // Reduced delay for smoother experience
+      this.showSnackBar('✅ DATA REFRESHED WITH NEW AUTHENTICATION', 'success');
+    }, 100);
   }
 
   private showSnackBar(message: string, type: 'success' | 'error' | 'warn' | 'info') {
     const config = {
       duration: 4000,
-      panelClass: [`snackbar-${type}`, 'cyberpunk-snackbar'],
+      panelClass: [`snackbar-${type}`, 'theme-snackbar'],
       horizontalPosition: 'right' as const,
       verticalPosition: 'bottom' as const
     };

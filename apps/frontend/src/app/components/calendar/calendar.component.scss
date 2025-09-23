@@ -7,7 +7,7 @@
   border-radius: 0;
   backdrop-filter: none;
   padding: 0.1rem;
-  font-family: 'Orbitron', monospace;
+  font-family: var(--cp-font-family);
   transition: all 0.3s ease;
 }
 
@@ -18,7 +18,7 @@
   justify-content: space-between;
   margin-bottom: 0.2rem;
   padding: 0.2rem 0.3rem;
-  background: rgba(128, 0, 0, 0.1);
+  background: var(--cp-glass);
   border: 1px solid var(--cp-border);
   border-radius: 3px;
 }
@@ -36,21 +36,26 @@
   justify-content: center !important; /* Center horizontally */
   transition: all 0.3s ease !important;
   
-  &:hover {
-    color: var(--cp-accent) !important;
-    border-color: var(--cp-accent) !important;
-    background: rgba(72, 230, 255, 0.1) !important;
-    transform: scale(1.05);
-  }
+/* Removed hover animation for nav-btn */
   
   mat-icon {
-    font-size: 1.1rem; /* Increased for better visibility */
+    font-size: var(--cp-component-font-size-lg); /* Increased for better visibility */
     width: 1.1rem;
     height: 1.1rem;
-    line-height: 1 !important; /* Ensure proper vertical alignment */
+    line-height: var(--cp-component-line-height-tight) !important; /* Ensure proper vertical alignment */
     display: flex !important; /* Ensure icon centers properly */
     align-items: center !important;
     justify-content: center !important;
+  }
+}
+
+.nav-btn:disabled {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+  color: var(--cp-secondary) !important;
+  
+  mat-icon {
+    color: var(--cp-secondary) !important;
   }
 }
 
@@ -61,11 +66,11 @@
 
 .month-text {
   color: var(--cp-accent);
-  font-weight: 700;
-  font-size: 0.8rem; /* Increased for better readability */
+  font-weight: var(--cp-component-font-weight-bold);
+  font-size: var(--cp-component-font-size-sm); /* Increased for better readability */
   text-transform: uppercase;
-  letter-spacing: 0.6px; /* Slightly increased */
-  text-shadow: 0 0 6px rgba(72, 230, 255, 0.4);
+  letter-spacing: var(--cp-component-letter-spacing-normal); /* Slightly increased */
+  text-shadow: 0 0 6px var(--cp-border-accent);
 }
 
 
@@ -82,10 +87,10 @@
 .weekday {
   text-align: center;
   color: var(--cp-secondary);
-  font-weight: 700;
-  font-size: 0.6rem; /* Increased for better readability */
+  font-weight: var(--cp-component-font-weight-bold);
+  font-size: var(--cp-component-font-size-xs); /* Increased for better readability */
   text-transform: uppercase;
-  letter-spacing: 0.4px; /* Slightly increased */
+  letter-spacing: var(--cp-component-letter-spacing-tight); /* Slightly increased */
   padding: 0.1rem 0.02rem;
 }
 
@@ -104,7 +109,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--cp-glass);
   border: 1px solid var(--cp-border);
   border-radius: 2px; /* Reduced from 3px */
   cursor: pointer;
@@ -112,17 +117,17 @@
   min-height: 26px; /* Reduced from 32px */
   
   &:hover {
-    background: rgba(72, 230, 255, 0.1);
-    border-color: var(--cp-accent);
+    background: var(--cp-glass-hover);
+    border-color: var(--cp-primary);
     transform: scale(1.02); /* Reduced from 1.03 */
-    box-shadow: 0 1px 4px rgba(72, 230, 255, 0.3);
+    box-shadow: 0 1px 4px var(--cp-border-accent);
   }
 }
 
 .day-number {
   color: var(--cp-primary);
-  font-weight: 600;
-  font-size: 0.75rem; /* Increased for better readability */
+  font-weight: var(--cp-component-font-weight-semibold);
+  font-size: var(--cp-component-font-size-sm); /* Increased for better readability */
   z-index: 2;
   position: relative;
 }
@@ -138,65 +143,87 @@
   
   &:hover {
     opacity: 0.7; /* More visible on hover */
-    background: rgba(72, 230, 255, 0.1);
+    background: var(--cp-glass-hover);
     transform: scale(1.05);
     
     .day-number {
-      color: var(--cp-accent);
+      color: var(--cp-primary);
     }
   }
 }
 
 .calendar-day.weekend {
-  background: rgba(255, 92, 92, 0.1);
+  background: var(--cp-glass);
   
   .day-number {
     color: var(--cp-warning);
   }
 }
 
-.calendar-day.today {
-  background: rgba(72, 230, 255, 0.2) !important;
-  border: 2px solid var(--cp-accent) !important;
-  box-shadow: 0 0 15px rgba(72, 230, 255, 0.4);
+.calendar-day.future {
+  opacity: 0.3 !important;
+  cursor: not-allowed !important;
+  background: var(--cp-glass) !important;
   
   .day-number {
-    color: var(--cp-accent);
-    font-weight: 700;
-    text-shadow: 0 0 5px rgba(72, 230, 255, 0.8);
+    color: var(--cp-secondary) !important;
+  }
+  
+  &:hover {
+    background: var(--cp-glass) !important;
+    transform: none !important;
+    box-shadow: none !important;
+    border-color: var(--cp-border) !important;
+    
+    .day-number {
+      color: var(--cp-secondary) !important;
+    }
+  }
+}
+
+.calendar-day.today {
+  background: var(--cp-glass-hover) !important;
+  border: 2px solid var(--cp-primary) !important;
+  box-shadow: 0 0 15px var(--cp-border-accent);
+  
+  .day-number {
+    color: var(--cp-primary);
+    font-weight: var(--cp-component-font-weight-bold);
+    text-shadow: 0 0 5px var(--cp-border-accent);
   }
 }
 
 .calendar-day.selected {
   background: var(--cp-primary) !important;
   border: 2px solid var(--cp-primary) !important;
-  box-shadow: 0 0 20px rgba(121, 255, 232, 0.6);
+  box-shadow: 0 0 20px var(--cp-border-accent);
   
   .day-number {
-    color: var(--cp-bg-primary);
-    font-weight: 700;
+    color: var(--cp-selected-text, var(--cp-bg-primary)) !important;
+    font-weight: var(--cp-component-font-weight-bold);
+    text-shadow: none; /* Remove any text shadow that might reduce visibility */
   }
 }
 
 /* Week selection mode - use same primary color as day mode but with reduced opacity for range */
 .calendar-day.selected-week {
-  background: rgba(121, 255, 232, 0.2) !important;
-  border: 1px solid rgba(121, 255, 232, 0.5) !important;
+  background: var(--cp-glass-hover) !important;
+  border: 1px solid var(--cp-border-accent) !important;
   
   .day-number {
     color: var(--cp-primary);
-    font-weight: 600;
+    font-weight: var(--cp-component-font-weight-semibold);
   }
 }
 
 /* Month selection mode - use same primary color as day mode but with reduced opacity for range */
 .calendar-day.selected-month {
-  background: rgba(121, 255, 232, 0.1) !important;
-  border: 1px solid rgba(121, 255, 232, 0.3) !important;
+  background: var(--cp-glass) !important;
+  border: 1px solid var(--cp-border-accent) !important;
   
   .day-number {
     color: var(--cp-primary);
-    font-weight: 500;
+    font-weight: var(--cp-component-font-weight-medium);
   }
 }
 
@@ -205,11 +232,12 @@
 .calendar-day.selected-month.selected {
   background: var(--cp-primary) !important;
   border: 2px solid var(--cp-primary) !important;
-  box-shadow: 0 0 20px rgba(121, 255, 232, 0.6);
+  box-shadow: 0 0 20px var(--cp-border-accent);
   
   .day-number {
-    color: var(--cp-bg-primary) !important;
-    font-weight: 700 !important;
+    color: var(--cp-selected-text, var(--cp-bg-primary)) !important;
+    font-weight: var(--cp-component-font-weight-bold) !important;
+    text-shadow: none !important; /* Remove any text shadow that might reduce visibility */
   }
 }
 
@@ -225,20 +253,20 @@
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: var(--cp-accent);
-  box-shadow: 0 0 4px rgba(72, 230, 255, 0.8);
+  background: var(--cp-primary);
+  box-shadow: 0 0 4px var(--cp-border-accent);
 }
 
 .calendar-day.selected .indicator-dot {
-  background: var(--cp-bg-primary);
-  box-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+  background: var(--cp-selected-text, var(--cp-bg-primary));
+  box-shadow: 0 0 4px var(--cp-border);
 }
 
 /* Calendar Footer */
 .calendar-footer {
   margin-top: 0.2rem;
   padding: 0.2rem 0.3rem;
-  background: rgba(0, 0, 0, 0.15);
+  background: var(--cp-glass);
   border: 1px solid var(--cp-border);
   border-radius: 2px;
   text-align: center;
@@ -250,10 +278,10 @@
   justify-content: space-between; /* Changed from center to space-between */
   gap: 0.3rem;
   color: var(--cp-accent);
-  font-weight: 600;
-  font-size: 0.65rem; /* Increased for better readability */
+  font-weight: var(--cp-component-font-weight-semibold);
+  font-size: var(--cp-component-font-size-xs); /* Increased for better readability */
   text-transform: uppercase;
-  letter-spacing: 0.4px; /* Slightly increased */
+  letter-spacing: var(--cp-component-letter-spacing-tight); /* Slightly increased */
 }
 
 .date-info {
@@ -262,7 +290,7 @@
   gap: 0.3rem;
   
   mat-icon {
-    font-size: 0.9rem; /* Increased to match larger text */
+    font-size: var(--cp-component-font-size-lg); /* Increased to match larger text */
     width: 0.9rem;
     height: 0.9rem;
   }
@@ -284,25 +312,26 @@
   overflow: visible !important; /* Ensure icon is not clipped */
   
   &:hover {
-    background: rgba(72, 230, 255, 0.1) !important;
-    box-shadow: 0 0 8px rgba(72, 230, 255, 0.3) !important;
+    background: var(--cp-glass-hover) !important;
+    box-shadow: 0 0 8px var(--cp-border-accent) !important;
     transform: scale(1.05);
+    border-color: var(--cp-primary) !important; /* Use primary color for border on hover */
     
     mat-icon {
-      color: var(--cp-accent) !important; /* Blue on hover like stat-icon */
+      color: var(--cp-primary) !important; /* Use primary color for icon on hover */
     }
   }
   
   mat-icon {
-    font-size: 1rem; /* Reduced for better visibility within button */
+    font-size: var(--cp-component-font-size-md); /* Reduced for better visibility within button */
     width: 1rem;
     height: 1rem;
-    line-height: 1 !important; /* Ensure proper vertical alignment */
+    line-height: var(--cp-component-line-height-tight) !important; /* Ensure proper vertical alignment */
     display: flex !important; /* Ensure icon centers properly */
     align-items: center !important;
     justify-content: center !important;
     overflow: visible !important; /* Ensure icon is not clipped */
-    color: rgb(255, 92, 92) !important; /* Red to match stat item theme */
+    color: var(--cp-secondary) !important; /* Red to match stat item theme */
     transition: all 0.3s ease; /* Smooth color transition */
   }
 }
@@ -310,15 +339,120 @@
 /* Animations */
 @keyframes cyberpunk-glow {
   0%, 100% { 
-    box-shadow: 0 0 5px rgba(72, 230, 255, 0.3); 
+    box-shadow: 0 0 5px var(--cp-border-accent); 
   }
   50% { 
-    box-shadow: 0 0 20px rgba(72, 230, 255, 0.6); 
+    box-shadow: 0 0 20px var(--cp-border-accent); 
   }
 }
 
 .calendar-day.today {
   animation: cyberpunk-glow 2s ease-in-out infinite;
+}
+
+/* Theme-specific indicator dot styling overrides */
+.theme-light .indicator-dot {
+  background: #2563eb !important;
+  box-shadow: 0 0 4px rgba(37, 99, 235, 0.3) !important;
+}
+
+.theme-dark .indicator-dot {
+  background: #bb86fc !important;
+  box-shadow: 0 0 4px rgba(187, 134, 252, 0.3) !important;
+}
+
+.theme-cyberpunk .indicator-dot {
+  background: #79ffe8 !important;
+  box-shadow: 0 0 4px rgba(121, 255, 232, 0.5) !important;
+}
+
+/* Theme-specific today date styling overrides */
+.theme-light .calendar-day.today {
+  border-color: #2563eb !important;
+  
+  .day-number {
+    color: #2563eb !important;
+    text-shadow: 0 0 5px rgba(37, 99, 235, 0.3) !important;
+  }
+}
+
+.theme-dark .calendar-day.today {
+  border-color: #bb86fc !important;
+  
+  .day-number {
+    color: #bb86fc !important;
+    text-shadow: 0 0 5px rgba(187, 134, 252, 0.3) !important;
+  }
+}
+
+.theme-cyberpunk .calendar-day.today {
+  border-color: #79ffe8 !important;
+  box-shadow: 0 0 15px rgba(121, 255, 232, 0.5) !important;
+  
+  .day-number {
+    color: #79ffe8 !important;
+    text-shadow: 0 0 5px rgba(121, 255, 232, 0.5) !important;
+  }
+}
+
+/* Theme-specific calendar day hover overrides */
+.theme-light .calendar-day:hover {
+  border-color: #2563eb !important;
+}
+
+.theme-light .calendar-day.other-month:hover .day-number {
+  color: #2563eb !important;
+}
+
+.theme-dark .calendar-day:hover {
+  border-color: #bb86fc !important;
+}
+
+.theme-dark .calendar-day.other-month:hover .day-number {
+  color: #bb86fc !important;
+}
+
+.theme-cyberpunk .calendar-day:hover {
+  border-color: #79ffe8 !important;
+  box-shadow: 0 1px 4px rgba(121, 255, 232, 0.5) !important;
+}
+
+.theme-cyberpunk .calendar-day.other-month:hover .day-number {
+  color: #79ffe8 !important;
+}
+
+/* Theme-specific today button touch target overrides */
+.theme-light ::ng-deep .today-btn-footer .mat-mdc-button-touch-target:hover {
+  background: rgba(37, 99, 235, 0.1) !important;
+  border-radius: 50% !important;
+}
+
+.theme-dark ::ng-deep .today-btn-footer .mat-mdc-button-touch-target:hover {
+  background: rgba(187, 134, 252, 0.1) !important;
+  border-radius: 50% !important;
+}
+
+.theme-cyberpunk ::ng-deep .today-btn-footer .mat-mdc-button-touch-target:hover {
+  background: rgba(121, 255, 232, 0.2) !important;
+  border-radius: 50% !important;
+  box-shadow: 0 0 8px rgba(121, 255, 232, 0.4) !important;
+}
+
+/* Theme-specific navigation button touch target overrides */
+.theme-light ::ng-deep .nav-btn .mat-mdc-button-touch-target:hover {
+  background: rgba(37, 99, 235, 0.1) !important;
+  border-radius: 50% !important;
+}
+
+.theme-dark ::ng-deep .nav-btn .mat-mdc-button-touch-target:hover {
+  background: rgba(187, 134, 252, 0.1) !important;
+  border-radius: 50% !important;
+}
+
+.theme-cyberpunk ::ng-deep .nav-btn .mat-mdc-button-touch-target:hover {
+  background: rgba(121, 255, 232, 0.2) !important;
+  border-radius: 50% !important;
+  box-shadow: 0 0 8px rgba(121, 255, 232, 0.4) !important;
 }
 
 /* Responsive Design */
@@ -328,17 +462,17 @@
   }
   
   .day-number {
-    font-size: 0.65rem; /* Increased for mobile readability */
+    font-size: var(--cp-component-font-size-xs); /* Increased for mobile readability */
   }
   
   .weekday {
-    font-size: 0.55rem; /* Increased for mobile readability */
+    font-size: var(--cp-component-font-size-xs); /* Increased for mobile readability */
     padding: 0.15rem 0.03rem; /* Less padding */
   }
   
   .month-text {
-    font-size: 0.7rem; /* Increased for mobile readability */
-    letter-spacing: 0.3px;
+    font-size: var(--cp-component-font-size-sm); /* Increased for mobile readability */
+    letter-spacing: var(--cp-component-letter-spacing-tight);
   }
   
   .nav-btn {
@@ -347,7 +481,7 @@
     min-width: 28px !important;
     
     mat-icon {
-      font-size: 1rem; /* Increased for better mobile visibility */
+      font-size: var(--cp-component-font-size-md); /* Increased for better mobile visibility */
       width: 1rem;
       height: 1rem;
     }
@@ -359,7 +493,7 @@
     min-width: 28px !important;
     
     mat-icon {
-      font-size: 0.9rem; /* Slightly smaller for mobile visibility */
+      font-size: var(--cp-component-font-size-lg); /* Slightly smaller for mobile visibility */
       width: 0.9rem;
       height: 0.9rem;
     }
@@ -387,21 +521,17 @@
     border-radius: 2px !important;
   }
   
-  &:hover {
-    color: var(--cp-accent) !important;
-    border-color: var(--cp-accent) !important;
-    background: rgba(72, 230, 255, 0.1) !important;
-  }
+/* Removed hover animation for Angular Material nav-btn */
   
   mat-icon {
     color: inherit !important;
-    font-size: 1.1rem !important;
+    font-size: var(--cp-component-font-size-lg) !important;
     width: 1.1rem !important;
     height: 1.1rem !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    line-height: 1 !important;
+    line-height: var(--cp-component-line-height-tight) !important;
   }
 }
 
@@ -423,20 +553,120 @@
     border-radius: 2px !important;
   }
   
-  mat-icon {
-    color: rgb(255, 92, 92) !important; /* Red to match stat item theme */
-    transition: all 0.3s ease; /* Smooth color transition */
-  }
-  
   &:hover {
-    color: var(--cp-accent) !important;
-    border-color: var(--cp-accent) !important;
-    background: rgba(72, 230, 255, 0.1) !important;
+    color: var(--cp-primary) !important; /* Use primary color for text on hover */
+    border-color: var(--cp-primary) !important; /* Use primary color for border on hover */
+    background: var(--cp-glass-hover) !important;
+    box-shadow: 0 0 8px var(--cp-border-accent) !important;
     
     mat-icon {
-      color: var(--cp-accent) !important; /* Blue on hover like stat-icon */
+      color: var(--cp-primary) !important; /* Use primary color for icon on hover */
     }
   }
   
+  mat-icon {
+    color: var(--cp-secondary) !important; /* Red to match stat item theme */
+    transition: all 0.3s ease; /* Smooth color transition */
+  }
+  
   /* Removed duplicate mat-icon styling - handled above */
+}
+
+/* Theme-specific hover effects to prevent overrides */
+.theme-light .today-btn-footer:hover {
+  border-color: #2563eb !important; /* Light theme primary blue */
+  
+  mat-icon {
+    color: #2563eb !important; /* Light theme primary blue */
+  }
+}
+
+.theme-dark .today-btn-footer:hover {
+  border-color: #bb86fc !important; /* Dark theme primary purple */
+  
+  mat-icon {
+    color: #bb86fc !important; /* Dark theme primary purple */
+  }
+}
+
+.theme-cyberpunk .today-btn-footer:hover {
+  border-color: #79ffe8 !important; /* Cyberpunk theme primary cyan */
+  box-shadow: 0 0 8px rgba(121, 255, 232, 0.5) !important; /* Cyberpunk glow */
+  
+  mat-icon {
+    color: #79ffe8 !important; /* Cyberpunk theme primary cyan */
+  }
+}
+
+/* Angular Material theme-specific overrides */
+.theme-light ::ng-deep .today-btn-footer.mat-mdc-icon-button:hover {
+  color: #2563eb !important;
+  border-color: #2563eb !important;
+  
+  mat-icon {
+    color: #2563eb !important;
+  }
+}
+
+.theme-dark ::ng-deep .today-btn-footer.mat-mdc-icon-button:hover {
+  color: #bb86fc !important;
+  border-color: #bb86fc !important;
+  
+  mat-icon {
+    color: #bb86fc !important;
+  }
+}
+
+.theme-cyberpunk ::ng-deep .today-btn-footer.mat-mdc-icon-button:hover {
+  color: #79ffe8 !important;
+  border-color: #79ffe8 !important;
+  box-shadow: 0 0 8px rgba(121, 255, 232, 0.5) !important;
+  
+  mat-icon {
+    color: #79ffe8 !important;
+  }
+}
+
+/* Theme-specific future date styling */
+.theme-light .calendar-day.future {
+  .day-number {
+    color: #9ca3af !important;
+  }
+}
+
+.theme-dark .calendar-day.future {
+  .day-number {
+    color: #6b7280 !important;
+  }
+}
+
+.theme-cyberpunk .calendar-day.future {
+  .day-number {
+    color: #374151 !important;
+  }
+}
+
+/* Theme-specific disabled navigation button styling */
+.theme-light .nav-btn:disabled {
+  color: #9ca3af !important;
+  
+  mat-icon {
+    color: #9ca3af !important;
+  }
+}
+
+.theme-dark .nav-btn:disabled {
+  color: #6b7280 !important;
+  
+  mat-icon {
+    color: #6b7280 !important;
+  }
+}
+
+.theme-cyberpunk .nav-btn:disabled {
+  color: #374151 !important;
+  
+  mat-icon {
+    color: #374151 !important;
+  }
 }
