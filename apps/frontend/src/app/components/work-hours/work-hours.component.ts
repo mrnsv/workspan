@@ -276,16 +276,7 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
 
   private getRandomCookieRefreshMessage(): string {
     const messages = [
-      'NEURAL MATRIX REFRESH',
-      'AUTHENTICATION OVERRIDE',
-      'SECURITY PROTOCOL UPDATE',
-      'ACCESS TOKEN REGENERATION',
-      'IDENTITY VERIFICATION',
-      'CREDENTIAL MATRIX SYNC',
-      'BIOMETRIC RECALIBRATION',
-      'NEURAL LINK REFRESH',
-      'QUANTUM ENCRYPTION UPDATE',
-      'CYBERSEC HANDSHAKE'
+      'ACCESS TOKEN REGENERATION'
     ];
     
     const randomIndex = Math.floor(Math.random() * messages.length);
