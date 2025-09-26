@@ -16,7 +16,7 @@
     "test-config": "tsx apps/automation/test-config.ts",
     "install-browsers": "playwright install",
     "install-deps": "sudo npx playwright install-deps",
-    "frontend:serve": "npx ng serve --project workspan-frontend --browser-target workspan-frontend:build:development --host 0.0.0.0 --port 4200",
+    "frontend:serve": "npx ng serve --project workspan-frontend --browser-target workspan-frontend:build:development --host 0.0.0.0 --port 4201",
     "frontend:build": "cd apps/frontend && npm run build",
     "frontend:test": "cd apps/frontend && npm run test",
     "frontend:watch": "cd apps/frontend && npm run watch",

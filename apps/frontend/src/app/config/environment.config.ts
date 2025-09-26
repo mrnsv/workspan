@@ -10,24 +10,24 @@ function getBackendUrl(): string {
     const currentHost = window.location.hostname;
     const currentPort = window.location.port;
     
-    // If accessing via localhost, use localhost backend
+    // If accessing via localhost, use localhost backend on port 3001
     if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
-      return 'http://localhost:3000/api';
+      return 'http://localhost:3001/api';
     }
     
-    // If accessing via local network IP, use same IP for backend
-    return `http://${currentHost}:3000/api`;
+    // If accessing via local network IP, use same IP for backend on port 3001
+    return `http://${currentHost}:3001/api`;
   }
   
   // Fallback for server-side rendering
-  return 'http://localhost:3000/api';
+  return 'http://localhost:3001/api';
 }
 
 // These values can be overridden at build time or runtime
 export const environment: AppEnvironment = {
   production: false,
   apiBaseUrl: getBackendUrl(),
-  frontendUrl: 'http://localhost:4200'
+  frontendUrl: 'http://localhost:4201'
 };
 
 // Runtime environment override (can be set by backend or config service)
