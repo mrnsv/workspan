@@ -31,10 +31,13 @@ import { SwipeDataComponent } from './components/swipe-data/swipe-data.component
 import { StatsCardComponent } from './components/stats-card/stats-card.component';
 
 import { WorkHoursService } from './services/work-hours.service';
+import { WorkHoursDirectService } from './services/work-hours-direct.service';
 import { AuthService } from './services/auth.service';
+import { GreytHRService } from './services/greythr.service';
 import { DATE_FORMAT_PROVIDER, CUSTOM_DATE_ADAPTER_PROVIDER } from './config/date-format';
 import { CalendarComponent } from './components/calendar/calendar.component';
 import { ThemeSwitcherComponent } from './components/theme-switcher/theme-switcher.component';
+import { GreytHRAuthComponent } from './components/greythr-auth/greythr-auth.component';
 
 @NgModule({
   declarations: [
@@ -44,7 +47,8 @@ import { ThemeSwitcherComponent } from './components/theme-switcher/theme-switch
     SwipeDataComponent,
     StatsCardComponent,
     CalendarComponent,
-    ThemeSwitcherComponent
+    ThemeSwitcherComponent,
+    GreytHRAuthComponent
   ],
   imports: [
     BrowserModule,
@@ -74,7 +78,9 @@ import { ThemeSwitcherComponent } from './components/theme-switcher/theme-switch
   ],
   providers: [
     WorkHoursService,
+    WorkHoursDirectService,
     AuthService,
+    GreytHRService,
     DATE_FORMAT_PROVIDER,
     CUSTOM_DATE_ADAPTER_PROVIDER,
     { provide: MAT_DATE_LOCALE, useValue: 'en-US' }

@@ -2,7 +2,9 @@ import { Component, Input, OnInit, OnChanges, SimpleChanges, OnDestroy, ChangeDe
 import { Observable, Subscription, combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { WorkHoursService } from '../../services/work-hours.service';
+import { WorkHoursDirectService } from '../../services/work-hours-direct.service';
 import { AuthService } from '../../services/auth.service';
+import { GreytHRService } from '../../services/greythr.service';
 import { WorkHoursStats, UnifiedWorkHoursResponse } from '../../models/work-hours.model';
 import { TimePeriod } from '../swipe-data/swipe-data.component';
 
@@ -25,42 +27,23 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
   
   constructor(
     private workHoursService: WorkHoursService,
+    private workHoursDirectService: WorkHoursDirectService,
     private authService: AuthService,
+    private greythrService: GreytHRService,
     private cdr: ChangeDetectorRef
   ) {
-    this.loading$ = combineLatest([
-      this.workHoursService.loading$,
-      this.authService.refreshing$
-    ]).pipe(
-      map(([dataLoading, cookieRefreshing]) => dataLoading || cookieRefreshing)
+    this.loading$ = this.workHoursDirectService.loading$;
+    
+    this.loadingMessage$ = this.loading$.pipe(
+      map(loading => loading ? 'LOADING WORK DATA...' : 'DATA SYNC')
     );
 
-    this.loadingMessage$ = combineLatest([
-      this.workHoursService.loading$,
-      this.authService.refreshing$
-    ]).pipe(
-      map(([dataLoading, cookieRefreshing]) => {
-        if (cookieRefreshing) {
-          return this.getRandomCookieRefreshMessage();
-        } else if (dataLoading) {
-          return this.getRandomDataSyncMessage();
-        }
-        return 'DATA SYNC';
-      })
-    );
-
-    // Combine error streams from both services
-    this.error$ = combineLatest([
-      this.workHoursService.error$,
-      this.authService.error$
-    ]).pipe(
-      map(([workHoursError, authError]) => workHoursError || authError)
-    );
+    this.error$ = this.workHoursDirectService.error$;
   }
 
   ngOnInit() {
     // Subscribe to work hours stats
-    const statsSubscription = this.workHoursService.workHours$.subscribe(stats => {
+    const statsSubscription = this.workHoursDirectService.workHours$.subscribe(stats => {
       this.workHoursStats = stats;
       
       // Trigger change detection to ensure UI updates
@@ -86,8 +69,8 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
     // Only clear cache if this is a refresh action, not on normal date changes
     // this.workHoursService.clearDateCache(dateString);
     
-    // Use the work logs API that provides all data in one call
-    const apiSubscription = this.workHoursService.getWorkLogs(dateString, this.selectionMode).subscribe({
+    // Use the direct work logs API that provides all data in one call
+    const apiSubscription = this.workHoursDirectService.getWorkLogs(dateString, this.selectionMode).subscribe({
       next: (data) => {
         this.workHoursData = data;
         
@@ -212,8 +195,7 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
 
   onRefresh() {
     // Clear errors before retry
-    this.workHoursService.clearError();
-    this.authService.clearError();
+    this.workHoursDirectService.clearError();
     
     // Clear cache only on explicit refresh
     const dateString = this.workHoursService.formatDate(this.selectedDate);
@@ -222,8 +204,7 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   clearErrors(): void {
-    this.workHoursService.clearError();
-    this.authService.clearError();
+    this.workHoursDirectService.clearError();
   }
 
   // Cyberpunk UI Methods

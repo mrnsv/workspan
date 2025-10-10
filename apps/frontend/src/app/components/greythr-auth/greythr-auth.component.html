@@ -1,0 +1,73 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <h2>🔐 GreytHR Authentication</h2>
+      <p>Connect to your GreytHR account to access work hours data</p>
+    </div>
+
+    <div class="auth-status" *ngIf="authStatus$ | async as status">
+      <div *ngIf="status.isAuthenticated" class="status-success">
+        <div class="status-icon">✅</div>
+        <div class="status-content">
+          <h3>Connected</h3>
+          <p>{{ status.session?.employeeName }} ({{ status.session?.employeeNumber }})</p>
+          <small>Session expires: {{ getSessionExpiry(status.session?.extractedAt) }}</small>
+        </div>
+        <button class="btn btn-secondary" (click)="logout()">Disconnect</button>
+      </div>
+
+      <div *ngIf="!status.isAuthenticated" class="status-disconnected">
+        <div class="status-icon">🔒</div>
+        <div class="status-content">
+          <h3>Not Connected</h3>
+          <p>Click below to authenticate with GreytHR</p>
+        </div>
+            <button 
+              class="btn btn-primary" 
+              (click)="authenticate()"
+              [disabled]="isAuthenticating">
+              {{ isAuthenticating ? 'Authenticating...' : 'Connect to GreytHR' }}
+            </button>
+            <button 
+              class="btn btn-secondary" 
+              (click)="manualCapture()"
+              [disabled]="isAuthenticating"
+              style="margin-left: 0.5rem;">
+              Manual Capture
+            </button>
+            <button 
+              class="btn btn-secondary" 
+              (click)="showHelp()"
+              style="margin-left: 0.5rem;">
+              Help
+            </button>
+      </div>
+    </div>
+
+    <div class="auth-instructions" *ngIf="!isAuthenticated">
+      <h4>How it works:</h4>
+      <ol>
+        <li>Click "Connect to GreytHR" button</li>
+        <li>A popup window will open with GreytHR login</li>
+        <li>Complete the login process in the popup</li>
+        <li>System detects successful login automatically</li>
+        <li>Cookie capture modal appears - follow the steps</li>
+        <li>Submit your session data and you're connected!</li>
+      </ol>
+      
+      <div class="auth-note">
+        <strong>Note:</strong> Your credentials are never stored. Only session cookies are captured for API access.
+        <br><strong>Hybrid:</strong> Automatic login detection + guided cookie capture for reliability!
+      </div>
+    </div>
+
+    <div class="auth-error" *ngIf="errorMessage">
+      <div class="error-icon">❌</div>
+      <div class="error-content">
+        <h4>Authentication Error</h4>
+        <p>{{ errorMessage }}</p>
+        <button class="btn btn-secondary" (click)="clearError()">Try Again</button>
+      </div>
+    </div>
+  </div>
+</div>

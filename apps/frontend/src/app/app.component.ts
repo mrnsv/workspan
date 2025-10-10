@@ -1,7 +1,9 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { WorkHoursService } from './services/work-hours.service';
+import { WorkHoursDirectService } from './services/work-hours-direct.service';
 import { AuthService } from './services/auth.service';
+import { GreytHRService } from './services/greythr.service';
 import { ThemeService } from './services/theme.service';
 import { TimePeriod } from './components/calendar/calendar.component';
 import { Subscription } from 'rxjs';
@@ -29,7 +31,9 @@ export class AppComponent implements OnInit, OnDestroy {
   
   constructor(
     private workHoursService: WorkHoursService,
+    private workHoursDirectService: WorkHoursDirectService,
     private authService: AuthService,
+    private greythrService: GreytHRService,
     private themeService: ThemeService,
     private snackBar: MatSnackBar,
     private cdr: ChangeDetectorRef
@@ -50,8 +54,16 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   private subscribeToEmployeeData() {
-    this.employeeSubscription = this.workHoursService.employee$.subscribe(employee => {
-      this.employeeData = employee;
+    this.employeeSubscription = this.greythrService.session$.subscribe(session => {
+      if (session) {
+        this.employeeData = {
+          employeeId: session.employeeId,
+          employeeName: session.employeeName,
+          employeeNumber: session.employeeNumber
+        };
+      } else {
+        this.employeeData = null;
+      }
     });
   }
 
@@ -163,11 +175,11 @@ export class AppComponent implements OnInit, OnDestroy {
 
   // Auth status methods for compact header
   getAuthStatusClass(): string {
-    return 'ready'; // Default status
+    return this.greythrService.isAuthenticated() ? 'ready' : 'error';
   }
 
   getAuthStatusText(): string {
-    return 'RDY';
+    return this.greythrService.isAuthenticated() ? 'RDY' : 'AUTH';
   }
 
 
