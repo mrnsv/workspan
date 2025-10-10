@@ -11,6 +11,7 @@ dotenv.config({ path: resolve(__dirname, ".env") });
 interface Environment {
   // Server Configuration
   PORT?: string;
+  FRONTEND_PORT?: string;
   BACKEND_URL?: string;
   FRONTEND_URL?: string;
   ALLOWED_ORIGINS?: string;
@@ -33,10 +34,11 @@ async function createEnvironment(): Promise<Environment> {
   
   const env: Environment = {
     // Server Configuration
-    PORT: process.env.PORT || '3000',
-    BACKEND_URL: process.env.BACKEND_URL || 'http://localhost:3000',
-    FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:4200',
-    ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS || 'http://localhost:4200,http://127.0.0.1:4200',
+    PORT: process.env.PORT || '3201',
+    FRONTEND_PORT: process.env.FRONTEND_PORT || '4201',
+    BACKEND_URL: process.env.BACKEND_URL || `http://localhost:${process.env.PORT || '3201'}`,
+    FRONTEND_URL: process.env.FRONTEND_URL || `http://localhost:${process.env.FRONTEND_PORT || '4201'}`,
+    ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS || `http://localhost:${process.env.FRONTEND_PORT || '4201'},http://127.0.0.1:${process.env.FRONTEND_PORT || '4201'}`,
     
     // GreytHR API Configuration
     GREYTHR_URL: process.env.GREYTHR_URL!,

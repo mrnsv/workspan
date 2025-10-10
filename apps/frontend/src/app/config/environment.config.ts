@@ -10,17 +10,17 @@ function getBackendUrl(): string {
     const currentHost = window.location.hostname;
     const currentPort = window.location.port;
     
-    // If accessing via localhost, use localhost backend on port 3001
+    // If accessing via localhost, use localhost backend on port 3201
     if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
-      return 'http://localhost:3001/api';
+      return 'http://localhost:3201/api';
     }
     
-    // If accessing via local network IP, use same IP for backend on port 3001
-    return `http://${currentHost}:3001/api`;
+    // If accessing via local network IP, use same IP for backend on port 3201
+    return `http://${currentHost}:3201/api`;
   }
   
   // Fallback for server-side rendering
-  return 'http://localhost:3001/api';
+  return 'http://localhost:3201/api';
 }
 
 // These values can be overridden at build time or runtime
