@@ -758,11 +758,52 @@ app.post("/api/hours/worklogs", async (req, res) => {
   }
 });
 
+// Serve static files from frontend build in production (after all API routes)
+const isProduction = process.env.NODE_ENV === 'production';
+if (isProduction) {
+  // Try multiple possible build output locations
+  const possibleStaticPaths = [
+    path.resolve(__dirname, '../../../dist/workspan-frontend'),
+    path.resolve(__dirname, '../../../dist/frontend'),
+    path.resolve(__dirname, '../../frontend/dist/workspan-frontend')
+  ];
+  
+  let staticPath = null;
+  for (const staticPathCandidate of possibleStaticPaths) {
+    try {
+      await fs.access(staticPathCandidate);
+      staticPath = staticPathCandidate;
+      break;
+    } catch {
+      // Path doesn't exist, try next
+    }
+  }
+  
+  if (staticPath) {
+    app.use(express.static(staticPath));
+    console.log(`📦 Serving static files from: ${staticPath}`);
+    
+    // Serve index.html for all non-API routes (SPA routing)
+    // Use middleware to catch all non-API routes
+    app.use((req, res, next) => {
+      // Skip API routes
+      if (req.path.startsWith('/api/')) {
+        return next();
+      }
+      // Serve index.html for all other routes (SPA fallback)
+      res.sendFile(path.join(staticPath, 'index.html'));
+    });
+  } else {
+    console.warn('⚠️  Production mode: No static files found. Frontend build may be missing.');
+    console.warn('⚠️  Run "npm run build:prod" to build the frontend before starting production server.');
+  }
+}
+
 const PORT = Number(env.PORT) || 3000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Workspan Backend Server running on port ${PORT}`);
   console.log(`📍 Backend URL: ${env.BACKEND_URL || `http://localhost:${PORT}`}`);
-  console.log(`🌐 Frontend URL: ${env.FRONTEND_URL || 'http://localhost:4200'}`);
+  console.log(`🌐 Frontend URL: ${isProduction ? (env.BACKEND_URL || `http://localhost:${PORT}`) : (env.FRONTEND_URL || `http://localhost:${env.FRONTEND_PORT || '4201'}`)} (${isProduction ? 'served by backend' : 'dev server'})`);
   
   console.log("\n📋 Available Routes:");
   console.log("  POST /api/login - Extract session data using get-token.ts");
