@@ -9,7 +9,7 @@ import dotenv from 'dotenv';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const projectRoot = resolve(__dirname, '../../../');
-const outputPath = resolve(projectRoot, 'apps/env/cookies.json');
+const defaultOutputPath = resolve(projectRoot, 'apps/env/cookies.json');
 
 // Load environment variables directly (avoiding circular dependency with env.ts)
 dotenv.config({ path: resolve(projectRoot, 'apps/env/.env') });
@@ -33,6 +33,12 @@ interface CookieData {
 class CookieExtractor {
   private browser: Browser | null = null;
   private page: Page | null = null;
+  private outputPath: string;
+
+  constructor(outputPath?: string) {
+    // Use provided output path or default to the shared path (for backward compatibility)
+    this.outputPath = outputPath || defaultOutputPath;
+  }
 
   async init() {
     console.log('🚀 Initializing browser...');
@@ -222,8 +228,12 @@ class CookieExtractor {
 
   async saveCookie(cookieData: CookieData) {
     try {
-      await fs.writeFile(outputPath, JSON.stringify(cookieData, null, 2), 'utf8');
-      console.log(`💾 Cookie saved to: ${outputPath}`);
+      // Ensure directory exists
+      const dir = dirname(this.outputPath);
+      await fs.mkdir(dir, { recursive: true });
+      
+      await fs.writeFile(this.outputPath, JSON.stringify(cookieData, null, 2), 'utf8');
+      console.log(`💾 Cookie saved to: ${this.outputPath}`);
     } catch (error) {
       console.error('❌ Error saving cookie:', error);
       throw error;
@@ -244,6 +254,9 @@ async function main() {
   const loginId = process.env.LOGIN_ID;
   const password = process.env.PASSWORD;
   
+  // Support command-line arguments for output path (optional)
+  const outputPath = process.argv[2] || defaultOutputPath;
+  
   if (!loginId || !password) {
     console.error('💥 LOGIN_ID and PASSWORD must be provided');
     console.error('🔐 For security, credentials are no longer stored in .env');
@@ -251,7 +264,7 @@ async function main() {
     process.exit(1);
   }
   
-  const extractor = new CookieExtractor();
+  const extractor = new CookieExtractor(outputPath);
   
   try {
     await extractor.init();
@@ -273,9 +286,13 @@ async function main() {
   }
 }
 
-// Export function for backend use with explicit credentials
-export async function extractGreytHRCookie(loginId: string, password: string): Promise<CookieData> {
-  const extractor = new CookieExtractor();
+// Export function for backend use with explicit credentials and optional output path
+export async function extractGreytHRCookie(
+  loginId: string, 
+  password: string, 
+  outputPath?: string
+): Promise<CookieData> {
+  const extractor = new CookieExtractor(outputPath);
   
   try {
     await extractor.init();

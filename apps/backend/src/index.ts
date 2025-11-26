@@ -2,8 +2,8 @@ import express from "express";
 import { promises as fs } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { spawn } from "child_process";
 import { calculateDailyWorkHours, calculateRequiredHoursAchievementTime } from "./lib/hours.util.js";
+import { extractGreytHRCookie } from "../../automation/src/get-token.js";
 
 // Browser session data interface
 interface BrowserSessionData {
@@ -54,77 +54,95 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 
+// Cleanup old temporary cookie files (older than 5 minutes)
+async function cleanupOldTempFiles(): Promise<void> {
+  try {
+    const envDir = path.resolve(__dirname, '../../env');
+    const files = await fs.readdir(envDir);
+    const now = Date.now();
+    const maxAge = 5 * 60 * 1000; // 5 minutes
+    
+    for (const file of files) {
+      if (file.startsWith('cookies-') && file.endsWith('.json')) {
+        const filePath = path.join(envDir, file);
+        try {
+          const stats = await fs.stat(filePath);
+          const age = now - stats.mtimeMs;
+          
+          if (age > maxAge) {
+            await fs.unlink(filePath);
+            console.log(`🧹 Cleaned up old temporary file: ${file}`);
+          }
+        } catch (error) {
+          // Ignore errors for individual file cleanup
+        }
+      }
+    }
+  } catch (error) {
+    // Ignore cleanup errors - this is a best-effort operation
+  }
+}
+
 // Extract browser session data by running get-token.ts
+// Uses unique file paths per request to prevent race conditions with concurrent logins
 async function extractBrowserSessionData(loginId: string, password: string): Promise<BrowserSessionData> {
-  const originalLoginId = process.env.LOGIN_ID;
-  const originalPassword = process.env.PASSWORD;
+  // Generate unique file path for this request to prevent conflicts with concurrent logins
+  const requestId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+  const envDir = path.resolve(__dirname, '../../env');
+  const cookiesPath = path.join(envDir, `cookies-${requestId}.json`);
+  
+  // Ensure env directory exists
+  try {
+    await fs.mkdir(envDir, { recursive: true });
+  } catch (error) {
+    // Directory might already exist, ignore error
+  }
+  
+  // Cleanup old files periodically (non-blocking)
+  cleanupOldTempFiles().catch(() => {
+    // Ignore cleanup errors
+  });
   
   try {
-    // Temporarily set environment variables for the automation script
-    process.env.LOGIN_ID = loginId;
-    process.env.PASSWORD = password;
+    // Use the exported function directly instead of spawning a process
+    // This eliminates environment variable race conditions and provides better isolation
+    const cookieData = await extractGreytHRCookie(loginId, password, cookiesPath);
     
-    // Run the get-token automation script
-    await runGetTokenScript();
-    
-    // Read the generated data
-    const cookiesPath = path.resolve(__dirname, '../../env/cookies.json');
-    const cookieFileContent = await fs.readFile(cookiesPath, 'utf8');
-    const cookieData = JSON.parse(cookieFileContent);
-    
-    // Delete the temporary file immediately
-    try {
-      await fs.unlink(cookiesPath);
-      console.log(`🗑️ Removed temporary cookies.json for user: ${cookieData.employeeNumber}`);
-    } catch (unlinkError) {
-      console.warn('⚠️ Could not remove cookies.json:', unlinkError.message);
+    // Validate required fields
+    if (!cookieData.employeeId || !cookieData.employeeName || !cookieData.employeeNumber) {
+      throw new Error('Missing required employee data in cookie extraction response');
     }
     
     // Return data for browser storage
-    return {
+    const sessionData: BrowserSessionData = {
       employeeId: cookieData.employeeId,
       employeeName: cookieData.employeeName,
       employeeNumber: cookieData.employeeNumber,
       cookie: cookieData.cookie
     };
     
-  } finally {
-    // Restore original environment variables
-    if (originalLoginId) {
-      process.env.LOGIN_ID = originalLoginId;
-    } else {
-      delete process.env.LOGIN_ID;
+    // Clean up the temporary file immediately after reading
+    try {
+      await fs.unlink(cookiesPath);
+      console.log(`🗑️ Removed temporary cookies file for user: ${sessionData.employeeNumber}`);
+    } catch (unlinkError) {
+      // Log warning but don't fail - file cleanup is best effort
+      console.warn(`⚠️ Could not remove temporary cookies file ${cookiesPath}:`, unlinkError);
     }
-    if (originalPassword) {
-      process.env.PASSWORD = originalPassword;
-    } else {
-      delete process.env.PASSWORD;
+    
+    return sessionData;
+    
+  } catch (error) {
+    // Ensure cleanup even on error
+    try {
+      await fs.unlink(cookiesPath).catch(() => {
+        // Ignore cleanup errors
+      });
+    } catch {
+      // Ignore cleanup errors
     }
+    throw error;
   }
-}
-
-// Run get-token script
-async function runGetTokenScript(): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const projectRoot = path.resolve(__dirname, '../../../');
-    const getTokenProcess = spawn('npm', ['run', 'get-token'], {
-      stdio: 'inherit',
-      shell: true,
-      cwd: projectRoot
-    });
-
-    getTokenProcess.on('close', async (code) => {
-      if (code === 0) {
-        resolve();
-      } else {
-        reject(new Error(`get-token script failed with code ${code}`));
-      }
-    });
-
-    getTokenProcess.on('error', (error) => {
-      reject(new Error(`Failed to start get-token script: ${error.message}`));
-    });
-  });
 }
 
 // Helper function to fetch total hours from GreytHR API using browser session
