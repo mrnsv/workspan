@@ -722,8 +722,23 @@ app.post("/api/hours/worklogs", async (req, res) => {
 
     res.json(unifiedResponse);
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in worklogs endpoint:', error);
+    
+    // Check if error message indicates 403 Forbidden
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const is403Error = errorMessage.includes('403') || errorMessage.includes('Forbidden') || 
+                      errorMessage.includes('API request failed: 403');
+    
+    if (is403Error) {
+      return res.status(403).json({
+        success: false,
+        error: 'Session expired or authentication failed. Please refresh your session.',
+        errorCode: 'SESSION_EXPIRED',
+        period: req.body.period || 'day'
+      });
+    }
+    
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',

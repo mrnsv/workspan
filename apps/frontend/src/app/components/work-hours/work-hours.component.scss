@@ -476,3 +476,271 @@
     font-size: var(--cp-component-font-size-2xl);
   }
 }
+
+/* Graph Container Compact */
+.graph-container-compact {
+  margin-bottom: 0.75rem;
+  padding: 0.75rem;
+  background: var(--cp-glass) !important;
+  border: 1px solid var(--cp-border) !important;
+  border-radius: 6px !important;
+  backdrop-filter: blur(4px) !important;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    border-color: var(--cp-primary) !important;
+    box-shadow: 0 4px 15px var(--cp-border-accent) !important;
+  }
+}
+
+.graph-header-compact {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--cp-border);
+}
+
+.graph-icon-compact {
+  color: var(--cp-primary);
+  font-size: var(--cp-component-font-size-lg);
+  width: var(--cp-component-font-size-lg);
+  height: var(--cp-component-font-size-lg);
+}
+
+.graph-title-compact {
+  color: var(--cp-primary);
+  font-weight: var(--cp-component-font-weight-bold);
+  font-size: var(--cp-component-font-size-md);
+  text-transform: uppercase;
+  letter-spacing: var(--cp-component-letter-spacing-wide);
+}
+
+.graph-content-compact {
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.swipe-timeline-graph {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.time-grid {
+  .grid-line-vertical {
+    stroke: var(--cp-border);
+    stroke-width: 1;
+    opacity: 0.3;
+  }
+}
+
+.hours-grid {
+  .grid-line-horizontal {
+    stroke: var(--cp-border);
+    stroke-width: 1;
+    opacity: 0.2;
+  }
+}
+
+.time-labels {
+  .time-label {
+    fill: var(--cp-primary);
+    font-size: 10px;
+    font-weight: var(--cp-component-font-weight-semibold);
+    text-anchor: middle;
+    opacity: 0.7;
+    font-family: var(--cp-component-font-family);
+  }
+}
+
+.hours-labels {
+  .hours-label {
+    fill: var(--cp-primary);
+    font-size: 9px;
+    font-weight: var(--cp-component-font-weight-semibold);
+    text-anchor: start;
+    opacity: 0.7;
+    font-family: var(--cp-component-font-family);
+  }
+}
+
+/* Line graph */
+.line-graph {
+  .work-line {
+    stroke: var(--cp-success);
+    stroke-width: 3;
+    opacity: 0.8;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      opacity: 1;
+      stroke-width: 4;
+    }
+  }
+  
+  .point-in {
+    fill: var(--cp-success);
+    stroke: var(--cp-success);
+    stroke-width: 2;
+    opacity: 0.9;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      opacity: 1;
+      r: 7;
+    }
+  }
+  
+  .point-out {
+    fill: var(--cp-secondary);
+    stroke: var(--cp-secondary);
+    stroke-width: 2;
+    opacity: 0.9;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      opacity: 1;
+      r: 7;
+    }
+  }
+  
+  .point-time-label {
+    font-size: 9px;
+    font-weight: var(--cp-component-font-weight-semibold);
+    font-family: var(--cp-component-font-family);
+    pointer-events: none;
+  }
+  
+  .point-label-in {
+    fill: var(--cp-success);
+  }
+  
+  .point-label-out {
+    fill: var(--cp-secondary);
+  }
+  
+  .point-hours-label {
+    font-size: 8px;
+    font-weight: var(--cp-component-font-weight-bold);
+    font-family: var(--cp-component-font-family);
+    fill: var(--cp-accent);
+    opacity: 0.8;
+    pointer-events: none;
+  }
+}
+
+/* Swipe time labels */
+.swipe-time-label {
+  font-size: 9px;
+  font-weight: var(--cp-component-font-weight-semibold);
+  font-family: var(--cp-component-font-family);
+  fill: var(--cp-primary);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.swipe-time-in {
+  fill: var(--cp-success);
+}
+
+.swipe-time-out {
+  fill: var(--cp-secondary);
+}
+
+/* Interval and session labels */
+.swipe-interval-label {
+  font-size: 8px;
+  font-weight: var(--cp-component-font-weight-semibold);
+  font-family: var(--cp-component-font-family);
+  fill: var(--cp-warning);
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.swipe-session-label {
+  font-size: 9px;
+  font-weight: var(--cp-component-font-weight-bold);
+  font-family: var(--cp-component-font-family);
+  fill: var(--cp-accent);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+/* Session lines connecting IN to OUT */
+.session-lines {
+  .session-line {
+    stroke: var(--cp-primary);
+    stroke-width: 2;
+    opacity: 0.4;
+    stroke-dasharray: 4, 4;
+    pointer-events: none;
+  }
+}
+
+.graph-legend-compact {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--cp-border);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--cp-primary);
+  font-size: var(--cp-component-font-size-sm);
+  font-weight: var(--cp-component-font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--cp-component-letter-spacing-tight);
+}
+
+.legend-marker {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.point-in-sample {
+  background: var(--cp-success);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.point-out-sample {
+  background: var(--cp-secondary);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+/* Theme-specific graph colors */
+.theme-light .graph-icon-compact {
+  color: #2563eb !important;
+}
+
+.theme-light .graph-title-compact {
+  color: #2563eb !important;
+}
+
+.theme-dark .graph-icon-compact {
+  color: #bb86fc !important;
+}
+
+.theme-dark .graph-title-compact {
+  color: #bb86fc !important;
+}
+
+.theme-cyberpunk .graph-icon-compact {
+  color: #79ffe8 !important;
+}
+
+.theme-cyberpunk .graph-title-compact {
+  color: #79ffe8 !important;
+}

@@ -44,18 +44,29 @@ export class WorkHoursService {
     this.loadingSubject.next(false);
     
     let errorMessage = 'An unexpected error occurred';
+    let is403Error = false;
     
     if (error.error instanceof ErrorEvent) {
       // Client-side or network error
       errorMessage = `Network error: ${error.error.message}`;
     } else {
       // Backend returned an unsuccessful response code
-      if (typeof error.error === 'string' && error.error.includes('<html')) {
+      if (error.status === 403) {
+        is403Error = true;
+        // Check if it's a session expired error
+        if (error.error && typeof error.error === 'object' && error.error.errorCode === 'SESSION_EXPIRED') {
+          errorMessage = error.error.error || 'Session expired. Please login again.';
+        } else if (typeof error.error === 'string' && error.error.includes('<html')) {
+          errorMessage = 'Authentication failed. Please refresh your session or check credentials.';
+        } else if (error.error && typeof error.error === 'object' && error.error.error) {
+          errorMessage = error.error.error;
+        } else {
+          errorMessage = 'Session expired or authentication failed. Please login again.';
+        }
+      } else if (typeof error.error === 'string' && error.error.includes('<html')) {
         // HTML response detected (likely an error page)
         if (error.status === 500) {
           errorMessage = 'Server configuration error. Please check backend setup and environment variables.';
-        } else if (error.status === 403) {
-          errorMessage = 'Authentication failed. Please refresh your session or check credentials.';
         } else if (error.status === 404) {
           errorMessage = 'API endpoint not found. Please check backend configuration.';
         } else {
@@ -74,8 +85,15 @@ export class WorkHoursService {
       status: error.status,
       statusText: error.statusText,
       error: error.error,
-      message: errorMessage
+      message: errorMessage,
+      is403Error
     });
+    
+    // For 403 errors, clear the session cache to force re-authentication
+    if (is403Error) {
+      this.clearCache();
+      console.warn('⚠️ Session expired. Cleared cache. User needs to login again.');
+    }
     
     this.errorSubject.next(errorMessage);
     return throwError(() => new Error(errorMessage));
@@ -167,7 +185,16 @@ export class WorkHoursService {
           
           return response;
         }),
-        catchError(error => this.handleHttpError(error)),
+        catchError((error: HttpErrorResponse) => {
+          // Handle 403 errors specifically
+          if (error.status === 403) {
+            // Clear cache for this specific request
+            this.unifiedCache.delete(cacheKey);
+            // Clear session data to force re-authentication
+            this.authService.logout();
+          }
+          return this.handleHttpError(error);
+        }),
         shareReplay(1), // Cache the result and share it among multiple subscribers
         tap(() => {
           // Auto-expire cache after duration

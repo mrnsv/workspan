@@ -66,6 +66,100 @@
       </div>
     </div>
 
+    <!-- Swipe Timeline Graph -->
+    <div class="cp-card graph-container-compact">
+      <div class="graph-header-compact">
+        <mat-icon class="graph-icon-compact">timeline</mat-icon>
+        <span class="graph-title-compact">SWIPE TIMELINE</span>
+      </div>
+      <div class="graph-content-compact" *ngIf="lineGraphData && lineGraphData.length > 0">
+        <svg class="swipe-timeline-graph" [attr.viewBox]="'0 0 ' + graphWidth + ' ' + graphHeight" preserveAspectRatio="none">
+          <!-- Y-axis grid lines (hours) -->
+          <g class="hours-grid">
+            <line *ngFor="let hour of hourScale" 
+                  [attr.x1]="0" 
+                  [attr.y1]="getHoursPosition(hour)" 
+                  [attr.x2]="graphWidth" 
+                  [attr.y2]="getHoursPosition(hour)"
+                  class="grid-line-horizontal"/>
+          </g>
+          
+          <!-- Y-axis labels (hours) -->
+          <g class="hours-labels">
+            <text *ngFor="let hour of hourScale" 
+                  [attr.x]="5" 
+                  [attr.y]="getHoursPosition(hour) + 4"
+                  class="hours-label">{{ hour }}h</text>
+          </g>
+          
+          <!-- X-axis grid lines (time) -->
+          <g class="time-grid">
+            <line *ngFor="let hour of timeHours" 
+                  [attr.x1]="getHourPosition(hour)" 
+                  [attr.y1]="0" 
+                  [attr.x2]="getHourPosition(hour)" 
+                  [attr.y2]="graphHeight"
+                  class="grid-line-vertical"/>
+          </g>
+          
+          <!-- X-axis labels (time) -->
+          <g class="time-labels">
+            <text *ngFor="let hour of timeHours" 
+                  [attr.x]="getHourPosition(hour)" 
+                  [attr.y]="graphHeight - 5"
+                  class="time-label"
+                  text-anchor="middle">{{ formatHourLabel(hour) }}</text>
+          </g>
+          
+          <!-- Line graph -->
+          <g class="line-graph">
+            <!-- Line path -->
+            <path [attr.d]="linePath"
+                  class="work-line"
+                  fill="none"
+                  stroke-width="3"/>
+            
+            <!-- Data points -->
+            <g *ngFor="let point of lineGraphData; let i = index">
+              <!-- Point circle -->
+              <circle [attr.cx]="point.x"
+                      [attr.cy]="getHoursPosition(point.hours)"
+                      [attr.r]="point.isIn ? 5 : 5"
+                      [ngClass]="point.isIn ? 'point-in' : 'point-out'"
+                      [attr.data-index]="i"/>
+              
+              <!-- Time label -->
+              <text [attr.x]="point.x" 
+                    [attr.y]="getHoursPosition(point.hours) + (point.isIn ? -10 : 15)"
+                    [ngClass]="point.isIn ? 'point-label-in' : 'point-label-out'"
+                    text-anchor="middle"
+                    class="point-time-label">{{ point.formattedTime }}</text>
+              
+              <!-- Hours label -->
+              <text [attr.x]="point.x" 
+                    [attr.y]="getHoursPosition(point.hours) + (point.isIn ? -22 : 27)"
+                    class="point-hours-label"
+                    text-anchor="middle">{{ point.hours.toFixed(1) }}h</text>
+            </g>
+          </g>
+        </svg>
+      </div>
+      <div class="graph-legend-compact" *ngIf="lineGraphData && lineGraphData.length > 0">
+        <div class="legend-item">
+          <div class="legend-marker point-in-sample"></div>
+          <span>IN</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-marker point-out-sample"></div>
+          <span>OUT</span>
+        </div>
+      </div>
+      <div class="no-data-compact" *ngIf="!lineGraphData || lineGraphData.length === 0">
+        <mat-icon class="no-data-icon-compact">timeline</mat-icon>
+        <span class="no-data-text-compact">NO DATA TO DISPLAY</span>
+      </div>
+    </div>
+
     <!-- Error State -->
     <div class="cp-card error-compact" *ngIf="(error$ | async) && !(loading$ | async)">
       <div class="error-header-compact">

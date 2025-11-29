@@ -3,7 +3,7 @@ import { Observable, Subscription, combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { WorkHoursService } from '../../services/work-hours.service';
 import { AuthService } from '../../services/auth.service';
-import { WorkHoursStats, UnifiedWorkHoursResponse } from '../../models/work-hours.model';
+import { WorkHoursStats, UnifiedWorkHoursResponse, SwipeData } from '../../models/work-hours.model';
 import { TimePeriod } from '../swipe-data/swipe-data.component';
 
 @Component({
@@ -479,5 +479,385 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
   ngOnDestroy(): void {
     this.stopScrambling();
     this.subscriptions.unsubscribe();
+  }
+
+  // Graph properties
+  graphWidth: number = 800;
+  graphHeight: number = 200;
+  timeHours: number[] = [];
+  hourScale: number[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
+  get rawSwipes(): SwipeData[] | null {
+    return this.workHoursData?.allSwipes || null;
+  }
+
+  get swipeData(): any | null {
+    return this.workHoursData?.sessions || null;
+  }
+
+  getSessionLine(session: any): { inX: number; outX: number } | null {
+    if (!this.rawSwipes || !session || !session.inSwipe || !session.outSwipe) return null;
+    
+    try {
+      // Parse session times - they might be in different formats
+      let inDate: Date;
+      let outDate: Date;
+      
+      // Try parsing as localized string first
+      try {
+        inDate = this.parseLocalizedDateString(session.inSwipe);
+        outDate = this.parseLocalizedDateString(session.outSwipe);
+      } catch {
+        // Fallback to Date constructor
+        inDate = new Date(session.inSwipe);
+        outDate = new Date(session.outSwipe);
+      }
+      
+      // Get the time range from processed swipes
+      const processed = this.processedSwipes;
+      if (processed.length === 0) return null;
+      
+      // Find min/max times from processed swipes
+      const times = processed.map(p => p.date.getTime());
+      const minTime = Math.min(...times);
+      const maxTime = Math.max(...times);
+      const timeRange = maxTime - minTime;
+      
+      if (timeRange <= 0) return null;
+      
+      const inOffset = inDate.getTime() - minTime;
+      const outOffset = outDate.getTime() - minTime;
+      
+      const inX = (inOffset / timeRange) * this.graphWidth;
+      const outX = (outOffset / timeRange) * this.graphWidth;
+      
+      return {
+        inX: Math.max(0, Math.min(this.graphWidth, inX)),
+        outX: Math.max(0, Math.min(this.graphWidth, outX))
+      };
+    } catch (error) {
+      return null;
+    }
+  }
+
+  get lineGraphData(): Array<{ x: number; y: number; time: Date; hours: number; formattedTime: string; isIn: boolean; isOut: boolean }> {
+    if (!this.swipeData?.swipePairs || this.swipeData.swipePairs.length === 0) {
+      this.timeHours = [];
+      return [];
+    }
+
+    // Parse all session times and create data points
+    const sessions: Array<{ inTime: Date; outTime: Date; hours: number }> = [];
+    
+    this.swipeData.swipePairs.forEach((session: any) => {
+      try {
+        let inDate: Date;
+        let outDate: Date;
+        
+        try {
+          inDate = this.parseLocalizedDateString(session.inSwipe);
+          outDate = this.parseLocalizedDateString(session.outSwipe);
+        } catch {
+          inDate = new Date(session.inSwipe);
+          outDate = new Date(session.outSwipe);
+        }
+        
+        const durationMs = outDate.getTime() - inDate.getTime();
+        const hours = durationMs / (1000 * 60 * 60);
+        
+        sessions.push({
+          inTime: inDate,
+          outTime: outDate,
+          hours
+        });
+      } catch (error) {
+        console.error('Error parsing session:', error);
+      }
+    });
+
+    if (sessions.length === 0) {
+      this.timeHours = [];
+      return [];
+    }
+
+    // Find time range
+    const allTimes = sessions.flatMap(s => [s.inTime.getTime(), s.outTime.getTime()]);
+    const minTime = Math.min(...allTimes);
+    const maxTime = Math.max(...allTimes);
+    
+    const minDate = new Date(minTime);
+    const maxDate = new Date(maxTime);
+    
+    // Set time range to cover the day (6 AM to 10 PM by default, or actual range with padding)
+    const minHour = minDate.getHours();
+    const maxHour = maxDate.getHours();
+    const startHour = Math.max(0, Math.min(6, minHour - 1));
+    const endHour = Math.min(23, Math.max(22, maxHour + 2));
+    
+    const startTime = new Date(minDate);
+    startTime.setHours(startHour, 0, 0, 0);
+    const endTime = new Date(maxDate);
+    endTime.setHours(endHour, 0, 0, 0);
+    
+    const timeRange = endTime.getTime() - startTime.getTime();
+    
+    if (timeRange <= 0) {
+      this.timeHours = [];
+      return [];
+    }
+
+    // Generate time hours for grid
+    this.timeHours = [];
+    for (let hour = startHour; hour <= endHour; hour++) {
+      this.timeHours.push(hour);
+    }
+
+    // Calculate cumulative hours and create data points
+    let cumulativeHours = 0;
+    const dataPoints: Array<{ x: number; y: number; time: Date; hours: number; formattedTime: string; isIn: boolean; isOut: boolean }> = [];
+    
+    // Sort sessions by time
+    const sortedSessions = [...sessions].sort((a, b) => a.inTime.getTime() - b.inTime.getTime());
+    
+    sortedSessions.forEach(session => {
+      // IN point - start of work
+      const inOffset = session.inTime.getTime() - startTime.getTime();
+      const inX = (inOffset / timeRange) * this.graphWidth;
+      dataPoints.push({
+        x: Math.max(0, Math.min(this.graphWidth, inX)),
+        y: cumulativeHours,
+        time: session.inTime,
+        hours: cumulativeHours,
+        formattedTime: this.formatRawSwipeTime(session.inTime.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })),
+        isIn: true,
+        isOut: false
+      });
+      
+      // OUT point - end of work (cumulative hours increased)
+      cumulativeHours += session.hours;
+      const outOffset = session.outTime.getTime() - startTime.getTime();
+      const outX = (outOffset / timeRange) * this.graphWidth;
+      dataPoints.push({
+        x: Math.max(0, Math.min(this.graphWidth, outX)),
+        y: cumulativeHours,
+        time: session.outTime,
+        hours: cumulativeHours,
+        formattedTime: this.formatRawSwipeTime(session.outTime.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })),
+        isIn: false,
+        isOut: true
+      });
+    });
+
+    // Find max hours for Y-axis scale
+    const maxHours = Math.max(...dataPoints.map(p => p.hours), 0);
+    const maxHoursRounded = Math.ceil(maxHours) + 1;
+    this.hourScale = [];
+    for (let h = 0; h <= maxHoursRounded; h++) {
+      this.hourScale.push(h);
+    }
+
+    return dataPoints;
+  }
+
+  get linePath(): string {
+    const points = this.lineGraphData;
+    if (points.length === 0) return '';
+    
+    return points.map((point, index) => {
+      const yPos = this.getHoursPosition(point.hours);
+      if (index === 0) {
+        return `M ${point.x} ${yPos}`;
+      }
+      return `L ${point.x} ${yPos}`;
+    }).join(' ');
+  }
+
+  get processedSwipes(): Array<{ x: number; y: number; indicator: number; time: string; date: Date; formattedTime: string; interval?: string; sessionHours?: string }> {
+    if (!this.rawSwipes || this.rawSwipes.length === 0) {
+      this.timeHours = [];
+      return [];
+    }
+
+    // Parse all swipe times and find min/max
+    const swipeTimes: Date[] = [];
+    const parsedSwipes: Array<{ swipe: SwipeData; date: Date }> = [];
+    
+    this.rawSwipes.forEach(swipe => {
+      try {
+        const date = this.parseLocalizedDateString(swipe.time);
+        swipeTimes.push(date);
+        parsedSwipes.push({ swipe, date });
+      } catch (error) {
+        console.error('Error parsing swipe time:', error);
+      }
+    });
+
+    if (swipeTimes.length === 0) {
+      this.timeHours = [];
+      return [];
+    }
+
+    const minTime = new Date(Math.min(...swipeTimes.map(d => d.getTime())));
+    const maxTime = new Date(Math.max(...swipeTimes.map(d => d.getTime())));
+    
+    // Set time range to cover the day (6 AM to 10 PM by default, or actual range with padding)
+    const minHour = minTime.getHours();
+    const maxHour = maxTime.getHours();
+    const startHour = Math.max(0, Math.min(6, minHour - 1));
+    const endHour = Math.min(23, Math.max(22, maxHour + 2));
+    
+    const startTime = new Date(minTime);
+    startTime.setHours(startHour, 0, 0, 0);
+    const endTime = new Date(maxTime);
+    endTime.setHours(endHour, 0, 0, 0);
+    
+    const timeRange = endTime.getTime() - startTime.getTime();
+    
+    if (timeRange <= 0) {
+      this.timeHours = [];
+      return [];
+    }
+
+    // Generate time hours for grid
+    this.timeHours = [];
+    for (let hour = startHour; hour <= endHour; hour++) {
+      this.timeHours.push(hour);
+    }
+
+    // Process swipes to get x/y coordinates with additional info
+    return parsedSwipes.map((item, index) => {
+      try {
+        const swipeDate = item.date;
+        const timeOffset = swipeDate.getTime() - startTime.getTime();
+        const x = (timeOffset / timeRange) * this.graphWidth;
+        const y = item.swipe.indicator === 1 ? 20 : this.graphHeight - 20; // IN at top, OUT at bottom
+        
+        // Format time for display (extract time part)
+        const formattedTime = this.formatRawSwipeTime(item.swipe.time);
+        
+        // Calculate interval from previous swipe
+        let interval: string | undefined;
+        if (index > 0) {
+          const prevSwipe = parsedSwipes[index - 1];
+          const intervalMs = swipeDate.getTime() - prevSwipe.date.getTime();
+          const intervalMinutes = Math.floor(intervalMs / 60000);
+          const intervalHours = Math.floor(intervalMinutes / 60);
+          const remainingMinutes = intervalMinutes % 60;
+          
+          if (intervalHours > 0) {
+            interval = `${intervalHours}h ${remainingMinutes}m`;
+          } else {
+            interval = `${intervalMinutes}m`;
+          }
+        }
+        
+        // Calculate session hours if this is an OUT swipe
+        let sessionHours: string | undefined;
+        if (item.swipe.indicator === 0 && index > 0) {
+          // Find the previous IN swipe
+          for (let i = index - 1; i >= 0; i--) {
+            if (parsedSwipes[i].swipe.indicator === 1) {
+              const inTime = parsedSwipes[i].date;
+              const outTime = swipeDate;
+              const sessionMs = outTime.getTime() - inTime.getTime();
+              const sessionMinutes = Math.floor(sessionMs / 60000);
+              const sessionHoursNum = Math.floor(sessionMinutes / 60);
+              const sessionMins = sessionMinutes % 60;
+              sessionHours = `${sessionHoursNum}h ${sessionMins}m`;
+              break;
+            }
+          }
+        }
+        
+        return {
+          x: Math.max(0, Math.min(this.graphWidth, x)),
+          y,
+          indicator: item.swipe.indicator,
+          time: item.swipe.time,
+          date: swipeDate,
+          formattedTime,
+          interval,
+          sessionHours
+        };
+      } catch (error) {
+        return null;
+      }
+    }).filter(swipe => swipe !== null) as Array<{ x: number; y: number; indicator: number; time: string; date: Date; formattedTime: string; interval?: string; sessionHours?: string }>;
+  }
+
+  formatRawSwipeTime(timeString: string): string {
+    try {
+      // Extract time portion from IST localized format: "28/8/2025, 8:58:07 am" -> "8:58 AM"
+      const timePart = timeString.split(', ')[1]; // Get "8:58:07 am"
+      if (timePart) {
+        // Remove seconds and format: "8:58:07 am" -> "8:58 AM"
+        return timePart.replace(/:\d{2}(\s*(am|pm))/i, '$1').toUpperCase();
+      }
+      return timeString;
+    } catch (error) {
+      return timeString;
+    }
+  }
+
+  getHourPosition(hour: number): number {
+    if (this.timeHours.length === 0) return 0;
+    const startHour = this.timeHours[0];
+    const endHour = this.timeHours[this.timeHours.length - 1];
+    const hourRange = endHour - startHour;
+    if (hourRange === 0) return this.graphWidth / 2;
+    const position = ((hour - startHour) / hourRange) * this.graphWidth;
+    return Math.max(0, Math.min(this.graphWidth, position));
+  }
+
+  getHoursPosition(hours: number): number {
+    if (this.hourScale.length === 0) return this.graphHeight;
+    const maxHours = this.hourScale[this.hourScale.length - 1];
+    if (maxHours === 0) return this.graphHeight;
+    // Y-axis is inverted (0 at bottom, max at top)
+    const position = (hours / maxHours) * this.graphHeight;
+    return Math.max(0, Math.min(this.graphHeight, this.graphHeight - position));
+  }
+
+  formatHourLabel(hour: number): string {
+    const period = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    return `${displayHour}${period}`;
+  }
+
+  getInMarkerPoints(x: number, y: number): string {
+    const size = 8;
+    return `${x},${y} ${x - size},${y + size} ${x + size},${y + size}`;
+  }
+
+  getOutMarkerPoints(x: number, y: number): string {
+    const size = 8;
+    return `${x},${y} ${x - size},${y - size} ${x + size},${y - size}`;
+  }
+
+  private parseLocalizedDateString(dateString: string): Date {
+    // Handle format like "3/9/2025, 9:12:01 am"
+    // Split date and time parts
+    const [datePart, timePart] = dateString.split(', ');
+    
+    // Parse date part (d/m/yyyy)
+    const [day, month, year] = datePart.split('/').map(Number);
+    
+    // Parse time part (h:mm:ss am/pm)
+    const timeMatch = timePart.match(/(\d+):(\d+):(\d+)\s*(am|pm)/i);
+    if (!timeMatch) {
+      throw new Error('Invalid time format');
+    }
+    
+    let [, hours, minutes, seconds, ampm] = timeMatch;
+    let hour = parseInt(hours);
+    
+    // Convert to 24-hour format
+    if (ampm.toLowerCase() === 'pm' && hour !== 12) {
+      hour += 12;
+    } else if (ampm.toLowerCase() === 'am' && hour === 12) {
+      hour = 0;
+    }
+    
+    return new Date(year, month - 1, day, hour, parseInt(minutes), parseInt(seconds));
   }
 }

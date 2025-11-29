@@ -166,4 +166,16 @@ export class AuthService {
   logout(): void {
     this.clearSessionStorage();
   }
+
+  /**
+   * Refresh session by re-logging in with stored credentials
+   * Note: This requires credentials to be stored, which may not be available
+   * For now, this will clear the session and require manual re-login
+   */
+  refreshSession(): Observable<boolean> {
+    // Since we don't store credentials, we can't auto-refresh
+    // Clear the session and return false to indicate refresh is not possible
+    this.clearSessionStorage();
+    return throwError(() => new Error('Session expired. Please login again.'));
+  }
 }
