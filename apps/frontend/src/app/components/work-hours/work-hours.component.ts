@@ -157,12 +157,12 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
     
     if (this.workHoursStats.isComplete) {
       if (this.workHoursStats.excessHours > 0) {
-        return `Great job! ${this.workHoursService.formatHours(this.workHoursStats.excessHours)} overtime`;
+        return `Great job! ${this.formatHoursWithPadding(this.workHoursStats.excessHours)} overtime`;
       }
       return 'Target achieved! 🎉';
     }
     
-    return `${this.workHoursService.formatHours(this.workHoursStats.shortfallHours)} remaining`;
+    return `${this.formatHoursWithPadding(this.workHoursStats.shortfallHours)} remaining`;
   }
 
   getProgressBarColor(): string {
@@ -177,9 +177,20 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
     return this.workHoursService.formatHours(hours);
   }
 
+  formatHoursWithPadding(hours: number | null | undefined): string {
+    if (hours === null || hours === undefined) {
+      return '--h --m';
+    }
+    const wholeHours = Math.floor(hours);
+    const minutes = Math.round((hours - wholeHours) * 60);
+    const paddedHours = String(wholeHours).padStart(2, '0');
+    const paddedMinutes = String(minutes).padStart(2, '0');
+    return `${paddedHours}h ${paddedMinutes}m`;
+  }
+
   formatAchievementTime(achievementTime: string | null): string {
     if (!achievementTime) {
-      return 'N/A';
+      return '--:-- --';
     }
     
     try {
@@ -195,8 +206,12 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
       return timeString; // Return only the time without date
     } catch (error) {
       console.error('Error formatting achievement time:', error);
-      return 'Invalid';
+      return '--:-- --';
     }
+  }
+
+  getWteDisplay(): string {
+    return this.formatAchievementTime(this.workHoursData?.enhancedCalculation?.achievementTime || null);
   }
 
   private parseHoursFromText(hoursText: string): number {
@@ -238,16 +253,30 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   getCyberpunkStatusMessage(): string {
-    if (!this.workHoursStats) return 'INITIALIZING...';
+    if (!this.workHoursStats) return '-';
     
     if (this.workHoursStats.isComplete) {
       if (this.workHoursStats.excessHours > 0) {
-        return `OVERDRIVE MODE: +${this.workHoursService.formatHours(this.workHoursStats.excessHours)}`;
+        return `OVERDRIVE MODE: +${this.formatHoursWithPadding(this.workHoursStats.excessHours)}`;
       }
       return 'TARGET ACQUIRED';
     }
     
-    return `DEFICIT: -${this.workHoursService.formatHours(this.workHoursStats.shortfallHours)}`;
+    return `DEFICIT: -${this.formatHoursWithPadding(this.workHoursStats.shortfallHours)}`;
+  }
+
+  getActiveHoursDisplay(): string {
+    return this.formatHoursWithPadding(this.workHoursStats?.actualHours);
+  }
+
+  getCompletionPercentage(): number {
+    if (!this.workHoursStats) return 0;
+    return this.workHoursStats.completionPercentage;
+  }
+
+  getCompletionPercentageText(): string {
+    if (!this.workHoursStats) return '-% COMPLETE';
+    return `${Math.round(this.workHoursStats.completionPercentage)}% COMPLETE`;
   }
 
   getStatusIndicatorClass(): string {
@@ -290,6 +319,58 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
     
     const randomIndex = Math.floor(Math.random() * messages.length);
     return messages[randomIndex];
+  }
+
+  // Helper methods for always-visible stats
+  getDefSurLabel(): string {
+    if (!this.workHoursStats) return 'DEF';
+    if (this.workHoursStats.excessHours > 0) return 'SUR';
+    if (this.workHoursStats.shortfallHours > 0) return 'DEF';
+    return 'DEF';
+  }
+
+  getDefSurValue(): string {
+    if (!this.workHoursStats) return '--h --m';
+    if (this.workHoursStats.excessHours > 0) {
+      return this.formatHoursWithPadding(this.workHoursStats.excessHours);
+    }
+    if (this.workHoursStats.shortfallHours > 0) {
+      return this.formatHoursWithPadding(this.workHoursStats.shortfallHours);
+    }
+    return '--h --m';
+  }
+
+  getDefSurClass(): string {
+    if (!this.workHoursStats) return '';
+    if (this.workHoursStats.excessHours > 0) return 'success';
+    if (this.workHoursStats.shortfallHours > 0) return 'warning';
+    return '';
+  }
+
+  getDefSurIcon(): string {
+    if (!this.workHoursStats) return 'remove';
+    if (this.workHoursStats.excessHours > 0) return 'trending_up';
+    if (this.workHoursStats.shortfallHours > 0) return 'warning';
+    return 'remove';
+  }
+
+  getWorkingStatusClass(): string {
+    if (!this.workHoursData) return '';
+    return this.workHoursData.sessions.isCurrentlyWorking ? 'active' : 'inactive';
+  }
+
+  getWorkingStatusIcon(): string {
+    if (!this.workHoursData) return 'schedule';
+    return this.workHoursData.sessions.isCurrentlyWorking ? 'work' : 'home';
+  }
+
+  getWorkingStatusValue(): string {
+    if (!this.workHoursData) return '-';
+    return this.workHoursData.sessions.isCurrentlyWorking ? 'ON' : 'OFF';
+  }
+
+  getRequiredHoursDisplay(): string {
+    return this.formatHoursWithPadding(this.workHoursStats?.actualRequiredHours);
   }
 
   ngOnDestroy(): void {

@@ -5,13 +5,13 @@
   <div class="work-hours-content" [class.loading-overlay-active]="loading$ | async">
     
     <!-- Primary Stats Card -->
-    <div class="cp-card primary-stats-compact" *ngIf="workHoursStats" [ngClass]="getCyberpunkStatusClass()">
+    <div class="cp-card primary-stats-compact" [ngClass]="getCyberpunkStatusClass()">
       <div class="stats-header-compact">
         <div class="status-indicator-compact" [ngClass]="getStatusIndicatorClass()">
           <mat-icon class="status-icon-small">{{ getStatusIcon() }}</mat-icon>
         </div>
         <div class="hours-display-compact">
-          <span class="hours-value-compact">{{ formatHours(workHoursStats.actualHours) }}</span>
+          <span class="hours-value-compact">{{ getActiveHoursDisplay() }}</span>
           <span class="hours-label-compact">ACTIVE HOURS</span>
         </div>
         <div class="status-message-compact">{{ getCyberpunkStatusMessage() }}</div>
@@ -20,57 +20,48 @@
       <div class="progress-compact">
         <mat-progress-bar 
           mode="determinate" 
-          [value]="workHoursStats.completionPercentage"
+          [value]="getCompletionPercentage()"
           class="progress-bar-compact">
         </mat-progress-bar>
-        <span class="progress-text-compact">{{ workHoursStats.completionPercentage | number:'1.0-0' }}% COMPLETE</span>
+        <span class="progress-text-compact">{{ getCompletionPercentageText() }}</span>
       </div>
     </div>
 
     <!-- Stats Grid Compact -->
-    <div class="stats-grid-compact" *ngIf="workHoursStats">
+    <div class="stats-grid-compact">
       <!-- 1. Required Hours (REQ) -->
       <div class="stat-card-compact">
         <mat-icon class="stat-icon-compact">schedule</mat-icon>
         <div class="stat-data-compact">
           <span class="stat-label-compact">REQ</span>
-          <span class="stat-value-compact">{{ formatHours(workHoursStats.actualRequiredHours) }}</span>
+          <span class="stat-value-compact">{{ getRequiredHoursDisplay() }}</span>
         </div>
       </div>
 
-      <!-- 2. Shortfall Hours (DEF) -->
-      <div class="stat-card-compact warning" *ngIf="workHoursStats.shortfallHours > 0">
-        <mat-icon class="stat-icon-compact">warning</mat-icon>
+      <!-- 2. Shortfall Hours (DEF) or Excess Hours (SUR) -->
+      <div class="stat-card-compact" [ngClass]="getDefSurClass()">
+        <mat-icon class="stat-icon-compact">{{ getDefSurIcon() }}</mat-icon>
         <div class="stat-data-compact">
-          <span class="stat-label-compact">DEF</span>
-          <span class="stat-value-compact">{{ formatHours(workHoursStats.shortfallHours) }}</span>
+          <span class="stat-label-compact">{{ getDefSurLabel() }}</span>
+          <span class="stat-value-compact">{{ getDefSurValue() }}</span>
         </div>
       </div>
 
-      <!-- 3. Excess Hours (SUR) -->
-      <div class="stat-card-compact success" *ngIf="workHoursStats.excessHours > 0">
-        <mat-icon class="stat-icon-compact">trending_up</mat-icon>
-        <div class="stat-data-compact">
-          <span class="stat-label-compact">SUR</span>
-          <span class="stat-value-compact">{{ formatHours(workHoursStats.excessHours) }}</span>
-        </div>
-      </div>
-
-      <!-- 4. When To Exit (WTE) -->
-      <div class="stat-card-compact info" *ngIf="workHoursData?.enhancedCalculation?.achievementTime">
+      <!-- 3. When To Exit (WTE) -->
+      <div class="stat-card-compact info">
         <mat-icon class="stat-icon-compact">schedule</mat-icon>
         <div class="stat-data-compact">
           <span class="stat-label-compact">WTE</span>
-          <span class="stat-value-compact">{{ formatAchievementTime(workHoursData.enhancedCalculation.achievementTime) }}</span>
+          <span class="stat-value-compact">{{ getWteDisplay() }}</span>
         </div>
       </div>
 
-      <!-- 5. Working Status (STS) -->
-      <div class="stat-card-compact" *ngIf="workHoursData" [ngClass]="workHoursData.sessions.isCurrentlyWorking ? 'active' : 'inactive'">
-        <mat-icon class="stat-icon-compact">{{ workHoursData.sessions.isCurrentlyWorking ? 'work' : 'home' }}</mat-icon>
+      <!-- 4. Working Status (STS) -->
+      <div class="stat-card-compact" [ngClass]="getWorkingStatusClass()">
+        <mat-icon class="stat-icon-compact">{{ getWorkingStatusIcon() }}</mat-icon>
         <div class="stat-data-compact">
           <span class="stat-label-compact">STS</span>
-          <span class="stat-value-compact">{{ workHoursData.sessions.isCurrentlyWorking ? 'ON' : 'OFF' }}</span>
+          <span class="stat-value-compact">{{ getWorkingStatusValue() }}</span>
         </div>
       </div>
     </div>
