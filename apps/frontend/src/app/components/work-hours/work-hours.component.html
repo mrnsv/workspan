@@ -2,7 +2,7 @@
 <div class="compact-work-hours">
   
   <!-- Main Content (Always Visible) -->
-  <div class="work-hours-content" [class.loading-overlay-active]="loading$ | async">
+  <div class="work-hours-content">
     
     <!-- Primary Stats Card -->
     <div class="cp-card primary-stats-compact" [ngClass]="getCyberpunkStatusClass()">
@@ -102,13 +102,6 @@
       </button>
     </div>
 
-    <!-- Loading Overlay (appears on top of content) -->
-    <div *ngIf="loading$ | async" class="loading-overlay">
-      <div class="loading-content">
-        <span class="loading-title">{{ loadingMessage$ | async }}</span>
-        <mat-spinner diameter="20" class="spinner-small"></mat-spinner>
-      </div>
-    </div>
 
   </div>
 </div>

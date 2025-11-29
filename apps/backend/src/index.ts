@@ -551,49 +551,26 @@ app.post("/api/hours/worklogs", async (req, res) => {
     // Enhanced Calculation Logic for WEEK and MONTH modes
     let enhancedCalculation = {
       currentDateInRange: false,
-      yesterdayDateInRange: false,
-      isBefore1030AM: false,
       achievementTime: achievementTime,
       additionalSources: {
-        currentActualHours: 0,
-        yesterdayActualHours: 0
+        currentActualHours: 0
       }
     };
 
     if (targetPeriod !== 'day') {
-      // Get current date and time in IST
+      // Get current date in IST
       const nowIST = new Date().toLocaleString('en-CA', { timeZone: 'Asia/Kolkata' });
       const currentDateIST = nowIST.split(' ')[0].replace(',', ''); // YYYY-MM-DD format
-      const currentTimeIST = new Intl.DateTimeFormat('en-GB', {
-        timeZone: 'Asia/Kolkata',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-      }).format(new Date());
-      
-      // Calculate yesterday's date in IST
-      const yesterdayDate = new Date(currentDateIST);
-      yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-      const yesterdayDateIST = yesterdayDate.toISOString().split('T')[0];
       
       // Check if current date is in selected date range
       const currentDateInRange = currentDateIST >= targetStartDate && currentDateIST <= targetEndDate;
       
-      // Check if yesterday's date is in selected date range
-      const yesterdayDateInRange = yesterdayDateIST >= targetStartDate && yesterdayDateIST <= targetEndDate;
-      
-      // Check if current time is before 10:30 AM IST
-      const isBefore1030AM = currentTimeIST < '10:30';
-      
       // Initialize enhanced calculation object
       enhancedCalculation = {
         currentDateInRange: currentDateInRange,
-        yesterdayDateInRange: yesterdayDateInRange,
-        isBefore1030AM: isBefore1030AM,
         achievementTime: achievementTime,
         additionalSources: {
-          currentActualHours: 0,
-          yesterdayActualHours: 0
+          currentActualHours: 0
         }
       };
       
@@ -611,22 +588,6 @@ app.post("/api/hours/worklogs", async (req, res) => {
         }
       } else {
         enhancedCalculation.additionalSources.currentActualHours = 0;
-      }
-      
-      // Fetch yesterday's actual hours if yesterday is in range AND it's before 10:30 AM
-      if (yesterdayDateInRange && isBefore1030AM) {
-        try {
-          console.log(`🔍 Fetching yesterday's swipes for enhanced calculation`);
-          const yesterdaySwipes = await fetchSwipesWithSession(sessionData, yesterdayDateIST);
-          const yesterdayWorkHours = calculateDailyWorkHours(yesterdaySwipes, yesterdayDateIST);
-          enhancedCalculation.additionalSources.yesterdayActualHours = yesterdayWorkHours.totalActualHours;
-          console.log(`✅ Yesterday actual hours: ${yesterdayWorkHours.totalActualHours}`);
-        } catch (error) {
-          console.error(`❌ Error fetching yesterday's swipes:`, error);
-          enhancedCalculation.additionalSources.yesterdayActualHours = 0;
-        }
-      } else {
-        enhancedCalculation.additionalSources.yesterdayActualHours = 0;
       }
     }
 
@@ -674,11 +635,6 @@ app.post("/api/hours/worklogs", async (req, res) => {
       // Add current date actual hours if current date is in range
       if (enhancedCalculation.currentDateInRange && enhancedCalculation.additionalSources.currentActualHours) {
         enhancedActualHours += enhancedCalculation.additionalSources.currentActualHours;
-      }
-      
-      // Add yesterday's actual hours if yesterday is in range AND it's before 10:30 AM
-      if (enhancedCalculation.yesterdayDateInRange && enhancedCalculation.isBefore1030AM && enhancedCalculation.additionalSources.yesterdayActualHours) {
-        enhancedActualHours += enhancedCalculation.additionalSources.yesterdayActualHours;
       }
     }
 

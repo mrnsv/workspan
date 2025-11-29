@@ -78,12 +78,9 @@ export interface UnifiedWorkHoursResponse {
   // Enhanced calculation data
   enhancedCalculation?: {
     currentDateInRange: boolean;
-    yesterdayDateInRange: boolean;
-    isBefore1030AM: boolean;
     achievementTime: string | null;
     additionalSources: {
       currentActualHours: number;
-      yesterdayActualHours: number;
     };
   };
 }

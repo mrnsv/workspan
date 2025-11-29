@@ -20,8 +20,23 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
   loading$: Observable<boolean>;
   loadingMessage$: Observable<string>;
   error$: Observable<string | null>;
+  isLoading: boolean = false;
+  
+  // Scrambling values for loading animation
+  scramblingHours: string = '00h 00m';
+  scramblingPercentage: number = 0;
+  scramblingWte: string = '--:-- --';
+  
+  // Counter variables for consecutive counting
+  private counterMinutes: number = 0;
+  private counterHours: number = 0;
+  private counterPercentage: number = 0;
+  private counterWteMinutes: number = 0;
+  private counterWteHours: number = 1;
+  private counterWteAmPm: number = 0; // 0 = AM, 1 = PM
   
   private subscriptions = new Subscription();
+  private scramblingInterval: any = null;
   
   constructor(
     private workHoursService: WorkHoursService,
@@ -67,6 +82,18 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
       this.cdr.detectChanges();
     });
     this.subscriptions.add(statsSubscription);
+    
+    // Subscribe to loading state
+    const loadingSubscription = this.loading$.subscribe(loading => {
+      this.isLoading = loading;
+      if (loading) {
+        this.startScrambling();
+      } else {
+        this.stopScrambling();
+      }
+      this.cdr.detectChanges();
+    });
+    this.subscriptions.add(loadingSubscription);
     
     this.loadWorkHours();
   }
@@ -211,6 +238,9 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   getWteDisplay(): string {
+    if (this.isLoading) {
+      return this.scramblingWte;
+    }
     return this.formatAchievementTime(this.workHoursData?.enhancedCalculation?.achievementTime || null);
   }
 
@@ -253,6 +283,9 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   getCyberpunkStatusMessage(): string {
+    if (this.isLoading) {
+      return 'SYNCING...';
+    }
     if (!this.workHoursStats) return '-';
     
     if (this.workHoursStats.isComplete) {
@@ -266,15 +299,24 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   getActiveHoursDisplay(): string {
+    if (this.isLoading) {
+      return this.scramblingHours;
+    }
     return this.formatHoursWithPadding(this.workHoursStats?.actualHours);
   }
 
   getCompletionPercentage(): number {
+    if (this.isLoading) {
+      return this.scramblingPercentage;
+    }
     if (!this.workHoursStats) return 0;
     return this.workHoursStats.completionPercentage;
   }
 
   getCompletionPercentageText(): string {
+    if (this.isLoading) {
+      return `${Math.round(this.scramblingPercentage)}% COMPLETE`;
+    }
     if (!this.workHoursStats) return '-% COMPLETE';
     return `${Math.round(this.workHoursStats.completionPercentage)}% COMPLETE`;
   }
@@ -330,6 +372,9 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   getDefSurValue(): string {
+    if (this.isLoading) {
+      return this.scramblingHours;
+    }
     if (!this.workHoursStats) return '--h --m';
     if (this.workHoursStats.excessHours > 0) {
       return this.formatHoursWithPadding(this.workHoursStats.excessHours);
@@ -370,10 +415,69 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   getRequiredHoursDisplay(): string {
+    if (this.isLoading) {
+      return this.scramblingHours;
+    }
     return this.formatHoursWithPadding(this.workHoursStats?.actualRequiredHours);
   }
 
+  private startScrambling(): void {
+    this.stopScrambling(); // Clear any existing interval
+    
+    // Reset counters
+    this.counterMinutes = 0;
+    this.counterHours = 0;
+    this.counterPercentage = 0;
+    this.counterWteMinutes = 0;
+    this.counterWteHours = 1;
+    this.counterWteAmPm = 0;
+    
+    // Update values consecutively
+    this.scramblingInterval = setInterval(() => {
+      // Count minutes (0-59), then increment hours (0-24), then reset
+      this.counterMinutes++;
+      if (this.counterMinutes >= 60) {
+        this.counterMinutes = 0;
+        this.counterHours++;
+        if (this.counterHours >= 25) {
+          this.counterHours = 0;
+        }
+      }
+      this.scramblingHours = `${String(this.counterHours).padStart(2, '0')}h ${String(this.counterMinutes).padStart(2, '0')}m`;
+      
+      // Count percentage (0-100), then reset
+      this.counterPercentage++;
+      if (this.counterPercentage > 100) {
+        this.counterPercentage = 0;
+      }
+      this.scramblingPercentage = this.counterPercentage;
+      
+      // Count WTE time (1-12 hours, 0-59 minutes, AM/PM)
+      this.counterWteMinutes++;
+      if (this.counterWteMinutes >= 60) {
+        this.counterWteMinutes = 0;
+        this.counterWteHours++;
+        if (this.counterWteHours > 12) {
+          this.counterWteHours = 1;
+          this.counterWteAmPm = (this.counterWteAmPm + 1) % 2; // Toggle AM/PM
+        }
+      }
+      const amPm = this.counterWteAmPm === 0 ? 'AM' : 'PM';
+      this.scramblingWte = `${String(this.counterWteHours).padStart(2, '0')}:${String(this.counterWteMinutes).padStart(2, '0')} ${amPm}`;
+      
+      this.cdr.detectChanges();
+    }, 100); // Update every 100ms for consecutive counting effect
+  }
+
+  private stopScrambling(): void {
+    if (this.scramblingInterval) {
+      clearInterval(this.scramblingInterval);
+      this.scramblingInterval = null;
+    }
+  }
+
   ngOnDestroy(): void {
+    this.stopScrambling();
     this.subscriptions.unsubscribe();
   }
 }

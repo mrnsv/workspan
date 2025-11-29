@@ -603,7 +603,6 @@ curl "http://localhost:3000/api/hours/worklogs?startDate=2025-01-01&endDate=2025
 For week and month periods, the system provides enhanced calculations:
 - **GreytHR Integration**: Uses total hours from GreytHR API
 - **Real-time Addition**: Adds current day actual hours if in date range
-- **Yesterday Hours**: Includes yesterday's hours if before 10:30 AM
 - **Attendance Deduction**: Accounts for holidays, leaves, and other attendance status
 
 ### Minute Rounding Rules
