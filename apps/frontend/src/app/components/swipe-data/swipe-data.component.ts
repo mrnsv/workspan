@@ -16,6 +16,8 @@ export type TimePeriod = 'day' | 'week' | 'month';
 export class SwipeDataComponent implements OnInit, OnChanges {
   @Input() selectedDate!: Date;
   @Input() selectionMode: TimePeriod = 'day';
+  @Input() showLeftPanelContent: boolean = false;
+  @Input() showRightPanelContent: boolean = false;
   @Output() selectionModeChanged = new EventEmitter<TimePeriod>();
   
   unifiedData: UnifiedWorkHoursResponse | null = null;

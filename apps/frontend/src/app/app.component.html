@@ -21,7 +21,7 @@
 
   <!-- Main Three-Column Grid Layout -->
   <div class="main-grid-three">
-    <!-- Left Panel: Auth + Date Selector -->
+    <!-- Left Panel: Auth + Swipe Data -->
     <div class="left-panel-narrow">
       <!-- Compact Auth -->
       <div class="cp-card auth-compact">
@@ -36,36 +36,13 @@
         <app-login-form (cookieRefreshed)="onCookieRefreshed()"></app-login-form>
       </div>
 
-      <!-- Cyberpunk Calendar -->
-      <div class="cp-card calendar-container-compact">
-                  <div class="calendar-header-compact">
-            <!-- Clickable TARGET DATE heading -->
-            <div *ngIf="!isDateInputMode" 
-                 class="target-date-heading" 
-                 (click)="enableDateInputMode()">
-              TARGET DATE
-            </div>
-            
-            <!-- Date input field (shown when heading is clicked) -->
-            <mat-form-field *ngIf="isDateInputMode" class="date-input-field" appearance="outline">
-              <input matInput 
-                     #dateInput
-                     placeholder="DD/MM/YYYY" 
-                     [(ngModel)]="dateInputValue"
-                     (keyup.enter)="onDateInputSubmit()"
-                     (keyup.escape)="cancelDateInputMode()"
-                     (blur)="onDateInputSubmit()"
-                     (input)="onDateInputChange($event)"
-                     maxlength="10"
-                     class="date-input">
-            </mat-form-field>
-          </div>
-        <app-calendar 
-          [selectedDate]="selectedDate" 
-          [selectionMode]="selectionMode"
-          (dateSelected)="onDateChanged($event)">
-        </app-calendar>
-      </div>
+      <!-- Swipe Data Refresh Button and Accordions -->
+      <app-swipe-data 
+        [selectedDate]="selectedDate" 
+        [selectionMode]="selectionMode" 
+        (selectionModeChanged)="onSelectionModeChanged($event)"
+        [showLeftPanelContent]="true">
+      </app-swipe-data>
     </div>
 
     <!-- Center Panel: Work Hours -->
@@ -73,9 +50,46 @@
       <app-work-hours [selectedDate]="selectedDate" [selectionMode]="selectionMode"></app-work-hours>
     </div>
 
-    <!-- Right Panel: Swipe Data Accordions -->
+    <!-- Right Panel: View Mode + Target Date -->
     <div class="right-panel-extra">
-      <app-swipe-data [selectedDate]="selectedDate" [selectionMode]="selectionMode" (selectionModeChanged)="onSelectionModeChanged($event)"></app-swipe-data>
+      <!-- View Mode Picker -->
+      <app-swipe-data 
+        [selectedDate]="selectedDate" 
+        [selectionMode]="selectionMode" 
+        (selectionModeChanged)="onSelectionModeChanged($event)"
+        [showRightPanelContent]="true">
+      </app-swipe-data>
+
+      <!-- Cyberpunk Calendar -->
+      <div class="cp-card calendar-container-compact">
+        <div class="calendar-header-compact">
+          <!-- Clickable TARGET DATE heading -->
+          <div *ngIf="!isDateInputMode" 
+               class="target-date-heading" 
+               (click)="enableDateInputMode()">
+            TARGET DATE
+          </div>
+          
+          <!-- Date input field (shown when heading is clicked) -->
+          <mat-form-field *ngIf="isDateInputMode" class="date-input-field" appearance="outline">
+            <input matInput 
+                   #dateInput
+                   placeholder="DD/MM/YYYY" 
+                   [(ngModel)]="dateInputValue"
+                   (keyup.enter)="onDateInputSubmit()"
+                   (keyup.escape)="cancelDateInputMode()"
+                   (blur)="onDateInputSubmit()"
+                   (input)="onDateInputChange($event)"
+                   maxlength="10"
+                   class="date-input">
+          </mat-form-field>
+        </div>
+        <app-calendar 
+          [selectedDate]="selectedDate" 
+          [selectionMode]="selectionMode"
+          (dateSelected)="onDateChanged($event)">
+        </app-calendar>
+      </div>
     </div>
   </div>
 
