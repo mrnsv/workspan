@@ -568,67 +568,125 @@
   }
 }
 
-/* Line graph */
-.line-graph {
-  .work-line {
+/* Bar graph */
+.work-bars {
+  .bar-shadow {
+    fill: rgba(0, 0, 0, 0.2);
+    opacity: 0.3;
+  }
+  
+  .session-bar {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      opacity: 1;
+      filter: brightness(1.15);
+      transform: translateY(-2px);
+    }
+  }
+  
+  .bar-border {
     stroke: var(--cp-success);
-    stroke-width: 3;
+    stroke-width: 2;
     opacity: 0.8;
-    transition: all 0.2s ease;
-    
-    &:hover {
-      opacity: 1;
-      stroke-width: 4;
-    }
   }
   
-  .point-in {
-    fill: var(--cp-success);
+  .session-badge {
+    fill: var(--cp-bg-primary);
     stroke: var(--cp-success);
     stroke-width: 2;
-    opacity: 0.9;
-    transition: all 0.2s ease;
-    
-    &:hover {
-      opacity: 1;
-      r: 7;
-    }
+    opacity: 0.95;
   }
   
-  .point-out {
-    fill: var(--cp-secondary);
-    stroke: var(--cp-secondary);
-    stroke-width: 2;
-    opacity: 0.9;
-    transition: all 0.2s ease;
-    
-    &:hover {
-      opacity: 1;
-      r: 7;
-    }
-  }
-  
-  .point-time-label {
-    font-size: 9px;
-    font-weight: var(--cp-component-font-weight-semibold);
+  .session-number {
+    font-size: 10px;
+    font-weight: var(--cp-component-font-weight-bold);
     font-family: var(--cp-component-font-family);
+    fill: var(--cp-success);
     pointer-events: none;
   }
   
-  .point-label-in {
+  .bar-duration-label {
+    font-size: 12px;
+    font-weight: var(--cp-component-font-weight-bold);
+    font-family: var(--cp-component-font-family);
+    fill: var(--cp-bg-primary);
+    opacity: 1;
+    pointer-events: none;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  }
+  
+  .bar-time-label-group {
+    pointer-events: none;
+  }
+  
+  .time-label-bg {
+    opacity: 0.9;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  }
+  
+  .time-label-in-bg {
     fill: var(--cp-success);
   }
   
-  .point-label-out {
+  .time-label-out-bg {
     fill: var(--cp-secondary);
   }
   
-  .point-hours-label {
+  .bar-time-label {
     font-size: 8px;
     font-weight: var(--cp-component-font-weight-bold);
     font-family: var(--cp-component-font-family);
+    fill: var(--cp-bg-primary);
+    pointer-events: none;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  
+  .bar-time-value {
+    font-size: 10px;
+    font-weight: var(--cp-component-font-weight-semibold);
+    font-family: var(--cp-component-font-family);
+    fill: var(--cp-bg-primary);
+    pointer-events: none;
+  }
+  
+  .bar-time-in,
+  .bar-time-in-value {
+    fill: var(--cp-bg-primary);
+  }
+  
+  .bar-time-out,
+  .bar-time-out-value {
+    fill: var(--cp-bg-primary);
+  }
+  
+  .bar-hours-indicator {
+    font-size: 10px;
+    font-weight: var(--cp-component-font-weight-bold);
+    font-family: var(--cp-component-font-family);
     fill: var(--cp-accent);
-    opacity: 0.8;
+    opacity: 0.9;
+    pointer-events: none;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+}
+
+.interval-labels {
+  .interval-marker {
+    stroke: var(--cp-warning);
+    stroke-width: 2;
+    stroke-dasharray: 3, 3;
+    opacity: 0.6;
+  }
+  
+  .interval-label {
+    font-size: 9px;
+    font-weight: var(--cp-component-font-weight-semibold);
+    font-family: var(--cp-component-font-family);
+    fill: var(--cp-warning);
+    opacity: 0.9;
     pointer-events: none;
   }
 }
@@ -706,18 +764,18 @@
   border-radius: 2px;
 }
 
-.point-in-sample {
-  background: var(--cp-success);
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
+.session-bar-sample {
+  background: linear-gradient(to bottom, var(--cp-success), var(--cp-success));
+  width: 30px;
+  height: 12px;
+  border-radius: 3px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.point-out-sample {
-  background: var(--cp-secondary);
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
+.legend-text {
+  color: var(--cp-accent);
+  font-weight: var(--cp-component-font-weight-bold);
+  font-size: var(--cp-component-font-size-sm);
 }
 
 /* Theme-specific graph colors */

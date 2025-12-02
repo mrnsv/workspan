@@ -72,8 +72,19 @@
         <mat-icon class="graph-icon-compact">timeline</mat-icon>
         <span class="graph-title-compact">SWIPE TIMELINE</span>
       </div>
-      <div class="graph-content-compact" *ngIf="lineGraphData && lineGraphData.length > 0">
+      <div class="graph-content-compact" *ngIf="barGraphData && barGraphData.length > 0">
         <svg class="swipe-timeline-graph" [attr.viewBox]="'0 0 ' + graphWidth + ' ' + graphHeight" preserveAspectRatio="none">
+          <!-- Gradient definitions for bars -->
+          <defs>
+            <linearGradient id="barGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" style="stop-color:var(--cp-success);stop-opacity:0.9" />
+              <stop offset="100%" style="stop-color:var(--cp-success);stop-opacity:0.6" />
+            </linearGradient>
+            <filter id="barShadow">
+              <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.3"/>
+            </filter>
+          </defs>
+          
           <!-- Y-axis grid lines (hours) -->
           <g class="hours-grid">
             <line *ngFor="let hour of hourScale" 
@@ -111,50 +122,124 @@
                   text-anchor="middle">{{ formatHourLabel(hour) }}</text>
           </g>
           
-          <!-- Line graph -->
-          <g class="line-graph">
-            <!-- Line path -->
-            <path [attr.d]="linePath"
-                  class="work-line"
-                  fill="none"
-                  stroke-width="3"/>
-            
-            <!-- Data points -->
-            <g *ngFor="let point of lineGraphData; let i = index">
-              <!-- Point circle -->
-              <circle [attr.cx]="point.x"
-                      [attr.cy]="getHoursPosition(point.hours)"
-                      [attr.r]="point.isIn ? 5 : 5"
-                      [ngClass]="point.isIn ? 'point-in' : 'point-out'"
-                      [attr.data-index]="i"/>
+          <!-- Interval labels (between sessions) -->
+          <g class="interval-labels">
+            <g *ngFor="let bar of barGraphData">
+              <g *ngIf="bar.interval && bar.intervalX">
+                <line [attr.x1]="bar.intervalX"
+                      [attr.y1]="graphHeight - 30"
+                      [attr.x2]="bar.intervalX"
+                      [attr.y2]="graphHeight - 20"
+                      class="interval-marker"/>
+                <text [attr.x]="bar.intervalX"
+                      [attr.y]="graphHeight - 35"
+                      class="interval-label"
+                      text-anchor="middle">{{ bar.interval }}</text>
+              </g>
+            </g>
+          </g>
+          
+          <!-- Work session bars -->
+          <g class="work-bars">
+            <g *ngFor="let bar of barGraphData; let i = index">
+              <!-- Bar shadow -->
+              <rect [attr.x]="bar.inX + 2"
+                    [attr.y]="bar.barY + 2"
+                    [attr.width]="bar.barWidth"
+                    [attr.height]="bar.barHeight"
+                    class="bar-shadow"
+                    [attr.data-session]="i"/>
               
-              <!-- Time label -->
-              <text [attr.x]="point.x" 
-                    [attr.y]="getHoursPosition(point.hours) + (point.isIn ? -10 : 15)"
-                    [ngClass]="point.isIn ? 'point-label-in' : 'point-label-out'"
-                    text-anchor="middle"
-                    class="point-time-label">{{ point.formattedTime }}</text>
+              <!-- Main bar -->
+              <rect [attr.x]="bar.inX"
+                    [attr.y]="bar.barY"
+                    [attr.width]="bar.barWidth"
+                    [attr.height]="bar.barHeight"
+                    class="session-bar"
+                    fill="url(#barGradient)"
+                    filter="url(#barShadow)"
+                    [attr.data-session]="i"/>
               
-              <!-- Hours label -->
-              <text [attr.x]="point.x" 
-                    [attr.y]="getHoursPosition(point.hours) + (point.isIn ? -22 : 27)"
-                    class="point-hours-label"
-                    text-anchor="middle">{{ point.hours.toFixed(1) }}h</text>
+              <!-- Bar border -->
+              <rect [attr.x]="bar.inX"
+                    [attr.y]="bar.barY"
+                    [attr.width]="bar.barWidth"
+                    [attr.height]="bar.barHeight"
+                    class="bar-border"
+                    fill="none"
+                    [attr.data-session]="i"/>
+              
+              <!-- Session number badge -->
+              <circle [attr.cx]="bar.inX + 15"
+                      [attr.cy]="bar.barY + 15"
+                      [attr.r]="12"
+                      class="session-badge"/>
+              <text [attr.x]="bar.inX + 15"
+                    [attr.y]="bar.barY + 19"
+                    class="session-number"
+                    text-anchor="middle">{{ bar.sessionNumber }}</text>
+              
+              <!-- Duration label (centered on bar) -->
+              <text [attr.x]="bar.inX + bar.barWidth / 2"
+                    [attr.y]="bar.barY + bar.barHeight / 2 + 5"
+                    class="bar-duration-label"
+                    text-anchor="middle">{{ bar.duration }}</text>
+              
+              <!-- IN time label -->
+              <g class="bar-time-label-group">
+                <rect [attr.x]="bar.inX - 30"
+                      [attr.y]="bar.barY - 28"
+                      [attr.width]="60"
+                      [attr.height]="24"
+                      class="time-label-bg time-label-in-bg"
+                      rx="4"/>
+                <text [attr.x]="bar.inX"
+                      [attr.y]="bar.barY - 15"
+                      class="bar-time-label bar-time-in"
+                      text-anchor="middle">IN</text>
+                <text [attr.x]="bar.inX"
+                      [attr.y]="bar.barY - 4"
+                      class="bar-time-value bar-time-in-value"
+                      text-anchor="middle">{{ bar.inFormatted }}</text>
+              </g>
+              
+              <!-- OUT time label -->
+              <g class="bar-time-label-group">
+                <rect [attr.x]="bar.outX - 30"
+                      [attr.y]="bar.barY - 28"
+                      [attr.width]="60"
+                      [attr.height]="24"
+                      class="time-label-bg time-label-out-bg"
+                      rx="4"/>
+                <text [attr.x]="bar.outX"
+                      [attr.y]="bar.barY - 15"
+                      class="bar-time-label bar-time-out"
+                      text-anchor="middle">OUT</text>
+                <text [attr.x]="bar.outX"
+                      [attr.y]="bar.barY - 4"
+                      class="bar-time-value bar-time-out-value"
+                      text-anchor="middle">{{ bar.outFormatted }}</text>
+              </g>
+              
+              <!-- Hours worked indicator -->
+              <text [attr.x]="bar.inX + bar.barWidth / 2"
+                    [attr.y]="bar.barY - 5"
+                    class="bar-hours-indicator"
+                    text-anchor="middle">{{ bar.hours.toFixed(1) }}h</text>
             </g>
           </g>
         </svg>
       </div>
-      <div class="graph-legend-compact" *ngIf="lineGraphData && lineGraphData.length > 0">
+      <div class="graph-legend-compact" *ngIf="barGraphData && barGraphData.length > 0">
         <div class="legend-item">
-          <div class="legend-marker point-in-sample"></div>
-          <span>IN</span>
+          <div class="legend-marker session-bar-sample"></div>
+          <span>WORK SESSIONS</span>
         </div>
         <div class="legend-item">
-          <div class="legend-marker point-out-sample"></div>
-          <span>OUT</span>
+          <span class="legend-text">Total: {{ getTotalHours() }}</span>
         </div>
       </div>
-      <div class="no-data-compact" *ngIf="!lineGraphData || lineGraphData.length === 0">
+      <div class="no-data-compact" *ngIf="!barGraphData || barGraphData.length === 0">
         <mat-icon class="no-data-icon-compact">timeline</mat-icon>
         <span class="no-data-text-compact">NO DATA TO DISPLAY</span>
       </div>

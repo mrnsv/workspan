@@ -540,16 +540,31 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  get lineGraphData(): Array<{ x: number; y: number; time: Date; hours: number; formattedTime: string; isIn: boolean; isOut: boolean }> {
+  get barGraphData(): Array<{ 
+    inTime: Date; 
+    outTime: Date; 
+    inX: number; 
+    outX: number; 
+    barY: number;
+    barHeight: number;
+    hours: number; 
+    inFormatted: string; 
+    outFormatted: string; 
+    duration: string;
+    sessionNumber: number;
+    interval?: string;
+    intervalX?: number;
+    barWidth: number;
+  }> {
     if (!this.swipeData?.swipePairs || this.swipeData.swipePairs.length === 0) {
       this.timeHours = [];
       return [];
     }
 
-    // Parse all session times and create data points
-    const sessions: Array<{ inTime: Date; outTime: Date; hours: number }> = [];
+    // Parse all session times
+    const sessions: Array<{ inTime: Date; outTime: Date; hours: number; inFormatted: string; outFormatted: string; duration: string }> = [];
     
-    this.swipeData.swipePairs.forEach((session: any) => {
+    this.swipeData.swipePairs.forEach((session: any, index: number) => {
       try {
         let inDate: Date;
         let outDate: Date;
@@ -564,11 +579,17 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
         
         const durationMs = outDate.getTime() - inDate.getTime();
         const hours = durationMs / (1000 * 60 * 60);
+        const hoursWhole = Math.floor(hours);
+        const minutes = Math.floor((hours - hoursWhole) * 60);
+        const duration = `${hoursWhole}h ${minutes}m`;
         
         sessions.push({
           inTime: inDate,
           outTime: outDate,
-          hours
+          hours,
+          inFormatted: this.formatRawSwipeTime(session.inSwipe),
+          outFormatted: this.formatRawSwipeTime(session.outSwipe),
+          duration
         });
       } catch (error) {
         console.error('Error parsing session:', error);
@@ -612,64 +633,97 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
       this.timeHours.push(hour);
     }
 
-    // Calculate cumulative hours and create data points
-    let cumulativeHours = 0;
-    const dataPoints: Array<{ x: number; y: number; time: Date; hours: number; formattedTime: string; isIn: boolean; isOut: boolean }> = [];
-    
-    // Sort sessions by time
-    const sortedSessions = [...sessions].sort((a, b) => a.inTime.getTime() - b.inTime.getTime());
-    
-    sortedSessions.forEach(session => {
-      // IN point - start of work
-      const inOffset = session.inTime.getTime() - startTime.getTime();
-      const inX = (inOffset / timeRange) * this.graphWidth;
-      dataPoints.push({
-        x: Math.max(0, Math.min(this.graphWidth, inX)),
-        y: cumulativeHours,
-        time: session.inTime,
-        hours: cumulativeHours,
-        formattedTime: this.formatRawSwipeTime(session.inTime.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })),
-        isIn: true,
-        isOut: false
-      });
-      
-      // OUT point - end of work (cumulative hours increased)
-      cumulativeHours += session.hours;
-      const outOffset = session.outTime.getTime() - startTime.getTime();
-      const outX = (outOffset / timeRange) * this.graphWidth;
-      dataPoints.push({
-        x: Math.max(0, Math.min(this.graphWidth, outX)),
-        y: cumulativeHours,
-        time: session.outTime,
-        hours: cumulativeHours,
-        formattedTime: this.formatRawSwipeTime(session.outTime.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })),
-        isIn: false,
-        isOut: true
-      });
-    });
-
     // Find max hours for Y-axis scale
-    const maxHours = Math.max(...dataPoints.map(p => p.hours), 0);
+    const maxHours = Math.max(...sessions.map(s => s.hours), 0);
     const maxHoursRounded = Math.ceil(maxHours) + 1;
     this.hourScale = [];
     for (let h = 0; h <= maxHoursRounded; h++) {
       this.hourScale.push(h);
     }
 
-    return dataPoints;
+    // Create bar data with intervals
+    const barData: Array<{ 
+      inTime: Date; 
+      outTime: Date; 
+      inX: number; 
+      outX: number; 
+      barY: number;
+      barHeight: number;
+      hours: number; 
+      inFormatted: string; 
+      outFormatted: string; 
+      duration: string;
+      sessionNumber: number;
+      interval?: string;
+      intervalX?: number;
+      barWidth: number;
+    }> = [];
+
+    // Sort sessions by time
+    const sortedSessions = [...sessions].sort((a, b) => a.inTime.getTime() - b.inTime.getTime());
+    
+    sortedSessions.forEach((session, index) => {
+      const inOffset = session.inTime.getTime() - startTime.getTime();
+      const outOffset = session.outTime.getTime() - startTime.getTime();
+      
+      const inX = (inOffset / timeRange) * this.graphWidth;
+      const outX = (outOffset / timeRange) * this.graphWidth;
+      const barWidth = outX - inX;
+      
+      // Bar height based on hours worked
+      const barY = this.getHoursPosition(session.hours);
+      const barHeight = this.getHoursPosition(0) - barY;
+      
+      // Calculate interval from previous session
+      let interval: string | undefined;
+      let intervalX: number | undefined;
+      if (index > 0) {
+        const prevSession = sortedSessions[index - 1];
+        const intervalMs = session.inTime.getTime() - prevSession.outTime.getTime();
+        if (intervalMs > 0) {
+          const intervalMinutes = Math.floor(intervalMs / 60000);
+          const intervalHours = Math.floor(intervalMinutes / 60);
+          const remainingMinutes = intervalMinutes % 60;
+          
+          if (intervalHours > 0) {
+            interval = `${intervalHours}h ${remainingMinutes}m`;
+          } else {
+            interval = `${intervalMinutes}m`;
+          }
+          
+          // Position interval label between sessions
+          const prevOutX = (prevSession.outTime.getTime() - startTime.getTime()) / timeRange * this.graphWidth;
+          intervalX = (prevOutX + inX) / 2;
+        }
+      }
+      
+      barData.push({
+        inTime: session.inTime,
+        outTime: session.outTime,
+        inX: Math.max(0, Math.min(this.graphWidth, inX)),
+        outX: Math.max(0, Math.min(this.graphWidth, outX)),
+        barY,
+        barHeight,
+        hours: session.hours,
+        inFormatted: session.inFormatted,
+        outFormatted: session.outFormatted,
+        duration: session.duration,
+        sessionNumber: index + 1,
+        interval,
+        intervalX: intervalX ? Math.max(0, Math.min(this.graphWidth, intervalX)) : undefined,
+        barWidth: Math.max(0, barWidth)
+      });
+    });
+
+    return barData;
   }
 
-  get linePath(): string {
-    const points = this.lineGraphData;
-    if (points.length === 0) return '';
-    
-    return points.map((point, index) => {
-      const yPos = this.getHoursPosition(point.hours);
-      if (index === 0) {
-        return `M ${point.x} ${yPos}`;
-      }
-      return `L ${point.x} ${yPos}`;
-    }).join(' ');
+  getTotalHours(): string {
+    if (!this.barGraphData || this.barGraphData.length === 0) return '0h 0m';
+    const total = this.barGraphData.reduce((sum, bar) => sum + bar.hours, 0);
+    const hours = Math.floor(total);
+    const minutes = Math.floor((total - hours) * 60);
+    return `${hours}h ${minutes}m`;
   }
 
   get processedSwipes(): Array<{ x: number; y: number; indicator: number; time: string; date: Date; formattedTime: string; interval?: string; sessionHours?: string }> {
