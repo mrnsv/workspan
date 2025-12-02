@@ -37,11 +37,6 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
   
   private subscriptions = new Subscription();
   private scramblingInterval: any = null;
-  private realTimeUpdateInterval: any = null;
-  
-  // Store base stats from API for real-time calculations
-  private baseActualHours: number = 0;
-  private baseLastSwipeTime: Date | null = null;
   
   constructor(
     private workHoursService: WorkHoursService,
@@ -107,8 +102,6 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
     // Reload data when either selectedDate or selectionMode changes
     if ((changes['selectedDate'] && !changes['selectedDate'].firstChange) ||
         (changes['selectionMode'] && !changes['selectionMode'].firstChange)) {
-      // Stop real-time updates before loading new data
-      this.stopRealTimeUpdates();
       this.loadWorkHours();
     }
   }
@@ -130,10 +123,6 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
         const actualRequiredHoursText = data.display.actualRequiredHours;
         const actualRequiredHours = this.parseHoursFromText(actualRequiredHoursText);
         
-        // Store base values for real-time calculations
-        this.baseActualHours = data.stats.actualHours;
-        this.baseLastSwipeTime = this.getLastSwipeTime(data);
-        
         const stats = {
           actualHours: data.stats.actualHours,
           actualRequiredHours: actualRequiredHours,
@@ -143,9 +132,6 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
           completionPercentage: data.stats.completionPercentage
         };
         this.workHoursStats = stats;
-        
-        // Start real-time updates after data is loaded
-        this.startRealTimeUpdates();
         
         // Trigger change detection to ensure UI updates
         this.cdr.detectChanges();
@@ -492,157 +478,7 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnDestroy(): void {
     this.stopScrambling();
-    this.stopRealTimeUpdates();
     this.subscriptions.unsubscribe();
-  }
-  
-  /**
-   * Get the last swipe time from the work hours data
-   */
-  private getLastSwipeTime(data: UnifiedWorkHoursResponse): Date | null {
-    if (!data.allSwipes || data.allSwipes.length === 0) {
-      return null;
-    }
-    
-    // Get the most recent swipe
-    const lastSwipe = data.allSwipes[data.allSwipes.length - 1];
-    if (!lastSwipe || !lastSwipe.time) {
-      return null;
-    }
-    
-    try {
-      return this.parseLocalizedDateString(lastSwipe.time);
-    } catch (error) {
-      console.error('Error parsing last swipe time:', error);
-      return null;
-    }
-  }
-  
-  /**
-   * Start real-time updates for stats
-   */
-  private startRealTimeUpdates(): void {
-    this.stopRealTimeUpdates(); // Clear any existing interval
-    
-    // Check if today is in the selected date range
-    const today = new Date();
-    const selectedDateStr = this.workHoursService.formatDate(this.selectedDate);
-    const todayStr = this.workHoursService.formatDate(today);
-    
-    let isTodayInRange = false;
-    
-    if (this.selectionMode === 'day') {
-      isTodayInRange = selectedDateStr === todayStr;
-    } else if (this.selectionMode === 'week' || this.selectionMode === 'month') {
-      // For week/month, check if today is within the range
-      // The API response should have startDate and endDate, but we can also check enhancedCalculation
-      if (this.workHoursData?.enhancedCalculation?.currentDateInRange) {
-        isTodayInRange = true;
-      } else {
-        // Fallback: check if selected date is today (for week/month, this means today is in the range)
-        // This is a simple check - in practice, the API should provide currentDateInRange
-        isTodayInRange = selectedDateStr === todayStr || 
-                        (this.workHoursData?.date && this.workHoursData.date <= todayStr);
-      }
-    }
-    
-    if (!isTodayInRange) {
-      // Not viewing a period that includes today, no real-time updates needed
-      return;
-    }
-    
-    // Only start real-time updates if user is currently working
-    if (!this.workHoursData?.sessions.isCurrentlyWorking) {
-      return;
-    }
-    
-    // Update immediately
-    this.updateRealTimeStats();
-    
-    // Update every second for smooth real-time updates
-    this.realTimeUpdateInterval = setInterval(() => {
-      this.updateRealTimeStats();
-    }, 1000);
-  }
-  
-  /**
-   * Stop real-time updates
-   */
-  private stopRealTimeUpdates(): void {
-    if (this.realTimeUpdateInterval) {
-      clearInterval(this.realTimeUpdateInterval);
-      this.realTimeUpdateInterval = null;
-    }
-  }
-  
-  /**
-   * Calculate and update real-time stats
-   */
-  private updateRealTimeStats(): void {
-    if (!this.workHoursData || !this.workHoursStats) {
-      return;
-    }
-    
-    // Only update if currently working
-    if (!this.workHoursData.sessions.isCurrentlyWorking) {
-      // If user stopped working, recalculate one final time and stop updates
-      this.stopRealTimeUpdates();
-      return;
-    }
-    
-    // Calculate elapsed time since last swipe
-    let elapsedHours = 0;
-    if (this.baseLastSwipeTime) {
-      const now = new Date();
-      const elapsedMs = now.getTime() - this.baseLastSwipeTime.getTime();
-      elapsedHours = elapsedMs / (1000 * 60 * 60); // Convert to hours
-    }
-    
-    // Calculate current actual hours (base + elapsed)
-    const currentActualHours = this.baseActualHours + elapsedHours;
-    
-    // Get required hours
-    const requiredHours = this.workHoursStats.actualRequiredHours;
-    
-    // Recalculate shortfall and excess
-    const shortfallHours = Math.max(0, requiredHours - currentActualHours);
-    const excessHours = Math.max(0, currentActualHours - requiredHours);
-    
-    // Recalculate completion status
-    const isComplete = currentActualHours >= requiredHours;
-    const completionPercentage = requiredHours > 0 
-      ? Math.min(100, (currentActualHours / requiredHours) * 100) 
-      : 100;
-    
-    // Calculate WTE (When To Exit) - achievement time
-    let achievementTime: string | null = null;
-    if (!isComplete && this.baseLastSwipeTime) {
-      const hoursRemaining = requiredHours - currentActualHours;
-      if (hoursRemaining > 0) {
-        const now = new Date();
-        const achievementDate = new Date(now.getTime() + (hoursRemaining * 60 * 60 * 1000));
-        // Format as ISO string for consistency with API format
-        achievementTime = achievementDate.toISOString();
-      }
-    }
-    
-    // Update stats
-    this.workHoursStats = {
-      actualHours: currentActualHours,
-      actualRequiredHours: requiredHours,
-      shortfallHours,
-      excessHours,
-      isComplete,
-      completionPercentage
-    };
-    
-    // Update enhanced calculation achievement time if it exists
-    if (this.workHoursData.enhancedCalculation) {
-      this.workHoursData.enhancedCalculation.achievementTime = achievementTime;
-    }
-    
-    // Trigger change detection
-    this.cdr.detectChanges();
   }
 
   // Graph properties
