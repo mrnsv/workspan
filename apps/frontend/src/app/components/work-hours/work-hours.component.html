@@ -66,43 +66,23 @@
       </div>
     </div>
 
-    <!-- Swipe Timeline Graph -->
+    <!-- Activity Timeline -->
     <div class="cp-card graph-container-compact">
       <div class="graph-header-compact">
         <mat-icon class="graph-icon-compact">timeline</mat-icon>
-        <span class="graph-title-compact">SWIPE TIMELINE</span>
+        <span class="graph-title-compact">ACTIVITY TIMELINE</span>
+        <button mat-icon-button 
+                class="scroll-to-now-btn"
+                (click)="scrollToCurrentTime()"
+                *ngIf="processedSwipes && processedSwipes.length > 0"
+                matTooltip="Scroll to current time">
+          <mat-icon>my_location</mat-icon>
+        </button>
       </div>
-      <div class="graph-content-compact" *ngIf="barGraphData && barGraphData.length > 0">
+      <div class="timeline-scroll-container" 
+           #timelineContainer
+           *ngIf="processedSwipes && processedSwipes.length > 0">
         <svg class="swipe-timeline-graph" [attr.viewBox]="'0 0 ' + graphWidth + ' ' + graphHeight" preserveAspectRatio="none">
-          <!-- Gradient definitions for bars -->
-          <defs>
-            <linearGradient id="barGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" style="stop-color:var(--cp-success);stop-opacity:0.9" />
-              <stop offset="100%" style="stop-color:var(--cp-success);stop-opacity:0.6" />
-            </linearGradient>
-            <filter id="barShadow">
-              <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.3"/>
-            </filter>
-          </defs>
-          
-          <!-- Y-axis grid lines (hours) -->
-          <g class="hours-grid">
-            <line *ngFor="let hour of hourScale" 
-                  [attr.x1]="0" 
-                  [attr.y1]="getHoursPosition(hour)" 
-                  [attr.x2]="graphWidth" 
-                  [attr.y2]="getHoursPosition(hour)"
-                  class="grid-line-horizontal"/>
-          </g>
-          
-          <!-- Y-axis labels (hours) -->
-          <g class="hours-labels">
-            <text *ngFor="let hour of hourScale" 
-                  [attr.x]="5" 
-                  [attr.y]="getHoursPosition(hour) + 4"
-                  class="hours-label">{{ hour }}h</text>
-          </g>
-          
           <!-- X-axis grid lines (time) -->
           <g class="time-grid">
             <line *ngFor="let hour of timeHours" 
@@ -122,124 +102,200 @@
                   text-anchor="middle">{{ formatHourLabel(hour) }}</text>
           </g>
           
-          <!-- Interval labels (between sessions) -->
-          <g class="interval-labels">
-            <g *ngFor="let bar of barGraphData">
-              <g *ngIf="bar.interval && bar.intervalX">
-                <line [attr.x1]="bar.intervalX"
-                      [attr.y1]="graphHeight - 30"
-                      [attr.x2]="bar.intervalX"
-                      [attr.y2]="graphHeight - 20"
-                      class="interval-marker"/>
-                <text [attr.x]="bar.intervalX"
-                      [attr.y]="graphHeight - 35"
-                      class="interval-label"
-                      text-anchor="middle">{{ bar.interval }}</text>
+          <!-- Main timeline line -->
+          <line [attr.x1]="0"
+                [attr.y1]="graphHeight / 2"
+                [attr.x2]="graphWidth"
+                [attr.y2]="graphHeight / 2"
+                class="timeline-base-line"/>
+          
+          <!-- Activity segments (working periods) -->
+          <g class="activity-segments">
+            <line *ngFor="let segment of activitySegments"
+                  [attr.x1]="segment.startX"
+                  [attr.y1]="graphHeight / 2"
+                  [attr.x2]="segment.endX"
+                  [attr.y2]="graphHeight / 2"
+                  class="activity-segment-line"/>
+          </g>
+          
+          <!-- Hours labels between swipes -->
+          <g class="hours-labels-between">
+            <g *ngFor="let swipe of processedSwipes; let i = index">
+              <!-- IN hours: between IN and OUT (show after OUT swipe) -->
+              <g *ngIf="swipe.indicator === 0 && swipe.sessionHours && i > 0">
+                <text [attr.x]="(processedSwipes[i-1].x + swipe.x) / 2"
+                      [attr.y]="graphHeight / 2 - 25"
+                      class="hours-between-label hours-in-label"
+                      text-anchor="middle">{{ swipe.sessionHours }}</text>
+              </g>
+              <!-- OUT hours: between OUT and IN (show after IN swipe) -->
+              <g *ngIf="swipe.indicator === 1 && swipe.sessionHours && i > 0">
+                <text [attr.x]="(processedSwipes[i-1].x + swipe.x) / 2"
+                      [attr.y]="graphHeight / 2 + 25"
+                      class="hours-between-label hours-out-label"
+                      text-anchor="middle">{{ swipe.sessionHours }}</text>
               </g>
             </g>
           </g>
           
-          <!-- Work session bars -->
-          <g class="work-bars">
-            <g *ngFor="let bar of barGraphData; let i = index">
-              <!-- Bar shadow -->
-              <rect [attr.x]="bar.inX + 2"
-                    [attr.y]="bar.barY + 2"
-                    [attr.width]="bar.barWidth"
-                    [attr.height]="bar.barHeight"
-                    class="bar-shadow"
-                    [attr.data-session]="i"/>
+          <!-- Swipe markers with stick figures -->
+          <g class="swipe-markers">
+            <g *ngFor="let swipe of processedSwipes; let i = index"
+               (mouseenter)="onSwipeHover(swipe, $event)"
+               (mouseleave)="onSwipeLeave()">
               
-              <!-- Main bar -->
-              <rect [attr.x]="bar.inX"
-                    [attr.y]="bar.barY"
-                    [attr.width]="bar.barWidth"
-                    [attr.height]="bar.barHeight"
-                    class="session-bar"
-                    fill="url(#barGradient)"
-                    filter="url(#barShadow)"
-                    [attr.data-session]="i"/>
-              
-              <!-- Bar border -->
-              <rect [attr.x]="bar.inX"
-                    [attr.y]="bar.barY"
-                    [attr.width]="bar.barWidth"
-                    [attr.height]="bar.barHeight"
-                    class="bar-border"
-                    fill="none"
-                    [attr.data-session]="i"/>
-              
-              <!-- Session number badge -->
-              <circle [attr.cx]="bar.inX + 15"
-                      [attr.cy]="bar.barY + 15"
-                      [attr.r]="12"
-                      class="session-badge"/>
-              <text [attr.x]="bar.inX + 15"
-                    [attr.y]="bar.barY + 19"
-                    class="session-number"
-                    text-anchor="middle">{{ bar.sessionNumber }}</text>
-              
-              <!-- Duration label (centered on bar) -->
-              <text [attr.x]="bar.inX + bar.barWidth / 2"
-                    [attr.y]="bar.barY + bar.barHeight / 2 + 5"
-                    class="bar-duration-label"
-                    text-anchor="middle">{{ bar.duration }}</text>
-              
-              <!-- IN time label -->
-              <g class="bar-time-label-group">
-                <rect [attr.x]="bar.inX - 30"
-                      [attr.y]="bar.barY - 28"
-                      [attr.width]="60"
-                      [attr.height]="24"
-                      class="time-label-bg time-label-in-bg"
-                      rx="4"/>
-                <text [attr.x]="bar.inX"
-                      [attr.y]="bar.barY - 15"
-                      class="bar-time-label bar-time-in"
-                      text-anchor="middle">IN</text>
-                <text [attr.x]="bar.inX"
-                      [attr.y]="bar.barY - 4"
-                      class="bar-time-value bar-time-in-value"
-                      text-anchor="middle">{{ bar.inFormatted }}</text>
+              <!-- Stick figure for IN (walking in door) -->
+              <g *ngIf="swipe.indicator === 1" class="stick-figure-in">
+                <!-- Door frame -->
+                <rect [attr.x]="swipe.x - 15"
+                      [attr.y]="graphHeight / 2 - 40"
+                      [attr.width]="30"
+                      [attr.height]="50"
+                      class="door-frame"
+                      fill="none"
+                      stroke="var(--cp-border)"
+                      stroke-width="2"/>
+                <line [attr.x1]="swipe.x - 15"
+                      [attr.y1]="graphHeight / 2 - 10"
+                      [attr.x2]="swipe.x + 15"
+                      [attr.y2]="graphHeight / 2 - 10"
+                      class="door-threshold"
+                      stroke="var(--cp-border)"
+                      stroke-width="2"/>
+                
+                <!-- Stick figure body -->
+                <circle [attr.cx]="swipe.x"
+                        [attr.cy]="graphHeight / 2 - 30"
+                        [attr.r]="4"
+                        class="stick-head"
+                        fill="var(--cp-success)"/>
+                <line [attr.x1]="swipe.x"
+                      [attr.y1]="graphHeight / 2 - 26"
+                      [attr.x2]="swipe.x"
+                      [attr.y2]="graphHeight / 2 - 10"
+                      class="stick-body"
+                      stroke="var(--cp-success)"
+                      stroke-width="2"/>
+                <line [attr.x1]="swipe.x"
+                      [attr.y1]="graphHeight / 2 - 18"
+                      [attr.x2]="swipe.x - 6"
+                      [attr.y2]="graphHeight / 2 - 10"
+                      class="stick-arm-left"
+                      stroke="var(--cp-success)"
+                      stroke-width="2"/>
+                <line [attr.x1]="swipe.x"
+                      [attr.y1]="graphHeight / 2 - 18"
+                      [attr.x2]="swipe.x + 6"
+                      [attr.y2]="graphHeight / 2 - 10"
+                      class="stick-arm-right"
+                      stroke="var(--cp-success)"
+                      stroke-width="2"/>
+                <line [attr.x1]="swipe.x"
+                      [attr.y1]="graphHeight / 2 - 10"
+                      [attr.x2]="swipe.x - 5"
+                      [attr.y2]="graphHeight / 2"
+                      class="stick-leg-left"
+                      stroke="var(--cp-success)"
+                      stroke-width="2"/>
+                <line [attr.x1]="swipe.x"
+                      [attr.y1]="graphHeight / 2 - 10"
+                      [attr.x2]="swipe.x + 5"
+                      [attr.y2]="graphHeight / 2"
+                      class="stick-leg-right"
+                      stroke="var(--cp-success)"
+                      stroke-width="2"/>
               </g>
               
-              <!-- OUT time label -->
-              <g class="bar-time-label-group">
-                <rect [attr.x]="bar.outX - 30"
-                      [attr.y]="bar.barY - 28"
-                      [attr.width]="60"
-                      [attr.height]="24"
-                      class="time-label-bg time-label-out-bg"
-                      rx="4"/>
-                <text [attr.x]="bar.outX"
-                      [attr.y]="bar.barY - 15"
-                      class="bar-time-label bar-time-out"
-                      text-anchor="middle">OUT</text>
-                <text [attr.x]="bar.outX"
-                      [attr.y]="bar.barY - 4"
-                      class="bar-time-value bar-time-out-value"
-                      text-anchor="middle">{{ bar.outFormatted }}</text>
+              <!-- Stick figure for OUT (walking out door) -->
+              <g *ngIf="swipe.indicator === 0" class="stick-figure-out">
+                <!-- Door frame -->
+                <rect [attr.x]="swipe.x - 15"
+                      [attr.y]="graphHeight / 2 + 10"
+                      [attr.width]="30"
+                      [attr.height]="50"
+                      class="door-frame"
+                      fill="none"
+                      stroke="var(--cp-border)"
+                      stroke-width="2"/>
+                <line [attr.x1]="swipe.x - 15"
+                      [attr.y1]="graphHeight / 2 + 10"
+                      [attr.x2]="swipe.x + 15"
+                      [attr.y2]="graphHeight / 2 + 10"
+                      class="door-threshold"
+                      stroke="var(--cp-border)"
+                      stroke-width="2"/>
+                
+                <!-- Stick figure body -->
+                <circle [attr.cx]="swipe.x"
+                        [attr.cy]="graphHeight / 2 + 30"
+                        [attr.r]="4"
+                        class="stick-head"
+                        fill="var(--cp-secondary)"/>
+                <line [attr.x1]="swipe.x"
+                      [attr.y1]="graphHeight / 2 + 34"
+                      [attr.x2]="swipe.x"
+                      [attr.y2]="graphHeight / 2 + 50"
+                      class="stick-body"
+                      stroke="var(--cp-secondary)"
+                      stroke-width="2"/>
+                <line [attr.x1]="swipe.x"
+                      [attr.y1]="graphHeight / 2 + 42"
+                      [attr.x2]="swipe.x - 6"
+                      [attr.y2]="graphHeight / 2 + 50"
+                      class="stick-arm-left"
+                      stroke="var(--cp-secondary)"
+                      stroke-width="2"/>
+                <line [attr.x1]="swipe.x"
+                      [attr.y1]="graphHeight / 2 + 42"
+                      [attr.x2]="swipe.x + 6"
+                      [attr.y2]="graphHeight / 2 + 50"
+                      class="stick-arm-right"
+                      stroke="var(--cp-secondary)"
+                      stroke-width="2"/>
+                <line [attr.x1]="swipe.x"
+                      [attr.y1]="graphHeight / 2 + 50"
+                      [attr.x2]="swipe.x - 5"
+                      [attr.y2]="graphHeight / 2 + 60"
+                      class="stick-leg-left"
+                      stroke="var(--cp-secondary)"
+                      stroke-width="2"/>
+                <line [attr.x1]="swipe.x"
+                      [attr.y1]="graphHeight / 2 + 50"
+                      [attr.x2]="swipe.x + 5"
+                      [attr.y2]="graphHeight / 2 + 60"
+                      class="stick-leg-right"
+                      stroke="var(--cp-secondary)"
+                      stroke-width="2"/>
               </g>
-              
-              <!-- Hours worked indicator -->
-              <text [attr.x]="bar.inX + bar.barWidth / 2"
-                    [attr.y]="bar.barY - 5"
-                    class="bar-hours-indicator"
-                    text-anchor="middle">{{ bar.hours.toFixed(1) }}h</text>
             </g>
+          </g>
+          
+          <!-- Tooltip -->
+          <g *ngIf="hoveredSwipe" class="tooltip-group">
+            <rect [attr.x]="hoveredSwipe.x - 40"
+                  [attr.y]="hoveredSwipe.y - 70"
+                  [attr.width]="80"
+                  [attr.height]="30"
+                  class="tooltip-bg"
+                  rx="4"/>
+            <text [attr.x]="hoveredSwipe.x"
+                  [attr.y]="hoveredSwipe.y - 52"
+                  class="tooltip-type"
+                  text-anchor="middle">{{ hoveredSwipe.type }}</text>
+            <text [attr.x]="hoveredSwipe.x"
+                  [attr.y]="hoveredSwipe.y - 40"
+                  class="tooltip-time"
+                  text-anchor="middle">{{ hoveredSwipe.time }}</text>
           </g>
         </svg>
       </div>
-      <div class="graph-legend-compact" *ngIf="barGraphData && barGraphData.length > 0">
-        <div class="legend-item">
-          <div class="legend-marker session-bar-sample"></div>
-          <span>WORK SESSIONS</span>
-        </div>
+      <div class="graph-legend-compact" *ngIf="processedSwipes && processedSwipes.length > 0">
         <div class="legend-item">
           <span class="legend-text">Total: {{ getTotalHours() }}</span>
         </div>
       </div>
-      <div class="no-data-compact" *ngIf="!barGraphData || barGraphData.length === 0">
+      <div class="no-data-compact" *ngIf="!processedSwipes || processedSwipes.length === 0">
         <mat-icon class="no-data-icon-compact">timeline</mat-icon>
         <span class="no-data-text-compact">NO DATA TO DISPLAY</span>
       </div>

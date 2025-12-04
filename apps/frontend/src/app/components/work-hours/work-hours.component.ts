@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, OnDestroy, ChangeDetectorRef, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { Observable, Subscription, combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { WorkHoursService } from '../../services/work-hours.service';
@@ -11,7 +11,7 @@ import { TimePeriod } from '../swipe-data/swipe-data.component';
   templateUrl: './work-hours.component.html',
   styleUrls: ['./work-hours.component.scss']
 })
-export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
+export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy, AfterViewInit {
   @Input() selectedDate!: Date;
   @Input() selectionMode: TimePeriod = 'day';
   
@@ -98,11 +98,18 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
     this.loadWorkHours();
   }
 
+  ngAfterViewInit() {
+    // Scroll to current time after view initializes
+    setTimeout(() => this.scrollToCurrentTime(), 100);
+  }
+
   ngOnChanges(changes: SimpleChanges) {
     // Reload data when either selectedDate or selectionMode changes
     if ((changes['selectedDate'] && !changes['selectedDate'].firstChange) ||
         (changes['selectionMode'] && !changes['selectionMode'].firstChange)) {
       this.loadWorkHours();
+      // Scroll to current time after data loads
+      setTimeout(() => this.scrollToCurrentTime(), 200);
     }
   }
 
@@ -135,6 +142,9 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
         
         // Trigger change detection to ensure UI updates
         this.cdr.detectChanges();
+        
+        // Scroll to current time after data loads
+        setTimeout(() => this.scrollToCurrentTime(), 300);
       },
       error: (error) => {
         console.error('Error loading unified work hours:', error);
@@ -482,10 +492,15 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   // Graph properties
-  graphWidth: number = 800;
-  graphHeight: number = 200;
+  graphWidth: number = 2400; // Wider timeline for better detail
+  graphHeight: number = 150; // Reduced height for cleaner look
   timeHours: number[] = [];
   hourScale: number[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  
+  @ViewChild('timelineContainer', { static: false }) timelineContainer!: ElementRef;
+  
+  // Tooltip state
+  hoveredSwipe: { x: number; y: number; time: string; type: 'IN' | 'OUT' } | null = null;
 
   get rawSwipes(): SwipeData[] | null {
     return this.workHoursData?.allSwipes || null;
@@ -719,11 +734,26 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   getTotalHours(): string {
-    if (!this.barGraphData || this.barGraphData.length === 0) return '0h 0m';
-    const total = this.barGraphData.reduce((sum, bar) => sum + bar.hours, 0);
-    const hours = Math.floor(total);
-    const minutes = Math.floor((total - hours) * 60);
-    return `${hours}h ${minutes}m`;
+    // Calculate from activity segments (preferred for linear timeline)
+    if (this.activitySegments && this.activitySegments.length > 0) {
+      const totalMs = this.activitySegments.reduce((sum, segment) => {
+        return sum + (segment.endTime.getTime() - segment.startTime.getTime());
+      }, 0);
+      const totalHours = totalMs / (1000 * 60 * 60);
+      const hours = Math.floor(totalHours);
+      const minutes = Math.floor((totalHours - hours) * 60);
+      return `${hours}h ${minutes}m`;
+    }
+    
+    // Fallback to barGraphData if available
+    if (this.barGraphData && this.barGraphData.length > 0) {
+      const total = this.barGraphData.reduce((sum, bar) => sum + bar.hours, 0);
+      const hours = Math.floor(total);
+      const minutes = Math.floor((total - hours) * 60);
+      return `${hours}h ${minutes}m`;
+    }
+    
+    return '0h 0m';
   }
 
   get processedSwipes(): Array<{ x: number; y: number; indicator: number; time: string; date: Date; formattedTime: string; interval?: string; sessionHours?: string }> {
@@ -779,12 +809,15 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     // Process swipes to get x/y coordinates with additional info
+    // Linear timeline: all swipes on a single horizontal line (center of graph)
+    const timelineY = this.graphHeight / 2;
+    
     return parsedSwipes.map((item, index) => {
       try {
         const swipeDate = item.date;
         const timeOffset = swipeDate.getTime() - startTime.getTime();
         const x = (timeOffset / timeRange) * this.graphWidth;
-        const y = item.swipe.indicator === 1 ? 20 : this.graphHeight - 20; // IN at top, OUT at bottom
+        const y = timelineY; // All swipes on the same horizontal line
         
         // Format time for display (extract time part)
         const formattedTime = this.formatRawSwipeTime(item.swipe.time);
@@ -805,20 +838,39 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
           }
         }
         
-        // Calculate session hours if this is an OUT swipe
-        let sessionHours: string | undefined;
-        if (item.swipe.indicator === 0 && index > 0) {
-          // Find the previous IN swipe
-          for (let i = index - 1; i >= 0; i--) {
-            if (parsedSwipes[i].swipe.indicator === 1) {
-              const inTime = parsedSwipes[i].date;
-              const outTime = swipeDate;
-              const sessionMs = outTime.getTime() - inTime.getTime();
-              const sessionMinutes = Math.floor(sessionMs / 60000);
-              const sessionHoursNum = Math.floor(sessionMinutes / 60);
-              const sessionMins = sessionMinutes % 60;
-              sessionHours = `${sessionHoursNum}h ${sessionMins}m`;
-              break;
+        // Calculate hours between swipes
+        let hoursBetween: string | undefined;
+        
+        if (item.swipe.indicator === 1) {
+          // IN swipe - calculate hours from previous OUT (if exists)
+          if (index > 0) {
+            for (let i = index - 1; i >= 0; i--) {
+              if (parsedSwipes[i].swipe.indicator === 0) {
+                const outTime = parsedSwipes[i].date;
+                const inTime = swipeDate;
+                const hoursMs = inTime.getTime() - outTime.getTime();
+                const hoursMinutes = Math.floor(hoursMs / 60000);
+                const hoursNum = Math.floor(hoursMinutes / 60);
+                const mins = hoursMinutes % 60;
+                hoursBetween = `${hoursNum}h ${mins}m`;
+                break;
+              }
+            }
+          }
+        } else {
+          // OUT swipe - calculate hours from previous IN
+          if (index > 0) {
+            for (let i = index - 1; i >= 0; i--) {
+              if (parsedSwipes[i].swipe.indicator === 1) {
+                const inTime = parsedSwipes[i].date;
+                const outTime = swipeDate;
+                const hoursMs = outTime.getTime() - inTime.getTime();
+                const hoursMinutes = Math.floor(hoursMs / 60000);
+                const hoursNum = Math.floor(hoursMinutes / 60);
+                const mins = hoursMinutes % 60;
+                hoursBetween = `${hoursNum}h ${mins}m`;
+                break;
+              }
             }
           }
         }
@@ -831,12 +883,96 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
           date: swipeDate,
           formattedTime,
           interval,
-          sessionHours
+          sessionHours: hoursBetween // Reuse sessionHours field for hours between
         };
       } catch (error) {
         return null;
       }
     }).filter(swipe => swipe !== null) as Array<{ x: number; y: number; indicator: number; time: string; date: Date; formattedTime: string; interval?: string; sessionHours?: string }>;
+  }
+
+  // Get activity segments (working periods) for linear timeline
+  get activitySegments(): Array<{ startX: number; endX: number; startTime: Date; endTime: Date; duration: string }> {
+    if (!this.rawSwipes || this.rawSwipes.length === 0) {
+      return [];
+    }
+
+    // Parse all swipe times
+    const swipeTimes: Date[] = [];
+    const parsedSwipes: Array<{ swipe: SwipeData; date: Date }> = [];
+    
+    this.rawSwipes.forEach(swipe => {
+      try {
+        const date = this.parseLocalizedDateString(swipe.time);
+        swipeTimes.push(date);
+        parsedSwipes.push({ swipe, date });
+      } catch (error) {
+        console.error('Error parsing swipe time:', error);
+      }
+    });
+
+    if (swipeTimes.length === 0) {
+      return [];
+    }
+
+    const minTime = new Date(Math.min(...swipeTimes.map(d => d.getTime())));
+    const maxTime = new Date(Math.max(...swipeTimes.map(d => d.getTime())));
+    
+    const minHour = minTime.getHours();
+    const maxHour = maxTime.getHours();
+    const startHour = Math.max(0, Math.min(6, minHour - 1));
+    const endHour = Math.min(23, Math.max(22, maxHour + 2));
+    
+    const startTime = new Date(minTime);
+    startTime.setHours(startHour, 0, 0, 0);
+    const endTime = new Date(maxTime);
+    endTime.setHours(endHour, 0, 0, 0);
+    
+    const timeRange = endTime.getTime() - startTime.getTime();
+    
+    if (timeRange <= 0) {
+      return [];
+    }
+
+    // Find IN/OUT pairs to create activity segments
+    const segments: Array<{ startX: number; endX: number; startTime: Date; endTime: Date; duration: string }> = [];
+    let currentInTime: Date | null = null;
+    let currentInSwipe: { swipe: SwipeData; date: Date } | null = null;
+
+    parsedSwipes.forEach((item) => {
+      if (item.swipe.indicator === 1) {
+        // IN swipe - start of activity
+        currentInTime = item.date;
+        currentInSwipe = item;
+      } else if (item.swipe.indicator === 0 && currentInTime) {
+        // OUT swipe - end of activity
+        const inOffset = currentInTime.getTime() - startTime.getTime();
+        const outOffset = item.date.getTime() - startTime.getTime();
+        
+        const startX = (inOffset / timeRange) * this.graphWidth;
+        const endX = (outOffset / timeRange) * this.graphWidth;
+        
+        // Calculate duration
+        const durationMs = item.date.getTime() - currentInTime.getTime();
+        const durationMinutes = Math.floor(durationMs / 60000);
+        const durationHours = Math.floor(durationMinutes / 60);
+        const remainingMinutes = durationMinutes % 60;
+        const duration = `${durationHours}h ${remainingMinutes}m`;
+        
+        segments.push({
+          startX: Math.max(0, Math.min(this.graphWidth, startX)),
+          endX: Math.max(0, Math.min(this.graphWidth, endX)),
+          startTime: currentInTime,
+          endTime: item.date,
+          duration
+        });
+        
+        currentInTime = null;
+        currentInSwipe = null;
+      }
+    });
+
+    return segments;
   }
 
   formatRawSwipeTime(timeString: string): string {
@@ -886,6 +1022,58 @@ export class WorkHoursComponent implements OnInit, OnChanges, OnDestroy {
   getOutMarkerPoints(x: number, y: number): string {
     const size = 8;
     return `${x},${y} ${x - size},${y - size} ${x + size},${y - size}`;
+  }
+
+  scrollToCurrentTime(): void {
+    if (!this.timelineContainer || !this.processedSwipes || this.processedSwipes.length === 0) {
+      return;
+    }
+    
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    // Find the time range from processed swipes
+    const swipeTimes = this.processedSwipes.map(s => s.date.getTime());
+    const minTime = Math.min(...swipeTimes);
+    const maxTime = Math.max(...swipeTimes);
+    
+    // Check if current time is within the swipe range
+    const nowTime = now.getTime();
+    if (nowTime < minTime || nowTime > maxTime) {
+      // If current time is not in range, scroll to the latest swipe
+      const latestSwipe = this.processedSwipes[this.processedSwipes.length - 1];
+      const scrollX = latestSwipe.x - (this.timelineContainer.nativeElement.clientWidth / 2);
+      this.timelineContainer.nativeElement.scrollTo({
+        left: Math.max(0, scrollX),
+        behavior: 'smooth'
+      });
+      return;
+    }
+    
+    // Calculate position for current time
+    const timeRange = maxTime - minTime;
+    const timeOffset = nowTime - minTime;
+    const currentX = (timeOffset / timeRange) * this.graphWidth;
+    
+    // Scroll to center current time
+    const scrollX = currentX - (this.timelineContainer.nativeElement.clientWidth / 2);
+    this.timelineContainer.nativeElement.scrollTo({
+      left: Math.max(0, scrollX),
+      behavior: 'smooth'
+    });
+  }
+
+  onSwipeHover(swipe: any, event: MouseEvent): void {
+    this.hoveredSwipe = {
+      x: swipe.x,
+      y: swipe.y,
+      time: swipe.formattedTime,
+      type: swipe.indicator === 1 ? 'IN' : 'OUT'
+    };
+  }
+
+  onSwipeLeave(): void {
+    this.hoveredSwipe = null;
   }
 
   private parseLocalizedDateString(dateString: string): Date {
